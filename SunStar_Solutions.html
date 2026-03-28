@@ -1,0 +1,1798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SunStar Solutions — Field Force Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<style>
+/* ════════════════════════════════════════════════
+   DESIGN TOKENS
+════════════════════════════════════════════════ */
+:root {
+  --bg:          #06091A;
+  --bg-card:     #0C1229;
+  --bg-hover:    #111A38;
+  --border:      #1A2850;
+  --border-lg:   #243466;
+  --gold:        #EFA800;
+  --gold-lt:     #FFD060;
+  --gold-dim:    rgba(239,168,0,0.12);
+  --gold-glow:   0 0 32px rgba(239,168,0,0.22);
+  --txt:         #F0F4FF;
+  --txt-2:       #7A8DB8;
+  --txt-3:       #3E4E78;
+  --ok:          #1FD17A;
+  --err:         #FF4466;
+  --info:        #4B9FFF;
+  --r:           14px;
+  --r-sm:        9px;
+  --shadow:      0 8px 32px rgba(0,0,0,0.5);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+a{color:inherit;text-decoration:none;}
+button{font-family:'DM Sans',sans-serif;}
+
+/* ════ SCREENS ════ */
+.screen{display:none!important;}
+.screen.on{display:block!important;}
+.flex-screen{display:none!important;}
+.flex-screen.on{display:flex!important;}
+
+/* ════════════════════════════════════════════════
+   SETUP WIZARD (first time)
+════════════════════════════════════════════════ */
+#setupScreen{
+  min-height:100vh;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 30% 60%,rgba(239,168,0,0.07) 0%,transparent 55%),
+             radial-gradient(ellipse at 80% 20%,rgba(75,159,255,0.05) 0%,transparent 50%),
+             var(--bg);
+  padding:20px;position:relative;overflow:hidden;
+}
+#setupScreen::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(239,168,0,0.035) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(239,168,0,0.035) 1px,transparent 1px);
+  background-size:56px 56px;pointer-events:none;
+}
+.setup-card{
+  position:relative;width:100%;max-width:520px;
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:22px;padding:44px 40px;box-shadow:var(--shadow),var(--gold-glow);
+  animation:up .55s ease;
+}
+.setup-step{display:none;} .setup-step.on{display:block;}
+.setup-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);
+  border-radius:20px;padding:5px 14px;font-size:12px;
+  color:var(--gold-lt);letter-spacing:1.5px;text-transform:uppercase;
+  font-weight:600;margin-bottom:20px;
+}
+.setup-dots{display:flex;gap:8px;margin-bottom:32px;}
+.setup-dot{
+  width:28px;height:4px;border-radius:2px;
+  background:var(--border);transition:background .3s;
+}
+.setup-dot.active{background:var(--gold);}
+.setup-h{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--txt);margin-bottom:6px;}
+.setup-sub{font-size:14px;color:var(--txt-2);margin-bottom:28px;line-height:1.6;}
+.setup-note{
+  background:rgba(75,159,255,0.08);border:1px solid rgba(75,159,255,0.2);
+  border-radius:var(--r-sm);padding:14px 16px;font-size:13px;
+  color:var(--info);margin-bottom:20px;line-height:1.6;
+}
+.setup-code{
+  background:rgba(0,0,0,0.4);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:14px 16px;font-family:monospace;
+  font-size:12px;color:var(--gold-lt);white-space:pre-wrap;
+  line-height:1.7;margin-bottom:20px;word-break:break-all;
+}
+.setup-warning{
+  background:rgba(255,68,102,0.08);border:1px solid rgba(255,68,102,0.2);
+  border-radius:var(--r-sm);padding:14px 16px;font-size:13px;
+  color:var(--err);margin-bottom:20px;line-height:1.6;
+}
+
+/* ════════════════════════════════════════════════
+   LOGIN
+════════════════════════════════════════════════ */
+#loginScreen{
+  min-height:100vh;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 25% 55%,rgba(239,168,0,0.07) 0%,transparent 55%),
+             radial-gradient(ellipse at 80% 15%,rgba(75,159,255,0.05) 0%,transparent 50%),
+             var(--bg);
+  padding:20px;position:relative;overflow:hidden;
+}
+#loginScreen::before{
+  content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(239,168,0,0.035) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(239,168,0,0.035) 1px,transparent 1px);
+  background-size:56px 56px;pointer-events:none;
+}
+.login-card{
+  position:relative;width:100%;max-width:420px;
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:22px;padding:48px 40px;box-shadow:var(--shadow),var(--gold-glow);
+  animation:up .55s ease;
+}
+@keyframes up{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
+.login-logo{text-align:center;margin-bottom:40px;}
+.logo-sun{
+  width:68px;height:68px;
+  background:linear-gradient(145deg,var(--gold),#C88A00);
+  border-radius:18px;display:flex;align-items:center;justify-content:center;
+  margin:0 auto 16px;font-size:30px;
+  box-shadow:0 8px 28px rgba(239,168,0,0.35);
+}
+.logo-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--txt);}
+.logo-sub{font-size:11px;color:var(--txt-2);letter-spacing:2.5px;text-transform:uppercase;margin-top:5px;}
+.err-box{
+  background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.3);
+  border-radius:var(--r-sm);padding:12px 16px;color:var(--err);
+  font-size:13px;margin-bottom:20px;display:none;
+}
+/* SHARED FORM */
+.fg{margin-bottom:18px;}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--txt-2);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:7px;}
+.fi,.fsel,.fta{
+  width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:13px 15px;color:var(--txt);
+  font-family:'DM Sans',sans-serif;font-size:15px;outline:none;transition:all .25s;
+}
+.fi:focus,.fsel:focus,.fta:focus{
+  border-color:var(--gold);background:rgba(239,168,0,0.05);
+  box-shadow:0 0 0 3px rgba(239,168,0,0.1);
+}
+.fi::placeholder,.fta::placeholder{color:var(--txt-3);}
+.fsel option{background:#0C1229;}
+.fta{resize:vertical;min-height:90px;}
+.btn{
+  width:100%;background:linear-gradient(145deg,var(--gold),#C88A00);
+  border:none;border-radius:var(--r-sm);padding:15px;color:#000;
+  font-size:15px;font-weight:700;cursor:pointer;transition:all .25s;letter-spacing:.3px;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(239,168,0,0.4);}
+.btn:active{transform:translateY(0);}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none;}
+.btn-ghost{
+  background:transparent;border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:10px 18px;color:var(--txt-2);font-size:13px;font-weight:600;cursor:pointer;
+  transition:all .2s;
+}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim);}
+.btn-danger{
+  background:rgba(255,68,102,0.12);border:1px solid rgba(255,68,102,0.3);
+  border-radius:var(--r-sm);padding:8px 14px;color:var(--err);font-size:13px;
+  font-weight:600;cursor:pointer;transition:all .2s;
+}
+.btn-danger:hover{background:rgba(255,68,102,0.22);}
+
+/* ════════════════════════════════════════════════
+   NAV BAR
+════════════════════════════════════════════════ */
+.nav{
+  height:62px;background:var(--bg-card);border-bottom:1px solid var(--border);
+  padding:0 24px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+}
+.nav-brand{display:flex;align-items:center;gap:11px;}
+.nav-sun{
+  width:36px;height:36px;background:linear-gradient(145deg,var(--gold),#C88A00);
+  border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;
+  box-shadow:0 4px 14px rgba(239,168,0,0.3);
+}
+.nav-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;}
+.nav-right{display:flex;align-items:center;gap:14px;}
+.user-pill{
+  display:flex;align-items:center;gap:9px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:30px;padding:5px 13px 5px 5px;
+}
+.user-av{
+  width:28px;height:28px;background:linear-gradient(145deg,var(--gold),#C88A00);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:800;color:#000;
+}
+.user-nm{font-size:13px;font-weight:500;}
+.btn-out{
+  background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.25);
+  border-radius:var(--r-sm);padding:7px 14px;color:var(--err);font-size:13px;
+  font-weight:600;cursor:pointer;transition:all .2s;
+}
+.btn-out:hover{background:rgba(255,68,102,0.2);}
+
+/* ════════════════════════════════════════════════
+   SALESMAN SCREEN
+════════════════════════════════════════════════ */
+#salesmanScreen{display:none!important;min-height:100vh;}
+#salesmanScreen.on{display:block!important;}
+.sm-wrap{max-width:580px;margin:0 auto;padding:28px 18px;}
+.greet{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;line-height:1.2;}
+.greet span{color:var(--gold);}
+.date-pill{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--gold-dim);border:1px solid rgba(239,168,0,0.25);
+  border-radius:20px;padding:5px 14px;font-size:12px;color:var(--gold-lt);
+  font-weight:600;margin-top:8px;letter-spacing:.5px;
+}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0;}
+.sc{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px 14px;text-align:center;transition:all .25s;
+}
+.sc:hover{border-color:var(--border-lg);transform:translateY(-2px);}
+.sc-val{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--gold);line-height:1;}
+.sc-lbl{font-size:11px;color:var(--txt-2);text-transform:uppercase;letter-spacing:1px;margin-top:5px;}
+.card{
+  background:var(--bg-card);border:1px solid var(--border);
+  border-radius:var(--r);padding:26px;margin-bottom:22px;box-shadow:var(--shadow);
+}
+.card-hd{
+  display:flex;align-items:center;gap:10px;margin-bottom:22px;
+  font-size:15px;font-weight:700;color:var(--txt);
+}
+.card-icon{
+  width:32px;height:32px;background:var(--gold-dim);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+}
+.gps-bar{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(31,209,122,0.07);border:1px solid rgba(31,209,122,0.18);
+  border-radius:var(--r-sm);padding:11px 15px;font-size:13px;color:var(--ok);
+  margin-bottom:18px;
+}
+.gps-bar.err{background:rgba(255,68,102,0.07);border-color:rgba(255,68,102,0.18);color:var(--err);}
+.gps-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
+/* Visit items */
+.visit-item{
+  display:flex;align-items:flex-start;gap:14px;
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 18px;margin-bottom:10px;transition:all .25s;
+  animation:fadeSlide .35s ease;
+}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:translateX(0);}}
+.visit-item:hover{border-color:var(--border-lg);}
+.v-num{
+  width:34px;height:34px;flex-shrink:0;border-radius:50%;
+  background:var(--gold-dim);border:1px solid rgba(239,168,0,0.28);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:800;color:var(--gold);
+}
+.v-outlet{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:4px;}
+.v-remarks{font-size:13px;color:var(--txt-2);margin-bottom:8px;}
+.v-meta{display:flex;gap:14px;font-size:12px;color:var(--txt-3);}
+.empty{text-align:center;padding:48px 20px;color:var(--txt-2);}
+.empty-icon{font-size:44px;margin-bottom:14px;opacity:.4;}
+
+/* ════════════════════════════════════════════════
+   ADMIN SCREEN
+════════════════════════════════════════════════ */
+#adminScreen{display:none!important;min-height:100vh;}
+#adminScreen.on{display:flex!important;flex-direction:column;}
+.admin-body{display:flex;flex:1;}
+/* Sidebar */
+.sidebar{
+  width:226px;flex-shrink:0;background:var(--bg-card);
+  border-right:1px solid var(--border);padding:20px 0;
+  min-height:calc(100vh - 62px);
+}
+.sid-item{
+  display:flex;align-items:center;gap:12px;padding:13px 22px;
+  font-size:14px;font-weight:500;color:var(--txt-2);cursor:pointer;
+  transition:all .2s;border-left:3px solid transparent;
+}
+.sid-item:hover{color:var(--txt);background:rgba(255,255,255,0.03);}
+.sid-item.active{color:var(--gold);background:var(--gold-dim);border-left-color:var(--gold);}
+.sid-icon{font-size:17px;width:20px;text-align:center;}
+/* Main */
+.admin-main{flex:1;padding:28px;overflow-y:auto;min-width:0;}
+.admin-page{display:none;}
+.admin-page.active{display:block;}
+.ph{margin-bottom:26px;}
+.pt{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;}
+.ps{font-size:14px;color:var(--txt-2);margin-top:4px;}
+/* Overview */
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px;margin-bottom:26px;}
+.ov-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
+  padding:22px;position:relative;overflow:hidden;transition:all .25s;
+}
+.ov-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),transparent);
+}
+.ov-card:hover{border-color:var(--border-lg);transform:translateY(-3px);box-shadow:var(--shadow);}
+.ov-icon{font-size:22px;margin-bottom:10px;}
+.ov-val{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:var(--gold);line-height:1;}
+.ov-lbl{font-size:12px;color:var(--txt-2);margin-top:5px;}
+/* Filter bar */
+.fbar{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
+  padding:18px 20px;margin-bottom:18px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;
+}
+.fg-sm{display:flex;flex-direction:column;gap:5px;}
+.fl-sm{font-size:11px;font-weight:700;color:var(--txt-2);text-transform:uppercase;letter-spacing:1px;}
+.fi-sm,.fsel-sm{
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:9px 13px;color:var(--txt);
+  font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:all .25s;
+  min-width:130px;
+}
+.fi-sm:focus,.fsel-sm:focus{border-color:var(--gold);background:rgba(239,168,0,0.05);}
+.fsel-sm option{background:#0C1229;}
+.btn-go{
+  background:linear-gradient(145deg,var(--gold),#C88A00);border:none;
+  border-radius:var(--r-sm);padding:9px 20px;color:#000;font-size:14px;font-weight:700;
+  cursor:pointer;transition:all .25s;align-self:flex-end;white-space:nowrap;
+}
+.btn-go:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(239,168,0,0.35);}
+/* Table */
+.tc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.tc-hd{
+  padding:16px 22px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+}
+.tc-title{font-size:15px;font-weight:700;}
+.tc-acts{display:flex;gap:8px;}
+.btn-exp{
+  display:flex;align-items:center;gap:6px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:8px 15px;color:var(--txt-2);font-size:13px;
+  font-weight:600;cursor:pointer;transition:all .25s;
+}
+.btn-exp:hover{color:var(--gold);border-color:rgba(239,168,0,0.35);background:var(--gold-dim);}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{
+  padding:13px 18px;text-align:left;font-size:11px;font-weight:700;
+  color:var(--txt-3);text-transform:uppercase;letter-spacing:1px;
+  border-bottom:1px solid var(--border);
+}
+.tbl td{
+  padding:13px 18px;font-size:14px;color:var(--txt-2);
+  border-bottom:1px solid rgba(26,40,80,0.5);
+}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,0.02);color:var(--txt);}
+.tbl-name{font-weight:700;color:var(--txt)!important;}
+.pill-ok{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(31,209,122,0.1);border:1px solid rgba(31,209,122,0.2);
+  border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--ok);
+}
+.pill-no{
+  display:inline-flex;align-items:center;gap:4px;
+  background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.2);
+  border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--err);
+}
+/* Attendance calendar */
+.att-cal{
+  display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:18px;
+}
+.att-dh{
+  text-align:center;font-size:10px;font-weight:700;color:var(--txt-3);
+  text-transform:uppercase;letter-spacing:1px;padding:7px 0;
+}
+.att-d{
+  aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-size:13px;font-weight:500;
+  border:1px solid transparent;transition:all .2s;
+}
+.att-d.emp{background:transparent;}
+.att-d.fut{background:rgba(255,255,255,0.02);color:var(--txt-3);}
+.att-d.present{background:rgba(31,209,122,0.1);border-color:rgba(31,209,122,0.22);color:var(--ok);}
+.att-d.absent{background:rgba(255,68,102,0.08);border-color:rgba(255,68,102,0.18);color:var(--err);}
+.att-dn{font-size:13px;font-weight:700;}
+.att-dv{font-size:9px;opacity:.75;margin-top:1px;}
+.att-sum{display:flex;gap:20px;margin-top:14px;flex-wrap:wrap;}
+.att-si{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt-2);}
+.att-dot{width:10px;height:10px;border-radius:50%;}
+/* Map */
+#visitMap{height:480px;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;}
+/* Salesman management */
+.sm-list-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:15px 20px;border-bottom:1px solid var(--border);transition:all .2s;
+}
+.sm-list-item:last-child{border-bottom:none;}
+.sm-list-item:hover{background:rgba(255,255,255,0.02);}
+.sm-av{
+  width:40px;height:40px;border-radius:50%;flex-shrink:0;
+  background:var(--gold-dim);border:1px solid rgba(239,168,0,0.25);
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:800;color:var(--gold);
+}
+.sm-nm{font-size:15px;font-weight:700;color:var(--txt);}
+.sm-em{font-size:12px;color:var(--txt-3);}
+.btn-add{
+  display:inline-flex;align-items:center;gap:7px;
+  background:linear-gradient(145deg,var(--gold),#C88A00);border:none;
+  border-radius:var(--r-sm);padding:11px 18px;color:#000;font-size:14px;
+  font-weight:700;cursor:pointer;transition:all .25s;
+}
+.btn-add:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(239,168,0,0.38);}
+
+/* ════════════════════════════════════════════════
+   SUPER ADMIN SCREEN
+════════════════════════════════════════════════ */
+#superScreen{display:none!important;min-height:100vh;}
+#superScreen.on{display:block!important;}
+.super-wrap{max-width:960px;margin:0 auto;padding:32px 22px;}
+.super-hd{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  margin-bottom:28px;flex-wrap:wrap;gap:14px;
+}
+.co-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-bottom:30px;}
+.co-card{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
+  padding:22px;transition:all .25s;position:relative;overflow:hidden;
+}
+.co-card::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--gold),transparent);
+}
+.co-card:hover{border-color:rgba(239,168,0,0.28);transform:translateY(-3px);box-shadow:var(--shadow);}
+.co-nm{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:5px;}
+.co-meta{font-size:12px;color:var(--txt-3);margin-bottom:14px;}
+.co-stats{display:flex;gap:22px;margin-bottom:16px;}
+.co-sv{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--gold);}
+.co-sl{font-size:11px;color:var(--txt-3);text-transform:uppercase;letter-spacing:.5px;}
+.co-acts{
+  display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--border);
+}
+.btn-sm-g{
+  flex:1;padding:8px;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  color:var(--txt-2);
+}
+.btn-sm-g:hover{color:var(--gold);border-color:rgba(239,168,0,0.3);}
+.btn-sm-d{
+  flex:1;padding:8px;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
+  background:rgba(255,68,102,0.08);border:1px solid rgba(255,68,102,0.2);color:var(--err);
+}
+.btn-sm-d:hover{background:rgba(255,68,102,0.18);}
+
+/* ════════════════════════════════════════════════
+   MODAL
+════════════════════════════════════════════════ */
+.modal-ov{
+  position:fixed;inset:0;background:rgba(6,9,26,0.88);
+  backdrop-filter:blur(5px);z-index:1000;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-ov.on{display:flex;}
+.modal-box{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:20px;
+  padding:34px;width:100%;max-width:460px;box-shadow:var(--shadow);animation:up .3s ease;
+}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;margin-bottom:6px;}
+.modal-sub{font-size:14px;color:var(--txt-2);margin-bottom:26px;line-height:1.5;}
+.modal-acts{display:flex;gap:10px;margin-top:22px;}
+.btn-cancel{
+  flex:1;background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:12px;color:var(--txt-2);font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;
+}
+.btn-cancel:hover{background:rgba(255,255,255,0.08);color:var(--txt);}
+.btn-confirm{
+  flex:2;background:linear-gradient(145deg,var(--gold),#C88A00);border:none;
+  border-radius:var(--r-sm);padding:12px;color:#000;font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;transition:all .25s;
+}
+.btn-confirm:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(239,168,0,0.35);}
+
+/* ════════════════════════════════════════════════
+   LOADING + TOAST
+════════════════════════════════════════════════ */
+.load-ov{
+  position:fixed;inset:0;background:rgba(6,9,26,0.8);z-index:9999;
+  display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+.load-ov.on{display:flex;}
+.spinner{
+  width:42px;height:42px;border:3px solid var(--border);
+  border-top-color:var(--gold);border-radius:50%;animation:spin .75s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.load-txt{font-size:14px;color:var(--txt-2);}
+.toast-wrap{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:9px;}
+.toast{
+  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);
+  padding:13px 18px;font-size:14px;color:var(--txt);box-shadow:var(--shadow);
+  animation:toastIn .3s ease;display:flex;align-items:center;gap:10px;max-width:300px;
+}
+.toast.ok{border-left:3px solid var(--ok);}
+.toast.err{border-left:3px solid var(--err);}
+@keyframes toastIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+
+/* ════ SCROLLBAR ════ */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border-lg);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--gold);}
+
+/* ════ RESPONSIVE ════ */
+@media(max-width:768px){
+  .sidebar{width:56px;}
+  .sid-item span:not(.sid-icon){display:none;}
+  .sid-item{padding:14px;justify-content:center;border-left:none;}
+  .sid-item.active{background:var(--gold-dim);border-left:none;}
+  .admin-main{padding:16px;}
+  .fbar{flex-direction:column;}
+  .fi-sm,.fsel-sm{min-width:100%;width:100%;}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .ov-grid{grid-template-columns:repeat(2,1fr);}
+  .login-card,.setup-card{padding:32px 24px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════
+     SETUP WIZARD (Firebase Config)
+══════════════════════════════════════════════ -->
+<div id="setupScreen" class="flex-screen">
+  <div class="setup-card">
+    <div class="logo-sun" style="margin-bottom:16px;">☀️</div>
+    <div class="logo-title" style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;margin-bottom:4px;">SunStar Solutions</div>
+    <div class="logo-sub" style="font-size:11px;color:var(--txt-2);letter-spacing:2px;text-transform:uppercase;margin-bottom:30px;">Field Force Management</div>
+
+    <div class="setup-dots">
+      <div class="setup-dot active" id="dot1"></div>
+      <div class="setup-dot" id="dot2"></div>
+      <div class="setup-dot" id="dot3"></div>
+      <div class="setup-dot" id="dot4"></div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="setup-step on" id="step1">
+      <div class="setup-badge">🔥 Step 1 of 4</div>
+      <div class="setup-h">Create Firebase Account</div>
+      <div class="setup-sub">Firebase is Google's free database. All your data will be securely stored here.</div>
+      <div class="setup-note">
+        📌 <strong>Steps:</strong><br>
+        1. <strong>console.firebase.google.com</strong> — Go to this link<br>
+        2. Sign in with Gmail<br>
+        3. Click <strong>"Add project"</strong><br>
+        4. Enter project name: <strong>sunstar-solutions</strong><br>
+        5. Disable Google Analytics<br>
+        6. Click <strong>"Create project"</strong>
+      </div>
+      <button class="btn" onclick="goStep(2)">Done! Next Step →</button>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="setup-step" id="step2">
+      <div class="setup-badge">🗄️ Step 2 of 4</div>
+      <div class="setup-h">Enable Database & Auth</div>
+      <div class="setup-sub">Two Firebase services need to be enabled.</div>
+      <div class="setup-note">
+        <strong>Enable Authentication:</strong><br>
+        1. Left menu <strong>Authentication</strong> → Get started<br>
+        2. <strong>Email/Password</strong> → Enable → Save<br><br>
+        <strong>Enable Realtime Database:</strong><br>
+        3. Left menu <strong>Realtime Database</strong> → Create database<br>
+        4. Location: <strong>us-central1</strong> (default)<br>
+        5. <strong>Test mode</strong> — keep this for now → Enable
+      </div>
+      <div class="setup-warning">
+        ⚠️ Database Rules — Go to Rules tab and paste the code below:
+      </div>
+      <div class="setup-code">{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "auth != null && ($uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'super_admin')",
+        ".write": "auth != null && ($uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'super_admin')"
+      }
+    },
+    "companies": {
+      ".read": "auth != null",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'super_admin'"
+    },
+    "visits": {
+      "$cid": {
+        ".read": "auth != null && (root.child('users').child(auth.uid).child('company_id').val() === $cid || root.child('users').child(auth.uid).child('role').val() === 'super_admin' || root.child('users').child(auth.uid).child('role').val() === 'company_admin')",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('company_id').val() === $cid"
+      }
+    }
+  }
+}</div>
+      <button class="btn" onclick="goStep(3)">Done! Next Step →</button>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="setup-step" id="step3">
+      <div class="setup-badge">🔑 Step 3 of 4</div>
+      <div class="setup-h">Get Firebase Config</div>
+      <div class="setup-sub">This config connects your app to Firebase.</div>
+      <div class="setup-note">
+        1. Go to Firebase project<br>
+        2. Project Overview → Click <strong>Web icon (&lt;/&gt;)</strong><br>
+        3. Enter app nickname: <strong>sunstar-web</strong><br>
+        4. Click <strong>Register app</strong><br>
+        5. Copy the <strong>firebaseConfig</strong> object below<br>
+        6. Paste it in the box below
+      </div>
+      <div class="fg">
+        <label class="fl">Firebase Config (paste here)</label>
+        <textarea class="fta" id="configInput" rows="7" placeholder='const firebaseConfig = {
+  apiKey: "AIza...",
+  authDomain: "sunstar-...",
+  databaseURL: "https://sunstar-...",
+  projectId: "sunstar-...",
+  ...
+};'></textarea>
+      </div>
+      <button class="btn" onclick="parseAndSaveConfig()">Save Config →</button>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="setup-step" id="step4">
+      <div class="setup-badge">👑 Step 4 of 4</div>
+      <div class="setup-h">Create Super Admin Account</div>
+      <div class="setup-sub">This is your master account — you can view all companies.</div>
+      <div class="fg">
+        <label class="fl">Your Name</label>
+        <input class="fi" id="saName" placeholder="Your full name">
+      </div>
+      <div class="fg">
+        <label class="fl">Email</label>
+        <input class="fi" id="saEmail" type="email" placeholder="admin@sunstar.com">
+      </div>
+      <div class="fg">
+        <label class="fl">Password (minimum 6 characters)</label>
+        <input class="fi" id="saPass" type="password" placeholder="Enter a strong password">
+      </div>
+      <div id="step4Err" class="err-box"></div>
+      <button class="btn" onclick="createSuperAdmin()">🚀 Launch App!</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     LOGIN SCREEN
+══════════════════════════════════════════════ -->
+<div id="loginScreen" class="flex-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-sun">☀️</div>
+      <div class="logo-title">SunStar Solutions</div>
+      <div class="logo-sub">Field Force Management</div>
+    </div>
+    <div class="err-box" id="loginErr"></div>
+    <div class="fg">
+      <label class="fl">Email</label>
+      <input class="fi" id="loginEmail" type="email" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div class="fg">
+      <label class="fl">Password</label>
+      <input class="fi" id="loginPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <button class="btn" id="loginBtn" onclick="doLogin()">Login</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SALESMAN SCREEN
+══════════════════════════════════════════════ -->
+<div id="salesmanScreen">
+  <!-- nav -->
+  <div class="nav">
+    <div class="nav-brand">
+      <div class="nav-sun">☀️</div>
+      <div class="nav-title">SunStar Solutions</div>
+    </div>
+    <div class="nav-right">
+      <div class="user-pill">
+        <div class="user-av" id="smAv">R</div>
+        <div class="user-nm" id="smNm">Salesman</div>
+      </div>
+      <button class="btn-out" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <!-- content -->
+  <div class="sm-wrap">
+    <div class="greet">Good day, <span id="smGreet">Salesman</span>!</div>
+    <div class="date-pill" id="smDate">📅 Today</div>
+    <div class="stats-row">
+      <div class="sc"><div class="sc-val" id="smTodayCount">0</div><div class="sc-lbl">Today's Visits</div></div>
+      <div class="sc"><div class="sc-val" id="smMonthCount">0</div><div class="sc-lbl">This Month</div></div>
+      <div class="sc"><div class="sc-val" id="smPresent">0</div><div class="sc-lbl">Days Present</div></div>
+    </div>
+    <!-- Submit visit form -->
+    <div class="card">
+      <div class="card-hd"><div class="card-icon">📍</div>Submit New Visit</div>
+      <div id="gpsStatus" class="gps-bar"><div class="gps-dot"></div>GPS ready — Location will be captured</div>
+      <div class="fg">
+        <label class="fl">Outlet Name *</label>
+        <input class="fi" id="outletName" placeholder="Enter the name of the outlet you visited">
+      </div>
+      <div class="fg" style="margin-bottom:20px;">
+        <label class="fl">Remarks</label>
+        <textarea class="fta" id="visitRemarks" placeholder="Enter order, payment, feedback etc..."></textarea>
+      </div>
+      <button class="btn" id="submitBtn" onclick="submitVisit()">✅ Submit Visit</button>
+    </div>
+    <!-- Today's visits -->
+    <div class="card-hd" style="padding:0;margin-bottom:14px;"><div class="card-icon">📋</div>Today's Visits</div>
+    <div id="smVisitList"><div class="empty"><div class="empty-icon">🏪</div>No visits submitted yet</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     COMPANY ADMIN SCREEN
+══════════════════════════════════════════════ -->
+<div id="adminScreen">
+  <!-- nav -->
+  <div class="nav">
+    <div class="nav-brand">
+      <div class="nav-sun">☀️</div>
+      <div class="nav-title">SunStar Solutions</div>
+    </div>
+    <div class="nav-right">
+      <div class="user-pill">
+        <div class="user-av" id="adAv">A</div>
+        <div class="user-nm" id="adNm">Admin</div>
+      </div>
+      <button class="btn-out" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <!-- layout -->
+  <div class="admin-body">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sid-item active" onclick="adminPage('overview',this)"><span class="sid-icon">📊</span><span>Overview</span></div>
+      <div class="sid-item" onclick="adminPage('salesman',this)"><span class="sid-icon">👥</span><span>Salesman</span></div>
+      <div class="sid-item" onclick="adminPage('visits',this)"><span class="sid-icon">📍</span><span>Visit History</span></div>
+      <div class="sid-item" onclick="adminPage('attendance',this)"><span class="sid-icon">📅</span><span>Attendance</span></div>
+      <div class="sid-item" onclick="adminPage('map',this)"><span class="sid-icon">🗺️</span><span>Map View</span></div>
+      <div class="sid-item" onclick="adminPage('export',this)"><span class="sid-icon">📥</span><span>Export</span></div>
+    </div>
+    <!-- Main -->
+    <div class="admin-main">
+
+      <!-- OVERVIEW PAGE -->
+      <div class="admin-page active" id="page-overview">
+        <div class="ph"><div class="pt" id="adCompanyName">Company Dashboard</div><div class="ps">Today's overview</div></div>
+        <div class="ov-grid">
+          <div class="ov-card"><div class="ov-icon">👥</div><div class="ov-val" id="ov-salesmen">0</div><div class="ov-lbl">Total Salesman</div></div>
+          <div class="ov-card"><div class="ov-icon">📍</div><div class="ov-val" id="ov-today">0</div><div class="ov-lbl">Today's Visits</div></div>
+          <div class="ov-card"><div class="ov-icon">✅</div><div class="ov-val" id="ov-present">0</div><div class="ov-lbl">Present Today</div></div>
+          <div class="ov-card"><div class="ov-icon">📆</div><div class="ov-val" id="ov-month">0</div><div class="ov-lbl">This Month Visits</div></div>
+        </div>
+        <!-- Recent activity -->
+        <div class="tc">
+          <div class="tc-hd"><div class="tc-title">⚡ Recent Visits Today</div></div>
+          <table class="tbl">
+            <thead><tr><th>Salesman</th><th>Outlet</th><th>Time</th><th>Remarks</th></tr></thead>
+            <tbody id="recentTbody"><tr><td colspan="4" style="text-align:center;padding:30px;color:var(--txt-3);">No visits today yet</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SALESMAN PAGE -->
+      <div class="admin-page" id="page-salesman">
+        <div class="ph" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;">
+          <div><div class="pt">Salesman Management</div><div class="ps">Add and manage salesman</div></div>
+          <button class="btn-add" onclick="openAddSalesmanModal()">➕ New Salesman</button>
+        </div>
+        <div class="tc" id="smListCard">
+          <div id="smListBody"><div class="empty"><div class="empty-icon">👤</div>No salesman found. Add a new one.</div></div>
+        </div>
+      </div>
+
+      <!-- VISITS PAGE -->
+      <div class="admin-page" id="page-visits">
+        <div class="ph"><div class="pt">Visit History</div><div class="ps">Filter by date range and salesman</div></div>
+        <div class="fbar">
+          <div class="fg-sm"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="vStartDate"></div>
+          <div class="fg-sm"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="vEndDate"></div>
+          <div class="fg-sm"><label class="fl-sm">Salesman</label>
+            <select class="fsel-sm" id="vSalesmanFilter"><option value="">All</option></select>
+          </div>
+          <button class="btn-go" onclick="loadVisits()">🔍 Search</button>
+        </div>
+        <div class="tc">
+          <div class="tc-hd">
+            <div class="tc-title">Visit Records</div>
+            <div class="tc-acts">
+              <button class="btn-exp" onclick="exportVisitExcel()">📊 Excel</button>
+              <button class="btn-exp" onclick="exportVisitPDF()">📄 PDF</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl" id="visitTable">
+              <thead><tr><th>Date</th><th>Salesman</th><th>Outlet</th><th>Time</th><th>Remarks</th></tr></thead>
+              <tbody id="visitTbody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--txt-3);">Apply filter and search</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ATTENDANCE PAGE -->
+      <div class="admin-page" id="page-attendance">
+        <div class="ph"><div class="pt">Attendance</div><div class="ps">Monthly attendance report</div></div>
+        <div class="fbar">
+          <div class="fg-sm"><label class="fl-sm">Month</label>
+            <select class="fsel-sm" id="attMonth">
+              <option value="0">January</option><option value="1">February</option>
+              <option value="2">March</option><option value="3">April</option>
+              <option value="4">May</option><option value="5">June</option>
+              <option value="6">July</option><option value="7">August</option>
+              <option value="8">September</option><option value="9">October</option>
+              <option value="10">November</option><option value="11">December</option>
+            </select>
+          </div>
+          <div class="fg-sm"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="attYear" value="2024" min="2020" max="2030" style="max-width:100px;"></div>
+          <div class="fg-sm"><label class="fl-sm">Salesman</label>
+            <select class="fsel-sm" id="attSalesmanFilter"><option value="">All</option></select>
+          </div>
+          <button class="btn-go" onclick="loadAttendance()">📅 Load</button>
+          <div class="fg-sm" style="margin-left:auto;">
+            <label class="fl-sm">&nbsp;</label>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-exp" onclick="exportAttExcel()">📊 Excel</button>
+              <button class="btn-exp" onclick="exportAttPDF()">📄 PDF</button>
+            </div>
+          </div>
+        </div>
+        <div id="attContent"><div class="empty"><div class="empty-icon">📅</div>Select Month and Year then click Load</div></div>
+      </div>
+
+      <!-- MAP PAGE -->
+      <div class="admin-page" id="page-map">
+        <div class="ph"><div class="pt">Map View</div><div class="ps">View all visit locations on map</div></div>
+        <div class="fbar">
+          <div class="fg-sm"><label class="fl-sm">Date</label><input class="fi-sm" type="date" id="mapDate"></div>
+          <div class="fg-sm"><label class="fl-sm">Salesman</label>
+            <select class="fsel-sm" id="mapSalesmanFilter"><option value="">All</option></select>
+          </div>
+          <button class="btn-go" onclick="loadMap()">🗺️ Show Map</button>
+        </div>
+        <div id="visitMap"></div>
+      </div>
+
+      <!-- EXPORT PAGE -->
+      <div class="admin-page" id="page-export">
+        <div class="ph"><div class="pt">Export Reports</div><div class="ps">Download your data</div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;">
+          <div class="ov-card" style="cursor:default;">
+            <div class="ov-icon">📊</div>
+            <div style="font-size:17px;font-weight:700;margin:12px 0 6px;">Visit History Export</div>
+            <div style="font-size:13px;color:var(--txt-2);margin-bottom:18px;">Export all visits by date range</div>
+            <div class="fbar" style="flex-direction:column;gap:12px;padding:0;border:none;background:transparent;margin-bottom:14px;">
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="exVStart" style="width:100%;min-width:unset;"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="exVEnd" style="width:100%;min-width:unset;"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Salesman</label><select class="fsel-sm" id="exVSalesman" style="width:100%;min-width:unset;"><option value="">All</option></select></div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportVisitExcel('ex')">📊 Excel</button>
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportVisitPDF('ex')">📄 PDF</button>
+            </div>
+          </div>
+          <div class="ov-card" style="cursor:default;">
+            <div class="ov-icon">📅</div>
+            <div style="font-size:17px;font-weight:700;margin:12px 0 6px;">Attendance Export</div>
+            <div style="font-size:13px;color:var(--txt-2);margin-bottom:18px;">Export monthly attendance report</div>
+            <div class="fbar" style="flex-direction:column;gap:12px;padding:0;border:none;background:transparent;margin-bottom:14px;">
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Month</label>
+                <select class="fsel-sm" id="exAttMonth" style="width:100%;min-width:unset;">
+                  <option value="0">January</option><option value="1">February</option>
+                  <option value="2">March</option><option value="3">April</option>
+                  <option value="4">May</option><option value="5">June</option>
+                  <option value="6">July</option><option value="7">August</option>
+                  <option value="8">September</option><option value="9">October</option>
+                  <option value="10">November</option><option value="11">December</option>
+                </select>
+              </div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="exAttYear" value="2024" style="width:100%;min-width:unset;"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Salesman</label><select class="fsel-sm" id="exAttSalesman" style="width:100%;min-width:unset;"><option value="">All</option></select></div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportAttExcel('ex')">📊 Excel</button>
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportAttPDF('ex')">📄 PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SUPER ADMIN SCREEN
+══════════════════════════════════════════════ -->
+<div id="superScreen">
+  <div class="nav">
+    <div class="nav-brand">
+      <div class="nav-sun">☀️</div>
+      <div class="nav-title">SunStar Solutions</div>
+      <div style="margin-left:8px;background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:20px;padding:3px 12px;font-size:11px;color:var(--gold);font-weight:700;letter-spacing:1px;">SUPER ADMIN</div>
+    </div>
+    <div class="nav-right">
+      <div class="user-pill">
+        <div class="user-av" id="saAvNav">S</div>
+        <div class="user-nm" id="saNmNav">Super Admin</div>
+      </div>
+      <button class="btn-out" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="super-wrap">
+    <div class="super-hd">
+      <div><div class="pt">Companies</div><div class="ps">View and manage all companies</div></div>
+      <button class="btn-add" onclick="openAddCompanyModal()">➕ New Company</button>
+    </div>
+    <div class="ov-grid" style="margin-bottom:28px;">
+      <div class="ov-card"><div class="ov-icon">🏢</div><div class="ov-val" id="sa-companies">0</div><div class="ov-lbl">Total Companies</div></div>
+      <div class="ov-card"><div class="ov-icon">👥</div><div class="ov-val" id="sa-salesmen">0</div><div class="ov-lbl">Total Salesman</div></div>
+      <div class="ov-card"><div class="ov-icon">📍</div><div class="ov-val" id="sa-today">0</div><div class="ov-lbl">Today's Total Visits</div></div>
+    </div>
+    <div class="co-grid" id="coGrid"><div class="empty"><div class="empty-icon">🏢</div>No companies found.</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════ -->
+<!-- Add Company Modal -->
+<div class="modal-ov" id="addCompanyModal">
+  <div class="modal-box">
+    <div class="modal-title">🏢 Add New Company</div>
+    <div class="modal-sub">Enter company information and admin login details</div>
+    <div id="acErr" class="err-box"></div>
+    <div class="fg"><label class="fl">Company Name *</label><input class="fi" id="acName" placeholder="e.g. ABC Traders Ltd."></div>
+    <div class="fg"><label class="fl">Admin Email *</label><input class="fi" id="acEmail" type="email" placeholder="admin@company.com"></div>
+    <div class="fg"><label class="fl">Admin Password *</label><input class="fi" id="acPass" type="password" placeholder="Minimum 6 characters"></div>
+    <div class="fg"><label class="fl">Admin's Name *</label><input class="fi" id="acAdminName" placeholder="Admin's full name"></div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('addCompanyModal')">Cancel</button>
+      <button class="btn-confirm" onclick="addCompany()">Create Company</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Salesman Modal -->
+<div class="modal-ov" id="addSalesmanModal">
+  <div class="modal-box">
+    <div class="modal-title">👤 Add New Salesman</div>
+    <div class="modal-sub">Enter salesman information and login details</div>
+    <div id="asErr" class="err-box"></div>
+    <div class="fg"><label class="fl">Salesman's Name *</label><input class="fi" id="asName" placeholder="Salesman's full name"></div>
+    <div class="fg"><label class="fl">Email *</label><input class="fi" id="asEmail" type="email" placeholder="salesman@email.com"></div>
+    <div class="fg"><label class="fl">Password *</label><input class="fi" id="asPass" type="password" placeholder="Minimum 6 characters"></div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('addSalesmanModal')">Cancel</button>
+      <button class="btn-confirm" onclick="addSalesman()">Create Salesman</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div class="modal-ov" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-title">⚠️ Confirm Delete?</div>
+    <div class="modal-sub" id="deleteModalMsg">This action cannot be undone.</div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+      <button class="btn-confirm" style="background:linear-gradient(145deg,var(--err),#cc0033);" id="deleteConfirmBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="load-ov" id="loader">
+  <div class="spinner"></div>
+  <div class="load-txt" id="loaderTxt">Loading...</div>
+</div>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- ══════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+/* ════════════════════════════════════════════════
+   APP STATE & HELPERS
+════════════════════════════════════════════════ */
+let APP = { user:null, userData:null, companyId:null, salesmen:{}, visitCache:{}, mapInstance:null, apiKey:'' };
+
+function show(id){ document.getElementById(id).classList.add('on'); }
+function hide(id){ document.getElementById(id).classList.remove('on'); }
+function showEl(id){ document.getElementById(id).style.display=''; }
+function hideEl(id){ document.getElementById(id).style.display='none'; }
+function hideAll(){ ['setupScreen','loginScreen','salesmanScreen','adminScreen','superScreen'].forEach(hide); }
+
+function loading(txt='Loading...'){ 
+  document.getElementById('loaderTxt').textContent=txt;
+  document.getElementById('loader').classList.add('on');
+}
+function doneLoading(){ document.getElementById('loader').classList.remove('on'); }
+
+function toast(msg,type='ok'){
+  const d=document.createElement('div');
+  d.className=`toast ${type}`;
+  d.innerHTML=(type==='ok'?'✅ ':'❌ ')+msg;
+  document.getElementById('toastWrap').appendChild(d);
+  setTimeout(()=>d.remove(),4000);
+}
+
+function openModal(id){ document.getElementById(id).classList.add('on'); }
+function closeModal(id){ document.getElementById(id).classList.remove('on'); }
+
+function fmtDate(d){ return d.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'}); }
+function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function monthStr(date){ return date.toISOString().split('T')[0].substring(0,7); }
+
+/* ════════════════════════════════════════════════
+   FIREBASE INIT
+════════════════════════════════════════════════ */
+let db, auth, firebase_loaded=false;
+
+function loadFirebase(config){
+  return new Promise((res,rej)=>{
+    if(firebase_loaded){ res(); return; }
+    const s1=document.createElement('script');
+    s1.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js';
+    s1.onload=()=>{
+      const s2=document.createElement('script');
+      s2.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js';
+      s2.onload=()=>{
+        const s3=document.createElement('script');
+        s3.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js';
+        s3.onload=()=>{
+          if(!firebase.apps.length) firebase.initializeApp(config);
+          db=firebase.database();
+          auth=firebase.auth();
+          APP.apiKey=config.apiKey;
+          firebase_loaded=true;
+          res();
+        };
+        document.head.appendChild(s3);
+      };
+      document.head.appendChild(s2);
+    };
+    s1.onerror=rej;
+    document.head.appendChild(s1);
+  });
+}
+
+/* ════════════════════════════════════════════════
+   SETUP WIZARD
+════════════════════════════════════════════════ */
+let currentStep=1;
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function goStep(n){
+  document.getElementById(`step${currentStep}`).classList.remove('on');
+  document.getElementById(`dot${currentStep}`).classList.remove('active');
+  currentStep=n;
+  document.getElementById(`step${n}`).classList.add('on');
+  document.getElementById(`dot${n}`).classList.add('active');
+}
+
+function parseAndSaveConfig(){
+  const raw=document.getElementById('configInput').value.trim();
+  if(!raw){ toast('Please paste Firebase config','err'); return; }
+  try{
+    // extract JSON from the config string
+    const match=raw.match(/\{[\s\S]*\}/);
+    if(!match) throw new Error('Invalid format');
+    const jsonStr=match[0]
+      .replace(/(\w+)\s*:/g,'"$1":')
+      .replace(/:\s*"([^"]*)"/g,':"$1"')
+      .replace(/,\s*\}/g,'}');
+    // simpler approach: eval-style extraction
+    const cfg={};
+    const pairs=raw.match(/(apiKey|authDomain|databaseURL|projectId|storageBucket|messagingSenderId|appId)\s*:\s*["']([^"']+)["']/g);
+    if(!pairs||pairs.length<4) throw new Error('Config fields missing');
+    pairs.forEach(p=>{
+      const [k,v]=p.split(/\s*:\s*/);
+      cfg[k.trim()]=v.replace(/["']/g,'').trim();
+    });
+    if(!cfg.apiKey||!cfg.databaseURL) throw new Error('apiKey or databaseURL not found');
+    localStorage.setItem('ss_config',JSON.stringify(cfg));
+    toast('Config saved ✅');
+    goStep(4);
+  }catch(e){
+    toast('Please paste config correctly. Error: '+e.message,'err');
+  }
+}
+
+async function createSuperAdmin(){
+  const name=document.getElementById('saName').value.trim();
+  const email=document.getElementById('saEmail').value.trim();
+  const pass=document.getElementById('saPass').value;
+  const errEl=document.getElementById('step4Err');
+  errEl.style.display='none';
+  if(!name||!email||!pass){ errEl.textContent='Please fill all fields'; errEl.style.display='block'; return; }
+  if(pass.length<6){ errEl.textContent='Password must be at least 6 characters'; errEl.style.display='block'; return; }
+  
+  loading('Creating Super Admin account...');
+  try{
+    const cfg=JSON.parse(localStorage.getItem('ss_config'));
+    await loadFirebase(cfg);
+    const cred=await auth.createUserWithEmailAndPassword(email,pass);
+    await db.ref(`users/${cred.user.uid}`).set({ name, email, role:'super_admin', created_at:Date.now() });
+    doneLoading();
+    toast('Super Admin created! Launching app...');
+    setTimeout(()=>window.location.reload(),1500);
+  }catch(e){
+    doneLoading();
+    errEl.textContent='Error: '+e.message;
+    errEl.style.display='block';
+  }
+}
+
+/* ════════════════════════════════════════════════
+   APP INIT
+════════════════════════════════════════════════ */
+async function initApp(){
+  const cfg=JSON.stringify({
+    apiKey:"AIzaSyCLXiPHWhgzRAtEBXSl8hZArV-PLxMlvKw",
+    authDomain:"sunstar-solutions.firebaseapp.com",
+    databaseURL:"https://sunstar-solutions-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:"sunstar-solutions",
+    storageBucket:"sunstar-solutions.firebasestorage.app",
+    messagingSenderId:"223023626528",
+    appId:"1:223023626528:web:655c631d5e53c53fbdff45"
+  });
+  localStorage.setItem('ss_config',cfg);
+  if(false){ hide('loginScreen'); show('setupScreen'); return; }
+  
+  try{
+    await loadFirebase(JSON.parse(cfg));
+  }catch(e){
+    show('setupScreen'); return;
+  }
+
+  // Set default dates
+  const today=todayStr();
+  const d=document.getElementById;
+  ['vStartDate','vEndDate','mapDate','exVStart','exVEnd'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.value=today;
+  });
+  const now=new Date();
+  ['attMonth','exAttMonth'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=now.getMonth(); });
+  ['attYear','exAttYear'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=now.getFullYear(); });
+
+  auth.onAuthStateChanged(async user=>{
+    if(!user){ hideAll(); show('loginScreen'); return; }
+    loading('Loading...');
+    try{
+      const snap=await db.ref(`users/${user.uid}`).get();
+      if(!snap.exists()){ await auth.signOut(); hideAll(); show('loginScreen'); doneLoading(); return; }
+      APP.user=user; APP.userData=snap.val();
+      APP.companyId=APP.userData.company_id||null;
+      hideAll();
+      if(APP.userData.role==='super_admin') await initSuperAdmin();
+      else if(APP.userData.role==='company_admin') await initAdmin();
+      else await initSalesman();
+      doneLoading();
+    }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+  });
+}
+
+/* ════════════════════════════════════════════════
+   LOGIN / LOGOUT
+════════════════════════════════════════════════ */
+async function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim();
+  const pass=document.getElementById('loginPass').value;
+  const errEl=document.getElementById('loginErr');
+  const btn=document.getElementById('loginBtn');
+  errEl.style.display='none';
+  if(!email||!pass){ errEl.textContent='Enter email and password'; errEl.style.display='block'; return; }
+  btn.disabled=true; btn.textContent='Logging in...';
+  try{
+    await auth.signInWithEmailAndPassword(email,pass);
+  }catch(e){
+    errEl.textContent='Incorrect email or password';
+    errEl.style.display='block';
+    btn.disabled=false; btn.textContent='Login';
+  }
+}
+
+async function doLogout(){
+  loading('Logging out...');
+  APP={user:null,userData:null,companyId:null,salesmen:{},visitCache:{},mapInstance:null,apiKey:APP.apiKey};
+  await auth.signOut();
+  doneLoading();
+}
+
+/* ════════════════════════════════════════════════
+   CREATE USER VIA REST API (without sign-in)
+════════════════════════════════════════════════ */
+async function createAuthUser(email,pass){
+  const cfg=JSON.parse(localStorage.getItem('ss_config'));
+  const apiKey=cfg.apiKey;
+  const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email,password:pass,returnSecureToken:false})
+  });
+  const data=await res.json();
+  if(data.error) throw new Error(data.error.message);
+  return data.localId;
+}
+
+/* ════════════════════════════════════════════════
+   SUPER ADMIN
+════════════════════════════════════════════════ */
+async function initSuperAdmin(){
+  show('superScreen');
+  document.getElementById('saAvNav').textContent=APP.userData.name[0].toUpperCase();
+  document.getElementById('saNmNav').textContent=APP.userData.name;
+  await loadSuperDashboard();
+}
+
+async function loadSuperDashboard(){
+  loading('Loading companies...');
+  try{
+    const coSnap=await db.ref('companies').get();
+    const companies=coSnap.exists()?coSnap.val():{};
+    const ids=Object.keys(companies);
+    document.getElementById('sa-companies').textContent=ids.length;
+    
+    let totalSalesmen=0, todayVisits=0;
+    const today=todayStr();
+    const grid=document.getElementById('coGrid');
+    
+    if(ids.length===0){ grid.innerHTML='<div class="empty"><div class="empty-icon">🏢</div>No companies found. Add a new one.</div>'; doneLoading(); return; }
+    
+    // fetch all data
+    const details=await Promise.all(ids.map(async id=>{
+      const co=companies[id];
+      let smCount=0, todayV=0, monthV=0;
+      const smSnap=await db.ref('users').orderByChild('company_id').equalTo(id).get();
+      if(smSnap.exists()) smCount=Object.values(smSnap.val()).filter(u=>u.role==='salesman').length;
+      totalSalesmen+=smCount;
+      const vSnap=await db.ref(`visits/${id}/${today}`).get();
+      if(vSnap.exists()) todayV=Object.keys(vSnap.val()).length;
+      todayVisits+=todayV;
+      return {id, ...co, smCount, todayV};
+    }));
+    
+    document.getElementById('sa-salesmen').textContent=totalSalesmen;
+    document.getElementById('sa-today').textContent=todayVisits;
+    
+    grid.innerHTML=details.map(co=>`
+      <div class="co-card">
+        <div class="co-nm">${co.name}</div>
+        <div class="co-meta">Admin: ${co.admin_name||'—'}</div>
+        <div class="co-stats">
+          <div><div class="co-sv">${co.smCount}</div><div class="co-sl">Salesman</div></div>
+          <div><div class="co-sv">${co.todayV}</div><div class="co-sl">Today's Visits</div></div>
+        </div>
+        <div class="co-acts">
+          <button class="btn-sm-d" onclick="deleteCompanyConfirm('${co.id}','${co.name}')">🗑 Delete</button>
+        </div>
+      </div>`).join('');
+    doneLoading();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+function openAddCompanyModal(){
+  ['acName','acEmail','acPass','acAdminName'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('acErr').style.display='none';
+  openModal('addCompanyModal');
+}
+
+async function addCompany(){
+  const name=document.getElementById('acName').value.trim();
+  const email=document.getElementById('acEmail').value.trim();
+  const pass=document.getElementById('acPass').value;
+  const adminName=document.getElementById('acAdminName').value.trim();
+  const errEl=document.getElementById('acErr');
+  errEl.style.display='none';
+  if(!name||!email||!pass||!adminName){ errEl.textContent='Please fill all fields'; errEl.style.display='block'; return; }
+  if(pass.length<6){ errEl.textContent='Password Minimum 6 characters'; errEl.style.display='block'; return; }
+  
+  loading('Creating company...');
+  closeModal('addCompanyModal');
+  try{
+    const uid=await createAuthUser(email,pass);
+    const coRef=db.ref('companies').push();
+    const coId=coRef.key;
+    await coRef.set({ name, admin_uid:uid, admin_name:adminName, created_at:Date.now() });
+    await db.ref(`users/${uid}`).set({ name:adminName, email, role:'company_admin', company_id:coId, created_at:Date.now() });
+    doneLoading();
+    toast(`"${name}" company created!`);
+    await loadSuperDashboard();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+function deleteCompanyConfirm(id,name){
+  document.getElementById('deleteModalMsg').textContent=`"${name}" company will be permanently deleted. All data will be lost!`;
+  document.getElementById('deleteConfirmBtn').onclick=()=>deleteCompany(id);
+  openModal('deleteModal');
+}
+
+async function deleteCompany(id){
+  closeModal('deleteModal');
+  loading('Deleting...');
+  try{
+    await db.ref(`companies/${id}`).remove();
+    await db.ref(`visits/${id}`).remove();
+    doneLoading(); toast('Company deleted');
+    await loadSuperDashboard();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+/* ════════════════════════════════════════════════
+   COMPANY ADMIN
+════════════════════════════════════════════════ */
+async function initAdmin(){
+  show('adminScreen');
+  document.getElementById('adAv').textContent=APP.userData.name[0].toUpperCase();
+  document.getElementById('adNm').textContent=APP.userData.name;
+  // Load company name
+  const coSnap=await db.ref(`companies/${APP.companyId}`).get();
+  if(coSnap.exists()) document.getElementById('adCompanyName').textContent=coSnap.val().name;
+  await loadSalesmen();
+  await loadOverview();
+}
+
+function adminPage(page,el){
+  document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sid-item').forEach(s=>s.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  el.classList.add('active');
+  if(page==='map') setTimeout(initMap,100);
+}
+
+async function loadSalesmen(){
+  const snap=await db.ref('users').orderByChild('company_id').equalTo(APP.companyId).get();
+  APP.salesmen={};
+  if(snap.exists()){
+    Object.entries(snap.val()).forEach(([uid,u])=>{
+      if(u.role==='salesman') APP.salesmen[uid]=u;
+    });
+  }
+  // Populate salesman dropdowns
+  const opts='<option value="">All</option>'+Object.entries(APP.salesmen).map(([uid,u])=>`<option value="${uid}">${u.name}</option>`).join('');
+  ['vSalesmanFilter','attSalesmanFilter','mapSalesmanFilter','exVSalesman','exAttSalesman'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.innerHTML=opts;
+  });
+  // Render salesman list
+  renderSalesmanList();
+}
+
+function renderSalesmanList(){
+  const entries=Object.entries(APP.salesmen);
+  const body=document.getElementById('smListBody');
+  if(entries.length===0){ body.innerHTML='<div class="empty"><div class="empty-icon">👤</div>No salesman found. Add a new one.</div>'; return; }
+  body.innerHTML=entries.map(([uid,u])=>`
+    <div class="sm-list-item">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div class="sm-av">${u.name[0].toUpperCase()}</div>
+        <div><div class="sm-nm">${u.name}</div><div class="sm-em">${u.email}</div></div>
+      </div>
+      <button class="btn-danger" onclick="deleteSalesmanConfirm('${uid}','${u.name}')">🗑 Remove</button>
+    </div>`).join('');
+}
+
+function openAddSalesmanModal(){
+  ['asName','asEmail','asPass'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('asErr').style.display='none';
+  openModal('addSalesmanModal');
+}
+
+async function addSalesman(){
+  const name=document.getElementById('asName').value.trim();
+  const email=document.getElementById('asEmail').value.trim();
+  const pass=document.getElementById('asPass').value;
+  const errEl=document.getElementById('asErr');
+  errEl.style.display='none';
+  if(!name||!email||!pass){ errEl.textContent='Please fill all fields'; errEl.style.display='block'; return; }
+  if(pass.length<6){ errEl.textContent='Password Minimum 6 characters'; errEl.style.display='block'; return; }
+  
+  loading('Creating salesman...');
+  closeModal('addSalesmanModal');
+  try{
+    const uid=await createAuthUser(email,pass);
+    await db.ref(`users/${uid}`).set({ name, email, role:'salesman', company_id:APP.companyId, created_at:Date.now() });
+    doneLoading(); toast(`"${name}" salesman created!`);
+    await loadSalesmen();
+    await loadOverview();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+function deleteSalesmanConfirm(uid,name){
+  document.getElementById('deleteModalMsg').textContent=`"${name}" will be removed?`;
+  document.getElementById('deleteConfirmBtn').onclick=()=>deleteSalesman(uid,name);
+  openModal('deleteModal');
+}
+
+async function deleteSalesman(uid,name){
+  closeModal('deleteModal');
+  loading('Removing...');
+  try{
+    await db.ref(`users/${uid}`).remove();
+    doneLoading(); toast(`"${name}" removed`);
+    await loadSalesmen();
+    await loadOverview();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function loadOverview(){
+  const smCount=Object.keys(APP.salesmen).length;
+  document.getElementById('ov-salesmen').textContent=smCount;
+  const today=todayStr();
+  const vSnap=await db.ref(`visits/${APP.companyId}/${today}`).get();
+  let todayTotal=0, present=new Set();
+  if(vSnap.exists()){
+    Object.values(vSnap.val()).forEach(v=>{ todayTotal++; present.add(v.salesman_uid); });
+  }
+  document.getElementById('ov-today').textContent=todayTotal;
+  document.getElementById('ov-present').textContent=present.size;
+  // Month count
+  const now=new Date(); let monthTotal=0;
+  for(let d=1;d<=now.getDate();d++){
+    const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const s=await db.ref(`visits/${APP.companyId}/${ds}`).get();
+    if(s.exists()) monthTotal+=Object.keys(s.val()).length;
+  }
+  document.getElementById('ov-month').textContent=monthTotal;
+  // Recent table
+  const tbody=document.getElementById('recentTbody');
+  if(todayTotal===0){ tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--txt-3);">No visits today yet</td></tr>'; return; }
+  const visits=Object.values(vSnap.val()).sort((a,b)=>b.timestamp-a.timestamp).slice(0,10);
+  tbody.innerHTML=visits.map(v=>`<tr><td>${v.salesman_name}</td><td class="tbl-name">${v.outlet}</td><td>${v.time}</td><td>${v.remarks||'—'}</td></tr>`).join('');
+}
+
+/* ════ VISITS ════ */
+let lastVisitData=[];
+async function loadVisits(src){
+  const isEx=src==='ex';
+  const startDate=document.getElementById(isEx?'exVStart':'vStartDate').value;
+  const endDate=document.getElementById(isEx?'exVEnd':'vEndDate').value;
+  const salesmanUid=document.getElementById(isEx?'exVSalesman':'vSalesmanFilter').value;
+  if(!startDate||!endDate){ toast('Please enter start and end date','err'); return; }
+  loading('Loading visit history...');
+  lastVisitData=[];
+  try{
+    // generate date range
+    const dates=[];
+    let cur=new Date(startDate);
+    const end=new Date(endDate);
+    while(cur<=end){ dates.push(cur.toISOString().split('T')[0]); cur.setDate(cur.getDate()+1); }
+    for(const date of dates){
+      const snap=await db.ref(`visits/${APP.companyId}/${date}`).get();
+      if(snap.exists()){
+        Object.values(snap.val()).forEach(v=>{
+          if(!salesmanUid||v.salesman_uid===salesmanUid) lastVisitData.push({...v,date});
+        });
+      }
+    }
+    lastVisitData.sort((a,b)=>a.timestamp-b.timestamp);
+    if(!isEx){
+      const tbody=document.getElementById('visitTbody');
+      if(lastVisitData.length===0){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--txt-3);">No visits found for this period</td></tr>'; }
+      else tbody.innerHTML=lastVisitData.map(v=>`<tr><td>${v.date}</td><td>${v.salesman_name}</td><td class="tbl-name">${v.outlet}</td><td>${v.time}</td><td>${v.remarks||'—'}</td></tr>`).join('');
+    }
+    doneLoading();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+/* ════ ATTENDANCE ════ */
+let lastAttData={};
+async function loadAttendance(src){
+  const isEx=src==='ex';
+  const month=parseInt(document.getElementById(isEx?'exAttMonth':'attMonth').value);
+  const year=parseInt(document.getElementById(isEx?'exAttYear':'attYear').value);
+  const salesmanUid=document.getElementById(isEx?'exAttSalesman':'attSalesmanFilter').value;
+  
+  loading('Loading attendance...');
+  lastAttData={month,year,salesmanUid};
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=new Date();
+  // Which salesmen to show
+  const showSalesmen=salesmanUid?{[salesmanUid]:APP.salesmen[salesmanUid]}:APP.salesmen;
+  // Load all days
+  const presenceMap={}; // {uid: {date: visitCount}}
+  for(const [uid] of Object.entries(showSalesmen)){ presenceMap[uid]={}; }
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const snap=await db.ref(`visits/${APP.companyId}/${ds}`).get();
+    if(snap.exists()){
+      Object.values(snap.val()).forEach(v=>{
+        if(presenceMap[v.salesman_uid]!==undefined) presenceMap[v.salesman_uid][ds]=(presenceMap[v.salesman_uid][ds]||0)+1;
+      });
+    }
+  }
+  lastAttData.presenceMap=presenceMap;
+  lastAttData.daysInMonth=daysInMonth;
+  
+  if(!isEx) renderAttendance(showSalesmen, presenceMap, month, year, daysInMonth, today);
+  doneLoading();
+}
+
+function renderAttendance(showSalesmen, presenceMap, month, year, daysInMonth, today){
+  const firstDay=new Date(year,month,1).getDay();
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html='';
+  for(const [uid,sm] of Object.entries(showSalesmen)){
+    let present=0,absent=0;
+    html+=`<div class="tc" style="margin-bottom:20px;">
+      <div class="tc-hd"><div class="tc-title">👤 ${sm.name}</div></div>
+      <div style="padding:20px;">
+      <div class="att-cal">${days.map(d=>`<div class="att-dh">${d}</div>`).join('')}`;
+    for(let i=0;i<firstDay;i++) html+=`<div class="att-d emp"></div>`;
+    for(let d=1;d<=daysInMonth;d++){
+      const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dt=new Date(year,month,d);
+      const isFuture=dt>today;
+      const visits=presenceMap[uid][ds]||0;
+      let cls='fut';
+      if(!isFuture){ cls=visits>0?'present':'absent'; if(visits>0)present++; else absent++; }
+      html+=`<div class="att-d ${cls}"><div class="att-dn">${d}</div>${visits>0?`<div class="att-dv">${visits}v</div>`:''}</div>`;
+    }
+    html+=`</div>
+      <div class="att-sum">
+        <div class="att-si"><div class="att-dot" style="background:var(--ok);"></div>${present} Present</div>
+        <div class="att-si"><div class="att-dot" style="background:var(--err);"></div>${absent} Absent</div>
+        <div class="att-si"><div class="att-dot" style="background:var(--txt-3);"></div>${daysInMonth-present-absent} Remaining</div>
+      </div></div></div>`;
+  }
+  document.getElementById('attContent').innerHTML=html||'<div class="empty"><div class="empty-icon">📅</div>No salesman</div>';
+}
+
+/* ════ MAP ════ */
+function initMap(){
+  if(!document.getElementById('visitMap')) return;
+  if(!APP.mapInstance){
+    APP.mapInstance=L.map('visitMap').setView([23.8103,90.4125],11);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(APP.mapInstance);
+  }
+}
+
+async function loadMap(){
+  const date=document.getElementById('mapDate').value;
+  const salesmanUid=document.getElementById('mapSalesmanFilter').value;
+  if(!date){ toast('Please enter a date','err'); return; }
+  loading('Loading map...');
+  initMap();
+  // Clear markers
+  APP.mapInstance.eachLayer(l=>{ if(l instanceof L.Marker||l instanceof L.Polyline) APP.mapInstance.removeLayer(l); });
+  try{
+    const snap=await db.ref(`visits/${APP.companyId}/${date}`).get();
+    if(!snap.exists()){ doneLoading(); toast('No visits found for this date','err'); return; }
+    const visits=Object.values(snap.val()).filter(v=>!salesmanUid||v.salesman_uid===salesmanUid);
+    if(visits.length===0){ doneLoading(); toast('No visits found','err'); return; }
+    // Group by salesman
+    const bySm={};
+    visits.forEach(v=>{ (bySm[v.salesman_uid]=bySm[v.salesman_uid]||[]).push(v); });
+    const colors=['#EFA800','#4B9FFF','#1FD17A','#FF4466','#FF8C00','#A855F7'];
+    let ci=0;
+    const bounds=[];
+    for(const [uid,smVisits] of Object.entries(bySm)){
+      const color=colors[ci%colors.length]; ci++;
+      smVisits.sort((a,b)=>a.timestamp-b.timestamp);
+      const latlngs=smVisits.filter(v=>v.lat&&v.lng).map(v=>[v.lat,v.lng]);
+      if(latlngs.length>1) L.polyline(latlngs,{color,weight:3,opacity:.7,dashArray:'8,4'}).addTo(APP.mapInstance);
+      smVisits.forEach((v,i)=>{
+        if(!v.lat||!v.lng) return;
+        bounds.push([v.lat,v.lng]);
+        const icon=L.divIcon({
+          html:`<div style="background:${color};width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;display:flex;align-items:center;justify-content:center;"><div style="transform:rotate(45deg);font-size:11px;font-weight:800;color:#000;">${i+1}</div></div>`,
+          iconSize:[32,32],iconAnchor:[16,32],popupAnchor:[0,-32]
+        });
+        L.marker([v.lat,v.lng],{icon}).addTo(APP.mapInstance)
+          .bindPopup(`<b>${v.salesman_name}</b><br>📍 ${v.outlet}<br>🕐 ${v.time}<br>${v.remarks||''}`);
+      });
+    }
+    if(bounds.length) APP.mapInstance.fitBounds(bounds,{padding:[40,40]});
+    doneLoading(); toast(`${visits.length} visits shown on map`);
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+/* ════ EXPORT ════ */
+function getCompanyName(){ return document.getElementById('adCompanyName').textContent||'SunStar'; }
+
+async function exportVisitExcel(src){
+  await loadVisits(src);
+  if(lastVisitData.length===0){ toast('No data available','err'); return; }
+  loading('Generating Excel...');
+  const ws=XLSX.utils.json_to_sheet(lastVisitData.map(v=>({
+    'Date':v.date, 'Salesman':v.salesman_name, 'Outlet':v.outlet,
+    'Time':v.time, 'Remarks':v.remarks||''
+  })));
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Visit History');
+  XLSX.writeFile(wb,`${getCompanyName()}_Visit_History.xlsx`);
+  doneLoading(); toast('Excel downloading!');
+}
+
+async function exportVisitPDF(src){
+  await loadVisits(src);
+  if(lastVisitData.length===0){ toast('No data available','err'); return; }
+  loading('Generating PDF...');
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF('l','pt','a4');
+  doc.setFontSize(16); doc.setTextColor(239,168,0);
+  doc.text('SunStar Solutions — Visit History Report',40,40);
+  doc.setFontSize(11); doc.setTextColor(120,130,180);
+  doc.text(getCompanyName(),40,58);
+  doc.autoTable({
+    startY:70,
+    head:[['Date','Salesman','Outlet','Time','Remarks']],
+    body:lastVisitData.map(v=>[v.date,v.salesman_name,v.outlet,v.time,v.remarks||'']),
+    styles:{fontSize:9,textColor:[200,210,240],fillColor:[12,18,41]},
+    headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[17,26,56]}
+  });
+  doc.save(`${getCompanyName()}_Visit_History.pdf`);
+  doneLoading(); toast('PDF downloading!');
+}
+
+async function exportAttExcel(src){
+  await loadAttendance(src);
+  if(!lastAttData.presenceMap){ toast('Please load data first','err'); return; }
+  loading('Generating Excel...');
+  const {month,year,daysInMonth,presenceMap}=lastAttData;
+  const rows=[];
+  const sm=lastAttData.salesmanUid?{[lastAttData.salesmanUid]:APP.salesmen[lastAttData.salesmanUid]}:APP.salesmen;
+  for(const [uid,u] of Object.entries(sm)){
+    const row={'Salesman':u.name};
+    for(let d=1;d<=daysInMonth;d++){
+      const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const fut=new Date(ds)>new Date();
+      row[`${d}`]=fut?'—':((presenceMap[uid][ds]||0)>0?'✅ Present':'❌ Absent');
+    }
+    rows.push(row);
+  }
+  const ws=XLSX.utils.json_to_sheet(rows);
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Attendance');
+  XLSX.writeFile(wb,`${getCompanyName()}_Attendance_${MONTHS[month]}_${year}.xlsx`);
+  doneLoading(); toast('Excel downloading!');
+}
+
+async function exportAttPDF(src){
+  await loadAttendance(src);
+  if(!lastAttData.presenceMap){ toast('Please load data first','err'); return; }
+  loading('Generating PDF...');
+  const {month,year,daysInMonth,presenceMap}=lastAttData;
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF('l','pt','a4');
+  doc.setFontSize(16); doc.setTextColor(239,168,0);
+  doc.text(`SunStar Solutions — Attendance ${MONTHS[month]} ${year}`,40,40);
+  doc.setFontSize(11); doc.setTextColor(120,130,180);
+  doc.text(getCompanyName(),40,58);
+  const sm=lastAttData.salesmanUid?{[lastAttData.salesmanUid]:APP.salesmen[lastAttData.salesmanUid]}:APP.salesmen;
+  const head=[['Salesman'],...Array.from({length:daysInMonth},(_,i)=>[String(i+1)])];
+  const body=Object.entries(sm).map(([uid,u])=>{
+    const row=[u.name];
+    for(let d=1;d<=daysInMonth;d++){
+      const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const fut=new Date(ds)>new Date();
+      row.push(fut?'—':((presenceMap[uid][ds]||0)>0?'P':'A'));
+    }
+    return row;
+  });
+  doc.autoTable({
+    startY:70,head:[head.map(h=>h[0])],body,
+    styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41],halign:'center'},
+    headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[17,26,56]},
+    columnStyles:{0:{halign:'left',fontStyle:'bold'}}
+  });
+  doc.save(`${getCompanyName()}_Attendance_${MONTHS[month]}_${year}.pdf`);
+  doneLoading(); toast('PDF downloading!');
+}
+
+/* ════════════════════════════════════════════════
+   SALESMAN
+════════════════════════════════════════════════ */
+async function initSalesman(){
+  show('salesmanScreen');
+  document.getElementById('smAv').textContent=APP.userData.name[0].toUpperCase();
+  document.getElementById('smNm').textContent=APP.userData.name;
+  document.getElementById('smGreet').textContent=APP.userData.name.split(' ')[0];
+  document.getElementById('smDate').textContent='📅 '+fmtDate(new Date());
+  checkGPS();
+  await loadSalesmanStats();
+  await loadTodayVisits();
+}
+
+function checkGPS(){
+  const el=document.getElementById('gpsStatus');
+  if(!navigator.geolocation){ el.className='gps-bar err'; el.innerHTML='❌ GPS not available in this browser'; return; }
+  navigator.geolocation.getCurrentPosition(
+    ()=>{ el.className='gps-bar'; el.innerHTML='<div class="gps-dot"></div>GPS active — Location will be captured'; },
+    ()=>{ el.className='gps-bar err'; el.innerHTML='⚠️ Please allow GPS permission in browser'; }
+  );
+}
+
+async function loadSalesmanStats(){
+  const today=todayStr(); const now=new Date();
+  const tSnap=await db.ref(`visits/${APP.companyId}/${today}`).orderByChild('salesman_uid').equalTo(APP.user.uid).get();
+  const todayCount=tSnap.exists()?Object.keys(tSnap.val()).length:0;
+  document.getElementById('smTodayCount').textContent=todayCount;
+  let monthCount=0,presentDays=0;
+  for(let d=1;d<=now.getDate();d++){
+    const ds=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const s=await db.ref(`visits/${APP.companyId}/${ds}`).orderByChild('salesman_uid').equalTo(APP.user.uid).get();
+    if(s.exists()){ const cnt=Object.keys(s.val()).length; monthCount+=cnt; if(cnt>0)presentDays++; }
+  }
+  document.getElementById('smMonthCount').textContent=monthCount;
+  document.getElementById('smPresent').textContent=presentDays;
+}
+
+async function loadTodayVisits(){
+  const today=todayStr();
+  const snap=await db.ref(`visits/${APP.companyId}/${today}`).orderByChild('salesman_uid').equalTo(APP.user.uid).get();
+  const list=document.getElementById('smVisitList');
+  if(!snap.exists()){ list.innerHTML='<div class="empty"><div class="empty-icon">🏪</div>No visits submitted yet</div>'; return; }
+  const visits=Object.values(snap.val()).sort((a,b)=>a.timestamp-b.timestamp);
+  list.innerHTML=visits.map((v,i)=>`
+    <div class="visit-item">
+      <div class="v-num">${i+1}</div>
+      <div>
+        <div class="v-outlet">🏪 ${v.outlet}</div>
+        ${v.remarks?`<div class="v-remarks">${v.remarks}</div>`:''}
+        <div class="v-meta">
+          <span>🕐 ${v.time}</span>
+          ${v.lat?`<span>📍 ${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}</span>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+async function submitVisit(){
+  const outlet=document.getElementById('outletName').value.trim();
+  const remarks=document.getElementById('visitRemarks').value.trim();
+  if(!outlet){ toast('Please enter outlet name','err'); return; }
+  const btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.textContent='Getting GPS location...';
+  navigator.geolocation.getCurrentPosition(
+    async pos=>{
+      loading('Saving visit...');
+      const now=new Date();
+      const today=todayStr();
+      const visit={
+        salesman_uid:APP.user.uid,
+        salesman_name:APP.userData.name,
+        outlet, remarks,
+        lat:pos.coords.latitude,
+        lng:pos.coords.longitude,
+        time:now.toLocaleTimeString('en-BD',{hour:'2-digit',minute:'2-digit',hour12:true}),
+        timestamp:Date.now()
+      };
+      try{
+        await db.ref(`visits/${APP.companyId}/${today}`).push(visit);
+        document.getElementById('outletName').value='';
+        document.getElementById('visitRemarks').value='';
+        doneLoading(); toast('Visit submitted! ✅');
+        await loadTodayVisits();
+        await loadSalesmanStats();
+      }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+      btn.disabled=false; btn.textContent='✅ Submit Visit';
+    },
+    err=>{
+      btn.disabled=false; btn.textContent='✅ Submit Visit';
+      toast('GPS error: Please allow Location in browser','err');
+    },
+    {enableHighAccuracy:true,timeout:15000}
+  );
+}
+
+/* ════════════════════════════════════════════════
+   START
+════════════════════════════════════════════════ */
+window.addEventListener('load',initApp);
+</script>
+</body>
+</html>
