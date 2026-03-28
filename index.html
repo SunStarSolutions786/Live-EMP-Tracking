@@ -939,6 +939,64 @@ button{font-family:'DM Sans',sans-serif;}
 </div>
 
 <!-- ══════════════════════════════════════════════
+     COMPANY MANAGEMENT MODAL (Super Admin)
+══════════════════════════════════════════════ -->
+<div class="modal-ov" id="coMgmtModal" style="align-items:flex-start;padding:20px;overflow-y:auto;">
+  <div class="modal-box" style="max-width:620px;width:100%;margin:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+      <div class="modal-title" id="coMgmtTitle">Manage Company</div>
+      <button onclick="closeModal('coMgmtModal')" style="background:none;border:none;color:var(--txt-2);font-size:20px;cursor:pointer;padding:0 4px;">✕</button>
+    </div>
+    <!-- Tabs -->
+    <div style="display:flex;gap:0;margin-bottom:22px;border-bottom:1px solid var(--border);">
+      <button class="co-tab active" id="tab-admin" onclick="coTab('admin')" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">👤 Admin</button>
+      <button class="co-tab" id="tab-salesmen" onclick="coTab('salesmen')" style="flex:1;padding:10px;background:none;border:none;border-bottom:2px solid transparent;color:var(--txt-2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;">👥 Salesmen</button>
+    </div>
+
+    <!-- Admin Tab -->
+    <div id="coTab-admin">
+      <div id="eaErr2" class="err-box"></div>
+      <input type="hidden" id="eaUid2">
+      <input type="hidden" id="eaCoId2">
+      <div class="fg"><label class="fl">Admin Name *</label><input class="fi" id="eaName2" placeholder="Full name"></div>
+      <div class="fg"><label class="fl">Email *</label><input class="fi" id="eaEmail2" type="email" placeholder="email@company.com"></div>
+      <div class="fg">
+        <label class="fl">Password</label>
+        <input class="fi" id="eaPass2" type="text" placeholder="Current password">
+        <div style="font-size:11px;color:var(--txt-3);margin-top:5px;">You can change the password here</div>
+      </div>
+      <button class="btn" onclick="saveAdminEdit2()" style="margin-top:4px;">💾 Save Admin Changes</button>
+    </div>
+
+    <!-- Salesmen Tab -->
+    <div id="coTab-salesmen" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:700;">Salesman List</div>
+        <button class="btn-add" style="padding:8px 14px;font-size:13px;" onclick="openAddSalesmanFromSA()">➕ Add Salesman</button>
+      </div>
+      <div id="coMgmtSmList"><div class="empty"><div class="empty-icon">👤</div>No salesmen found.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Salesman from Super Admin Modal -->
+<div class="modal-ov" id="addSmSAModal">
+  <div class="modal-box">
+    <div class="modal-title">👤 Add New Salesman</div>
+    <div class="modal-sub" id="addSmSACompanyName">Add to company</div>
+    <div id="asErrSA" class="err-box"></div>
+    <input type="hidden" id="asCoIdSA">
+    <div class="fg"><label class="fl">Salesman Name *</label><input class="fi" id="asNameSA" placeholder="Full name"></div>
+    <div class="fg"><label class="fl">Email *</label><input class="fi" id="asEmailSA" type="email" placeholder="salesman@email.com"></div>
+    <div class="fg"><label class="fl">Password *</label><input class="fi" id="asPassSA" type="text" placeholder="Minimum 6 characters"></div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('addSmSAModal')">Cancel</button>
+      <button class="btn-confirm" onclick="addSalesmanFromSA()">Create Salesman</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
      MODALS
 ══════════════════════════════════════════════ -->
 <!-- Add Company Modal -->
@@ -970,6 +1028,51 @@ button{font-family:'DM Sans',sans-serif;}
     <div class="modal-acts">
       <button class="btn-cancel" onclick="closeModal('addSalesmanModal')">Cancel</button>
       <button class="btn-confirm" onclick="addSalesman()">Create Salesman</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Company Admin Modal -->
+<div class="modal-ov" id="editAdminModal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ Edit Company Admin</div>
+    <div class="modal-sub" id="editAdminCompanyName">Company Admin Details</div>
+    <div id="eaErr" class="err-box"></div>
+    <input type="hidden" id="eaUid">
+    <input type="hidden" id="eaCoId">
+    <div class="fg"><label class="fl">Admin Name *</label><input class="fi" id="eaName" placeholder="Full name"></div>
+    <div class="fg"><label class="fl">Email *</label><input class="fi" id="eaEmail" type="email" placeholder="email@company.com"></div>
+    <div class="fg">
+      <label class="fl">Password</label>
+      <div style="position:relative;">
+        <input class="fi" id="eaPass" type="text" placeholder="Current password" style="padding-right:40px;">
+      </div>
+      <div style="font-size:11px;color:var(--txt-3);margin-top:5px;">Change password or keep current</div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('editAdminModal')">Cancel</button>
+      <button class="btn-confirm" onclick="saveAdminEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Salesman Modal -->
+<div class="modal-ov" id="editSalesmanModal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ Edit Salesman</div>
+    <div class="modal-sub">Update salesman details</div>
+    <div id="esErr" class="err-box"></div>
+    <input type="hidden" id="esUid">
+    <div class="fg"><label class="fl">Salesman Name *</label><input class="fi" id="esName" placeholder="Full name"></div>
+    <div class="fg"><label class="fl">Email *</label><input class="fi" id="esEmail" type="email" placeholder="email@domain.com"></div>
+    <div class="fg">
+      <label class="fl">Password</label>
+      <input class="fi" id="esPass" type="text" placeholder="Current password" style="padding-right:40px;">
+      <div style="font-size:11px;color:var(--txt-3);margin-top:5px;">Change password or keep current</div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('editSalesmanModal')">Cancel</button>
+      <button class="btn-confirm" onclick="saveSalesmanEdit()">Save Changes</button>
     </div>
   </div>
 </div>
@@ -1278,6 +1381,7 @@ async function loadSuperDashboard(){
           <div><div class="co-sv">${co.todayV}</div><div class="co-sl">Today's Visits</div></div>
         </div>
         <div class="co-acts">
+          <button class="btn-sm-g" onclick="openCoMgmt('${co.id}','${co.admin_uid}','${co.name}')">⚙️ Manage</button>
           <button class="btn-sm-d" onclick="deleteCompanyConfirm('${co.id}','${co.name}')">🗑 Delete</button>
         </div>
       </div>`).join('');
@@ -1308,7 +1412,7 @@ async function addCompany(){
     const coRef=db.ref('companies').push();
     const coId=coRef.key;
     await coRef.set({ name, admin_uid:uid, admin_name:adminName, created_at:Date.now() });
-    await db.ref(`users/${uid}`).set({ name:adminName, email, role:'company_admin', company_id:coId, created_at:Date.now() });
+    await db.ref(`users/${uid}`).set({ name:adminName, email, role:'company_admin', company_id:coId, password:pass, created_at:Date.now() });
     doneLoading();
     toast(`"${name}" company created!`);
     await loadSuperDashboard();
@@ -1332,9 +1436,237 @@ async function deleteCompany(id){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-/* ════════════════════════════════════════════════
-   COMPANY ADMIN
-════════════════════════════════════════════════ */
+/* ════ EDIT COMPANY ADMIN (Super Admin) ════ */
+async function editCompanyAdmin(coId, adminUid, coName){
+  loading('Loading admin details...');
+  try{
+    const snap=await db.ref(`users/${adminUid}`).get();
+    if(!snap.exists()){ doneLoading(); toast('Admin not found','err'); return; }
+    const u=snap.val();
+    document.getElementById('eaUid').value=adminUid;
+    document.getElementById('eaCoId').value=coId;
+    document.getElementById('editAdminCompanyName').textContent=`Company: ${coName}`;
+    document.getElementById('eaName').value=u.name||'';
+    document.getElementById('eaEmail').value=u.email||'';
+    document.getElementById('eaPass').value=u.password||'';
+    document.getElementById('eaErr').style.display='none';
+    doneLoading();
+    openModal('editAdminModal');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function saveAdminEdit(){
+  const uid=document.getElementById('eaUid').value;
+  const coId=document.getElementById('eaCoId').value;
+  const name=document.getElementById('eaName').value.trim();
+  const email=document.getElementById('eaEmail').value.trim();
+  const pass=document.getElementById('eaPass').value.trim();
+  const errEl=document.getElementById('eaErr');
+  errEl.style.display='none';
+  if(!name||!email){ errEl.textContent='Name and email are required'; errEl.style.display='block'; return; }
+  if(pass && pass.length<6){ errEl.textContent='Password must be at least 6 characters'; errEl.style.display='block'; return; }
+  loading('Saving changes...');
+  closeModal('editAdminModal');
+  try{
+    // Update database
+    const updates={name, email};
+    if(pass) updates.password=pass;
+    await db.ref(`users/${uid}`).update(updates);
+    await db.ref(`companies/${coId}`).update({admin_name:name});
+    // Update password in Firebase Auth if changed
+    if(pass){
+      const cfg=JSON.parse(localStorage.getItem('ss_config'));
+      await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({localId:uid,password:pass})
+      });
+    }
+    doneLoading(); toast('Admin updated successfully!');
+    await loadSuperDashboard();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+/* ════ EDIT SALESMAN (Company Admin) ════ */
+async function editSalesman(uid){
+  loading('Loading salesman details...');
+  try{
+    const snap=await db.ref(`users/${uid}`).get();
+    if(!snap.exists()){ doneLoading(); toast('Salesman not found','err'); return; }
+    const u=snap.val();
+    document.getElementById('esUid').value=uid;
+    document.getElementById('esName').value=u.name||'';
+    document.getElementById('esEmail').value=u.email||'';
+    document.getElementById('esPass').value=u.password||'';
+    document.getElementById('esErr').style.display='none';
+    doneLoading();
+    openModal('editSalesmanModal');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function saveSalesmanEdit(){
+  const uid=document.getElementById('esUid').value;
+  const name=document.getElementById('esName').value.trim();
+  const email=document.getElementById('esEmail').value.trim();
+  const pass=document.getElementById('esPass').value.trim();
+  const errEl=document.getElementById('esErr');
+  errEl.style.display='none';
+  if(!name||!email){ errEl.textContent='Name and email are required'; errEl.style.display='block'; return; }
+  if(pass && pass.length<6){ errEl.textContent='Password must be at least 6 characters'; errEl.style.display='block'; return; }
+  loading('Saving changes...');
+  closeModal('editSalesmanModal');
+  try{
+    const updates={name, email};
+    if(pass) updates.password=pass;
+    await db.ref(`users/${uid}`).update(updates);
+    if(pass){
+      const cfg=JSON.parse(localStorage.getItem('ss_config'));
+      await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({localId:uid,password:pass})
+      });
+    }
+    doneLoading(); toast('Salesman updated successfully!');
+    await loadSalesmen();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+/* ════ SUPER ADMIN — COMPANY MANAGEMENT ════ */
+let SA_currentCoId='', SA_currentAdminUid='', SA_currentCoName='';
+
+async function openCoMgmt(coId,adminUid,coName){
+  SA_currentCoId=coId; SA_currentAdminUid=adminUid; SA_currentCoName=coName;
+  document.getElementById('coMgmtTitle').textContent=`⚙️ ${coName}`;
+  coTab('admin');
+  loading('Loading...');
+  try{
+    const snap=await db.ref(`users/${adminUid}`).get();
+    if(snap.exists()){
+      const u=snap.val();
+      document.getElementById('eaUid2').value=adminUid;
+      document.getElementById('eaCoId2').value=coId;
+      document.getElementById('eaName2').value=u.name||'';
+      document.getElementById('eaEmail2').value=u.email||'';
+      document.getElementById('eaPass2').value=u.password||'';
+    }
+    document.getElementById('eaErr2').style.display='none';
+    doneLoading(); openModal('coMgmtModal');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+function coTab(tab){
+  ['admin','salesmen'].forEach(t=>{
+    document.getElementById(`coTab-${t}`).style.display=t===tab?'block':'none';
+    const btn=document.getElementById(`tab-${t}`);
+    btn.style.borderBottomColor=t===tab?'var(--gold)':'transparent';
+    btn.style.color=t===tab?'var(--gold)':'var(--txt-2)';
+  });
+  if(tab==='salesmen') loadCoMgmtSalesmen();
+}
+
+async function loadCoMgmtSalesmen(){
+  loading('Loading salesmen...');
+  try{
+    const snap=await db.ref('users').orderByChild('company_id').equalTo(SA_currentCoId).get();
+    const list=document.getElementById('coMgmtSmList');
+    const salesmen=[];
+    if(snap.exists()) Object.entries(snap.val()).forEach(([uid,u])=>{ if(u.role==='salesman') salesmen.push({uid,...u}); });
+    if(salesmen.length===0){ list.innerHTML='<div class="empty"><div class="empty-icon">👤</div>No salesmen found.</div>'; doneLoading(); return; }
+    list.innerHTML=salesmen.map(u=>`
+      <div class="sm-list-item">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="sm-av">${u.name[0].toUpperCase()}</div>
+          <div>
+            <div class="sm-nm">${u.name}</div>
+            <div class="sm-em">${u.email}${u.password?' &nbsp;🔑 '+u.password:''}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn-ghost" onclick="editSalesmanSA('${u.uid}')">✏️ Edit</button>
+          <button class="btn-danger" onclick="deleteSalesmanSA('${u.uid}','${u.name}')">🗑</button>
+        </div>
+      </div>`).join('');
+    doneLoading();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function saveAdminEdit2(){
+  const uid=document.getElementById('eaUid2').value;
+  const coId=document.getElementById('eaCoId2').value;
+  const name=document.getElementById('eaName2').value.trim();
+  const email=document.getElementById('eaEmail2').value.trim();
+  const pass=document.getElementById('eaPass2').value.trim();
+  const errEl=document.getElementById('eaErr2');
+  errEl.style.display='none';
+  if(!name||!email){ errEl.textContent='Name and email are required'; errEl.style.display='block'; return; }
+  if(pass&&pass.length<6){ errEl.textContent='Password must be at least 6 characters'; errEl.style.display='block'; return; }
+  loading('Saving...');
+  try{
+    const updates={name,email}; if(pass) updates.password=pass;
+    await db.ref(`users/${uid}`).update(updates);
+    await db.ref(`companies/${coId}`).update({admin_name:name});
+    if(pass){
+      const cfg=JSON.parse(localStorage.getItem('ss_config'));
+      await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({localId:uid,password:pass})});
+    }
+    doneLoading(); toast('Admin updated successfully!');
+    await loadSuperDashboard();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+function openAddSalesmanFromSA(){
+  ['asNameSA','asEmailSA','asPassSA'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('asErrSA').style.display='none';
+  document.getElementById('asCoIdSA').value=SA_currentCoId;
+  document.getElementById('addSmSACompanyName').textContent=`Adding to: ${SA_currentCoName}`;
+  openModal('addSmSAModal');
+}
+
+async function addSalesmanFromSA(){
+  const name=document.getElementById('asNameSA').value.trim();
+  const email=document.getElementById('asEmailSA').value.trim();
+  const pass=document.getElementById('asPassSA').value.trim();
+  const coId=document.getElementById('asCoIdSA').value;
+  const errEl=document.getElementById('asErrSA');
+  errEl.style.display='none';
+  if(!name||!email||!pass){ errEl.textContent='Please fill all fields'; errEl.style.display='block'; return; }
+  if(pass.length<6){ errEl.textContent='Password minimum 6 characters'; errEl.style.display='block'; return; }
+  loading('Creating salesman...'); closeModal('addSmSAModal');
+  try{
+    const uid=await createAuthUser(email,pass);
+    await db.ref(`users/${uid}`).set({name,email,role:'salesman',company_id:coId,password:pass,created_at:Date.now()});
+    doneLoading(); toast(`"${name}" created!`);
+    await loadCoMgmtSalesmen(); await loadSuperDashboard();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function editSalesmanSA(uid){
+  loading('Loading...');
+  try{
+    const snap=await db.ref(`users/${uid}`).get();
+    if(!snap.exists()){ doneLoading(); return; }
+    const u=snap.val();
+    document.getElementById('esUid').value=uid;
+    document.getElementById('esName').value=u.name||'';
+    document.getElementById('esEmail').value=u.email||'';
+    document.getElementById('esPass').value=u.password||'';
+    document.getElementById('esErr').style.display='none';
+    doneLoading(); openModal('editSalesmanModal');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function deleteSalesmanSA(uid,name){
+  document.getElementById('deleteModalMsg').textContent=`Remove "${name}"? This cannot be undone.`;
+  document.getElementById('deleteConfirmBtn').onclick=async()=>{
+    closeModal('deleteModal'); loading('Removing...');
+    try{
+      await db.ref(`users/${uid}`).remove();
+      doneLoading(); toast(`"${name}" removed`);
+      await loadCoMgmtSalesmen(); await loadSuperDashboard();
+    }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+  };
+  openModal('deleteModal');
+}
+
 async function initAdmin(){
   show('adminScreen');
   document.getElementById('adAv').textContent=APP.userData.name[0].toUpperCase();
@@ -1381,7 +1713,10 @@ function renderSalesmanList(){
         <div class="sm-av">${u.name[0].toUpperCase()}</div>
         <div><div class="sm-nm">${u.name}</div><div class="sm-em">${u.email}</div></div>
       </div>
-      <button class="btn-danger" onclick="deleteSalesmanConfirm('${uid}','${u.name}')">🗑 Remove</button>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-ghost" onclick="editSalesman('${uid}')">✏️ Edit</button>
+        <button class="btn-danger" onclick="deleteSalesmanConfirm('${uid}','${u.name}')">🗑 Remove</button>
+      </div>
     </div>`).join('');
 }
 
@@ -1404,7 +1739,7 @@ async function addSalesman(){
   closeModal('addSalesmanModal');
   try{
     const uid=await createAuthUser(email,pass);
-    await db.ref(`users/${uid}`).set({ name, email, role:'salesman', company_id:APP.companyId, created_at:Date.now() });
+    await db.ref(`users/${uid}`).set({ name, email, role:'salesman', company_id:APP.companyId, password:pass, created_at:Date.now() });
     doneLoading(); toast(`"${name}" salesman created!`);
     await loadSalesmen();
     await loadOverview();
