@@ -1888,7 +1888,7 @@ async function loadSuperDashboard(){
       const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
       const holidayText=holidays.map(d=>dayNames[d]).join(', ');
       return `
-      <div class="co-card" style="${co.status==='inactive'?'opacity:.7;':'}">
+      <div class="co-card" style="${co.status==='inactive'?'opacity:.7;':''}">
         <div class="co-nm">${co.name}${co.status==='inactive'?' <span style="font-size:12px;color:var(--err);">● Inactive</span>':''}</div>
         <div style="margin-bottom:8px;">${modBadge}</div>
         <div class="co-meta">Admin: ${co.admin_name||'—'} &nbsp;|&nbsp; 🏖 ${holidayText}</div>
@@ -2427,6 +2427,7 @@ async function softDeleteSalesman(uid, name){
 }
 
 
+async function openAddSalesmanModal(){
   ['asName','asEmail','asPass'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('asErr').style.display='none';
   openModal('addSalesmanModal');
@@ -2758,171 +2759,6 @@ async function loadMap(){
     if(bounds.length) APP.mapInstance.fitBounds(bounds,{padding:[50,50]});
     doneLoading(); toast(`${visits.length} visits shown on map`);
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
-}
-
-
-/* ════ EMPLOYEE TYPE TABS ════ */
-.emp-type-tabs{display:flex;gap:0;margin-bottom:18px;border-bottom:1px solid var(--border);}
-.emp-type-tab{flex:1;padding:11px;background:none;border:none;border-bottom:2px solid transparent;
-  color:var(--txt-2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;
-  cursor:pointer;transition:all .2s;letter-spacing:.3px;}
-.emp-type-tab.active{border-bottom-color:var(--gold);color:var(--gold);}
-.emp-type-tab:hover{color:var(--txt);}
-
-/* ════ HOLIDAY CELL ════ */
-.att-d.holiday{background:rgba(239,168,0,0.08);border-color:rgba(239,168,0,0.25);color:var(--gold);}
-.att-d.holiday .att-dn{opacity:.7;}
-
-/* ════ MODULE BADGE ════ */
-.mod-badge{display:inline-flex;align-items:center;gap:4px;
-  border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:.3px;}
-.mod-sales{background:rgba(75,159,255,0.12);color:var(--info);border:1px solid rgba(75,159,255,0.25);}
-.mod-bo{background:rgba(31,209,122,0.1);color:var(--ok);border:1px solid rgba(31,209,122,0.25);}
-.mod-both{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(239,168,0,0.25);}
-
-/* ════ DEPT FILTER BAR ════ */
-.dept-filter{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
-.dept-btn{padding:7px 16px;border-radius:20px;font-family:'DM Sans',sans-serif;
-  font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
-  background:rgba(255,255,255,0.04);border:1px solid var(--border);color:var(--txt-2);}
-.dept-btn.active{background:var(--gold-dim);border-color:rgba(239,168,0,0.35);color:var(--gold);}
-.dept-btn:hover{border-color:var(--border-lg);color:var(--txt);}
-
-/* ════ SETTINGS PANEL ════ */
-.settings-section{background:var(--bg-card);border:1px solid var(--border);
-  border-radius:var(--r);padding:22px;margin-bottom:18px;}
-.settings-title{font-size:15px;font-weight:700;margin-bottom:16px;
-  display:flex;align-items:center;gap:8px;}
-.holiday-chip{display:inline-flex;align-items:center;gap:6px;
-  background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);
-  border-radius:20px;padding:5px 12px;font-size:13px;font-weight:600;color:var(--gold);
-  margin:4px;cursor:pointer;transition:all .2s;}
-.holiday-chip.selected{background:linear-gradient(145deg,var(--gold),#C88A00);color:#000;}
-.holiday-chip:hover{transform:translateY(-1px);}
-
-
-/* ════ TIMESHEET ════ */
-let lastTsData=[];
-async function loadTimesheet(){
-  const month=parseInt(document.getElementById('tsMonth').value);
-  const year=parseInt(document.getElementById('tsYear').value);
-  const dept=document.getElementById('tsDept').value;
-  const empUid=document.getElementById('tsEmployee').value;
-  loading('Loading timesheet...');
-  lastTsData=[];
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const today=new Date();
-  const coSnap=await db.ref(`companies/${APP.companyId}`).get();
-  const holidays=(coSnap.exists()&&coSnap.val().holidays)||[0];
-  const activeEmp=Object.fromEntries(Object.entries(APP.salesmen)
-    .filter(([,u])=>u.status!=='deleted_by_admin'&&(dept==='all'||(dept==='sales'&&u.emp_type!=='backoffice')||(dept==='backoffice'&&u.emp_type==='backoffice')))
-  );
-  const showEmp=empUid?{[empUid]:APP.salesmen[empUid]}:activeEmp;
-  
-  for(const [uid,u] of Object.entries(showEmp)){
-    for(let d=1;d<=daysInMonth;d++){
-      const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      if(new Date(year,month,d)>today) continue;
-      const dayOfWeek=new Date(year,month,d).getDay();
-      if(holidays.includes(dayOfWeek)) continue;
-      const attSnap=await db.ref(`attendance/${APP.companyId}/${ds}/${uid}`).get();
-      const att=attSnap.exists()?attSnap.val():null;
-      let dur='—',durMins=0;
-      if(att&&att.start_timestamp&&att.end_timestamp){
-        const diff=att.end_timestamp-att.start_timestamp;
-        dur=`${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m`;
-        durMins=Math.floor(diff/60000);
-      }
-      lastTsData.push({
-        name:u.name, dept:u.emp_type==='backoffice'?'Back Office':'Sales',
-        date:ds, start:att?att.start_time:'Absent', end:att?att.end_time:'—',
-        duration:dur, durMins, status:att?'Present':'Absent'
-      });
-    }
-  }
-  
-  // Render
-  const content=document.getElementById('tsContent');
-  if(lastTsData.length===0){ content.innerHTML='<div class="empty"><div class="empty-icon">⏱️</div>No data found</div>'; doneLoading(); return; }
-  
-  // Summary
-  const totalPresent=lastTsData.filter(r=>r.status==='Present').length;
-  const totalAbsent=lastTsData.filter(r=>r.status==='Absent').length;
-  const totalMins=lastTsData.reduce((s,r)=>s+r.durMins,0);
-  const avgH=Math.floor(totalMins/Math.max(1,totalPresent)/60);
-  const avgM=Math.floor(totalMins/Math.max(1,totalPresent)%60);
-  
-  content.innerHTML=`
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
-      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">✅</div><div class="ov-val" style="color:var(--ok);">${totalPresent}</div><div class="ov-lbl">Days Present</div></div>
-      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">❌</div><div class="ov-val" style="color:var(--err);">${totalAbsent}</div><div class="ov-lbl">Days Absent</div></div>
-      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">⏱️</div><div class="ov-val">${avgH}h ${avgM}m</div><div class="ov-lbl">Avg Hours/Day</div></div>
-    </div>
-    <div class="tc">
-      <div class="tc-hd"><div class="tc-title">Daily Timesheet</div></div>
-      <div style="overflow-x:auto;">
-        <table class="tbl">
-          <thead><tr><th>Employee</th><th>Dept</th><th>Date</th><th>Status</th><th>Start</th><th>End</th><th>Duration</th></tr></thead>
-          <tbody>${lastTsData.map(r=>`<tr>
-            <td class="tbl-name">${r.name}</td>
-            <td><span class="mod-badge ${r.dept==='Sales'?'mod-sales':'mod-bo'}" style="font-size:10px;">${r.dept}</span></td>
-            <td>${r.date}</td>
-            <td style="color:${r.status==='Present'?'var(--ok)':'var(--err)'};">${r.status==='Present'?'✅':'❌'} ${r.status}</td>
-            <td style="color:var(--ok);">${r.start}</td>
-            <td style="color:var(--err);">${r.end}</td>
-            <td>${r.duration}</td>
-          </tr>`).join('')}</tbody>
-        </table>
-      </div>
-    </div>`;
-  doneLoading();
-}
-
-async function exportTimesheetExcel(){
-  if(lastTsData.length===0){ toast('Please load data first','err'); return; }
-  loading('Generating Excel...');
-  const month=parseInt(document.getElementById('tsMonth').value);
-  const year=parseInt(document.getElementById('tsYear').value);
-  const co=getCompanyName();
-  const ws={};
-  const headers=['#','Department','Employee','Date','Status','Start Time','End Time','Duration'];
-  const data=lastTsData.map((r,i)=>[i+1,r.dept,r.name,r.date,r.status,r.start,r.end,r.duration]);
-  xlsTitle(ws,`${co} — Timesheet Report`,`${MONTHS[month]} ${year}  |  Records: ${data.length}`,headers.length);
-  xlsData(ws,5,headers,data);
-  ws['!cols']=[{wch:5},{wch:14},{wch:22},{wch:13},{wch:10},{wch:12},{wch:12},{wch:12}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Timesheet');
-  XLSX.writeFile(wb,`${co}_Timesheet_${MONTHS[month]}_${year}.xlsx`);
-  doneLoading(); toast('Excel downloading!');
-}
-
-async function exportTimesheetPDF(){
-  if(lastTsData.length===0){ toast('Please load data first','err'); return; }
-  loading('Generating PDF...');
-  const month=parseInt(document.getElementById('tsMonth').value);
-  const year=parseInt(document.getElementById('tsYear').value);
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF('l','pt','a4');
-  doc.setFontSize(16); doc.setTextColor(239,168,0);
-  doc.text(`${getCompanyName()} — Timesheet Report`,40,40);
-  doc.setFontSize(11); doc.setTextColor(120,130,180);
-  doc.text(`${MONTHS[month]} ${year}`,40,58);
-  doc.autoTable({
-    startY:72,
-    head:[['#','Dept','Employee','Date','Status','Start','End','Duration']],
-    body:lastTsData.map((r,i)=>[i+1,r.dept,r.name,r.date,r.status,r.start,r.end,r.duration]),
-    styles:{fontSize:8,textColor:[200,210,240],fillColor:[12,18,41]},
-    headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[17,26,56]},
-    didParseCell:(d)=>{
-      if(d.section==='body'&&d.column.index===4){
-        d.cell.styles.textColor=d.cell.raw==='Present'?[31,209,122]:[255,68,102];
-        d.cell.styles.fontStyle='bold';
-      }
-    }
-  });
-  doc.save(`${getCompanyName()}_Timesheet_${MONTHS[month]}_${year}.pdf`);
-  doneLoading(); toast('PDF downloading!');
 }
 
 
