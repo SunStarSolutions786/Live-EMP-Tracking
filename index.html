@@ -567,131 +567,6 @@ button{font-family:'DM Sans',sans-serif;}
 .holiday-chip:hover{transform:translateY(-1px);}
 
 
-/* ════ TIMESHEET ════ */
-let lastTsData=[];
-async function loadTimesheet(){
-  const month=parseInt(document.getElementById('tsMonth').value);
-  const year=parseInt(document.getElementById('tsYear').value);
-  const dept=document.getElementById('tsDept').value;
-  const empUid=document.getElementById('tsEmployee').value;
-  loading('Loading timesheet...');
-  lastTsData=[];
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const today=new Date();
-  const coSnap=await db.ref(`companies/${APP.companyId}`).get();
-  const holidays=(coSnap.exists()&&coSnap.val().holidays)||[0];
-  const activeEmp=Object.fromEntries(Object.entries(APP.salesmen)
-    .filter(([,u])=>u.status!=='deleted_by_admin'&&(dept==='all'||(dept==='sales'&&u.emp_type!=='backoffice')||(dept==='backoffice'&&u.emp_type==='backoffice')))
-  );
-  const showEmp=empUid?{[empUid]:APP.salesmen[empUid]}:activeEmp;
-  
-  for(const [uid,u] of Object.entries(showEmp)){
-    for(let d=1;d<=daysInMonth;d++){
-      const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      if(new Date(year,month,d)>today) continue;
-      const dayOfWeek=new Date(year,month,d).getDay();
-      if(holidays.includes(dayOfWeek)) continue;
-      const attSnap=await db.ref(`attendance/${APP.companyId}/${ds}/${uid}`).get();
-      const att=attSnap.exists()?attSnap.val():null;
-      let dur='—',durMins=0;
-      if(att&&att.start_timestamp&&att.end_timestamp){
-        const diff=att.end_timestamp-att.start_timestamp;
-        dur=`${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m`;
-        durMins=Math.floor(diff/60000);
-      }
-      lastTsData.push({
-        name:u.name, dept:u.emp_type==='backoffice'?'Back Office':'Sales',
-        date:ds, start:att?att.start_time:'Absent', end:att?att.end_time:'—',
-        duration:dur, durMins, status:att?'Present':'Absent'
-      });
-    }
-  }
-  
-  // Render
-  const content=document.getElementById('tsContent');
-  if(lastTsData.length===0){ content.innerHTML='<div class="empty"><div class="empty-icon">⏱️</div>No data found</div>'; doneLoading(); return; }
-  
-  // Summary
-  const totalPresent=lastTsData.filter(r=>r.status==='Present').length;
-  const totalAbsent=lastTsData.filter(r=>r.status==='Absent').length;
-  const totalMins=lastTsData.reduce((s,r)=>s+r.durMins,0);
-  const avgH=Math.floor(totalMins/Math.max(1,totalPresent)/60);
-  const avgM=Math.floor(totalMins/Math.max(1,totalPresent)%60);
-  
-  content.innerHTML=`
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
-      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">✅</div><div class="ov-val" style="color:var(--ok);">${totalPresent}</div><div class="ov-lbl">Days Present</div></div>
-      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">❌</div><div class="ov-val" style="color:var(--err);">${totalAbsent}</div><div class="ov-lbl">Days Absent</div></div>
-      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">⏱️</div><div class="ov-val">${avgH}h ${avgM}m</div><div class="ov-lbl">Avg Hours/Day</div></div>
-    </div>
-    <div class="tc">
-      <div class="tc-hd"><div class="tc-title">Daily Timesheet</div></div>
-      <div style="overflow-x:auto;">
-        <table class="tbl">
-          <thead><tr><th>Employee</th><th>Dept</th><th>Date</th><th>Status</th><th>Start</th><th>End</th><th>Duration</th></tr></thead>
-          <tbody>${lastTsData.map(r=>`<tr>
-            <td class="tbl-name">${r.name}</td>
-            <td><span class="mod-badge ${r.dept==='Sales'?'mod-sales':'mod-bo'}" style="font-size:10px;">${r.dept}</span></td>
-            <td>${r.date}</td>
-            <td style="color:${r.status==='Present'?'var(--ok)':'var(--err)'};">${r.status==='Present'?'✅':'❌'} ${r.status}</td>
-            <td style="color:var(--ok);">${r.start}</td>
-            <td style="color:var(--err);">${r.end}</td>
-            <td>${r.duration}</td>
-          </tr>`).join('')}</tbody>
-        </table>
-      </div>
-    </div>`;
-  doneLoading();
-}
-
-async function exportTimesheetExcel(){
-  if(lastTsData.length===0){ toast('Please load data first','err'); return; }
-  loading('Generating Excel...');
-  const month=parseInt(document.getElementById('tsMonth').value);
-  const year=parseInt(document.getElementById('tsYear').value);
-  const co=getCompanyName();
-  const ws={};
-  const headers=['#','Department','Employee','Date','Status','Start Time','End Time','Duration'];
-  const data=lastTsData.map((r,i)=>[i+1,r.dept,r.name,r.date,r.status,r.start,r.end,r.duration]);
-  xlsTitle(ws,`${co} — Timesheet Report`,`${MONTHS[month]} ${year}  |  Records: ${data.length}`,headers.length);
-  xlsData(ws,5,headers,data);
-  ws['!cols']=[{wch:5},{wch:14},{wch:22},{wch:13},{wch:10},{wch:12},{wch:12},{wch:12}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Timesheet');
-  XLSX.writeFile(wb,`${co}_Timesheet_${MONTHS[month]}_${year}.xlsx`);
-  doneLoading(); toast('Excel downloading!');
-}
-
-async function exportTimesheetPDF(){
-  if(lastTsData.length===0){ toast('Please load data first','err'); return; }
-  loading('Generating PDF...');
-  const month=parseInt(document.getElementById('tsMonth').value);
-  const year=parseInt(document.getElementById('tsYear').value);
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF('l','pt','a4');
-  doc.setFontSize(16); doc.setTextColor(239,168,0);
-  doc.text(`${getCompanyName()} — Timesheet Report`,40,40);
-  doc.setFontSize(11); doc.setTextColor(120,130,180);
-  doc.text(`${MONTHS[month]} ${year}`,40,58);
-  doc.autoTable({
-    startY:72,
-    head:[['#','Dept','Employee','Date','Status','Start','End','Duration']],
-    body:lastTsData.map((r,i)=>[i+1,r.dept,r.name,r.date,r.status,r.start,r.end,r.duration]),
-    styles:{fontSize:8,textColor:[200,210,240],fillColor:[12,18,41]},
-    headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[17,26,56]},
-    didParseCell:(d)=>{
-      if(d.section==='body'&&d.column.index===4){
-        d.cell.styles.textColor=d.cell.raw==='Present'?[31,209,122]:[255,68,102];
-        d.cell.styles.fontStyle='bold';
-      }
-    }
-  });
-  doc.save(`${getCompanyName()}_Timesheet_${MONTHS[month]}_${year}.pdf`);
-  doneLoading(); toast('PDF downloading!');
-}
-
-
 /* ════ PERFORMANCE SCORE ════ */
 .perf-card{
   background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
@@ -2359,18 +2234,20 @@ function renderSalesmanList(){
   let html=active.map(([uid,u])=>{
     const isInactive=u.status==='inactive';
     const isBo=u.emp_type==='backoffice';
-    const typeBadge=isBo?'<span class="mod-badge mod-bo" style="font-size:10px;padding:2px 7px;">Back Office</span>':'<span class="mod-badge mod-sales" style="font-size:10px;padding:2px 7px;">Sales</span>';
-    return `
-    <div class="sm-list-item" style="opacity:${isInactive?0.6:1};"
+    const typeBadge=isBo
+      ?'<span class="mod-badge mod-bo" style="font-size:10px;padding:2px 7px;margin-left:6px;">Back Office</span>'
+      :'<span class="mod-badge mod-sales" style="font-size:10px;padding:2px 7px;margin-left:6px;">Sales</span>';
+    const inactiveBadge=isInactive?'<span style="font-size:10px;color:var(--err);font-weight:600;background:rgba(255,68,102,0.1);padding:2px 8px;border-radius:10px;margin-left:6px;">Inactive</span>':'';
+    return `<div class="sm-list-item" data-dept="${isBo?'backoffice':'sales'}" style="opacity:${isInactive?0.65:1};">
       <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;">
         <div class="sm-av" style="background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${u.name[0].toUpperCase()}</div>
         <div style="min-width:0;">
-          <div class="sm-nm">${u.name} ${typeBadge}${isInactive?' <span style="font-size:11px;color:var(--err);font-weight:600;background:rgba(255,68,102,0.1);padding:2px 8px;border-radius:10px;">Inactive</span>':''}</div>
+          <div class="sm-nm" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">${u.name}${typeBadge}${inactiveBadge}</div>
           <div class="sm-em">${u.email}</div>
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0;">
-        <button class="btn-ghost" style="font-size:12px;padding:7px 10px;" onclick="editSalesman('${uid}')">✏️ Edit</button>
+        <button class="btn-ghost" style="font-size:12px;padding:7px 10px;" onclick="editSalesmanAdmin('${uid}')">✏️ Edit</button>
         <button class="btn-ghost" style="font-size:12px;padding:7px 10px;${isInactive?'color:var(--ok);border-color:rgba(31,209,122,0.3);':''}"
           onclick="toggleSalesmanStatus('${uid}','${u.name}','${isInactive?'active':'inactive'}')">
           ${isInactive?'✅ Activate':'🚫 Deactivate'}
@@ -2395,6 +2272,27 @@ function renderSalesmanList(){
     </div>`;
   }
   body.innerHTML=html;
+}
+
+/* ════ EDIT SALESMAN (Company Admin) ════ */
+async function editSalesmanAdmin(uid){
+  loading('Loading employee...');
+  try{
+    const snap=await db.ref(`users/${uid}`).get();
+    if(!snap.exists()){ doneLoading(); toast('Employee not found','err'); return; }
+    const u=snap.val();
+    document.getElementById('esUid').value=uid;
+    document.getElementById('esName').value=u.name||'';
+    document.getElementById('esEmail').value=u.email||'';
+    document.getElementById('esPass').value=u.password||'';
+    document.getElementById('esErr').style.display='none';
+    const empTypeSel=document.getElementById('esEmpType');
+    if(empTypeSel){ empTypeSel.value=u.emp_type||'sales'; }
+    const wrap=document.getElementById('esEmpTypeWrap');
+    if(wrap) wrap.style.display='block';
+    doneLoading();
+    openModal('editSalesmanModal');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
 async function softDeleteSalesman(uid, name){
@@ -2451,14 +2349,13 @@ async function addSalesman(){
 let currentSmFilter='all';
 function filterSmList(type, btn){
   currentSmFilter=type;
-  document.querySelectorAll('.dept-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#smDeptFilter .dept-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
   const items=document.querySelectorAll('#smListBody .sm-list-item');
   items.forEach(item=>{
     if(type==='all'){ item.style.display=''; return; }
-    const hasBo=item.innerHTML.includes('Back Office');
-    if(type==='backoffice') item.style.display=hasBo?'':'none';
-    else item.style.display=!hasBo?'':'none';
+    const dept=item.getAttribute('data-dept')||'sales';
+    item.style.display=(dept===type)?'':'none';
   });
 }
 
@@ -2694,134 +2591,29 @@ function exportHistoryPDF(){
   doneLoading(); toast('PDF downloading!');
 }
 
-/* ════ VISITS (kept for compatibility) ════ */
+/* ════ VISITS (internal data builder) ════ */
 let lastVisitData=[];
-async function loadVisits(src){
-  const isEx=src==='ex';
-  const startDate=document.getElementById(isEx?'exVStart':'vStartDate').value;
-  const endDate=document.getElementById(isEx?'exVEnd':'vEndDate').value;
-  const salesmanUid=document.getElementById(isEx?'exVSalesman':'vSalesmanFilter').value;
-  if(!startDate||!endDate){ toast('Please enter start and end date','err'); return; }
-  loading('Loading visit history...');
+async function loadVisits(){
+  const startDate=document.getElementById('vStartDate').value;
+  const endDate=document.getElementById('vEndDate').value;
+  const salesmanUid=document.getElementById('vSalesmanFilter').value;
+  if(!startDate||!endDate){ return; }
   lastVisitData=[];
   try{
-    // generate date range
     const dates=[];
-    let cur=new Date(startDate);
-    const end=new Date(endDate);
+    let cur=new Date(startDate+'T00:00:00');
+    const end=new Date(endDate+'T00:00:00');
     while(cur<=end){ dates.push(cur.toISOString().split('T')[0]); cur.setDate(cur.getDate()+1); }
-    const deptFilter=window.currentVisitDept||'sales';
     for(const date of dates){
       const snap=await db.ref(`visits/${APP.companyId}/${date}`).get();
       if(snap.exists()){
         Object.values(snap.val()).forEach(v=>{
-          if(!salesmanUid||v.salesman_uid===salesmanUid){
-            // Filter by dept — visits are always sales employees
-            if(deptFilter==='all'||deptFilter==='sales') lastVisitData.push({...v,date});
-          }
+          if(!salesmanUid||v.salesman_uid===salesmanUid) lastVisitData.push({...v,date});
         });
       }
     }
     lastVisitData.sort((a,b)=>a.timestamp-b.timestamp);
-    if(!isEx){
-      const tbody=document.getElementById('visitTbody');
-      if(lastVisitData.length===0){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--txt-3);">No visits found for this period</td></tr>'; }
-      else tbody.innerHTML=lastVisitData.map(v=>`<tr><td>${v.date}</td><td>${v.salesman_name}</td><td class="tbl-name">${v.outlet}</td><td>${v.time}</td><td>${v.remarks||'—'}</td></tr>`).join('');
-    }
-    doneLoading();
-  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
-}
-
-/* ════ ATTENDANCE ════ */
-let lastAttData={};
-async function loadAttendance(src){
-  const isEx=src==='ex';
-  const month=parseInt(document.getElementById(isEx?'exAttMonth':'attMonth').value);
-  const year=parseInt(document.getElementById(isEx?'exAttYear':'attYear').value);
-  const salesmanUid=document.getElementById(isEx?'exAttSalesman':'attSalesmanFilter').value;
-  loading('Loading attendance...');
-  lastAttData={month,year,salesmanUid};
-  const daysInMonth=new Date(year,month+1,0).getDate();
-  const today=new Date();
-  // Load company holidays
-  const coSnap=await db.ref(`companies/${APP.companyId}`).get();
-  const companyHolidays=(coSnap.exists()&&coSnap.val().holidays)||[0];
-  lastAttData.holidays=companyHolidays;
-  const activeSalesmen=Object.fromEntries(Object.entries(APP.salesmen).filter(([,u])=>u.status!=='deleted_by_admin'));
-  const showSalesmen=salesmanUid?{[salesmanUid]:APP.salesmen[salesmanUid]}:activeSalesmen;
-  // Load attendance records (new node with start/end)
-  const attMap={}; // {uid: {date: {start_time, end_time, ...}}}
-  for(const [uid] of Object.entries(showSalesmen)){ attMap[uid]={}; }
-  const allDates=Array.from({length:daysInMonth},(_,i)=>`${year}-${String(month+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`);
-  const [attSnaps,visitSnaps]=await Promise.all([
-    Promise.all(allDates.map(ds=>db.ref(`attendance/${APP.companyId}/${ds}`).get())),
-    Promise.all(allDates.map(ds=>db.ref(`visits/${APP.companyId}/${ds}`).get()))
-  ]);
-  allDates.forEach((ds,i)=>{
-    const snap=attSnaps[i];
-    if(snap.exists()) Object.entries(snap.val()).forEach(([uid,att])=>{ if(attMap[uid]!==undefined) attMap[uid][ds]=att; });
-    const vSnap=visitSnaps[i];
-    if(vSnap.exists()) Object.values(vSnap.val()).forEach(v=>{
-      if(attMap[v.salesman_uid]!==undefined && !attMap[v.salesman_uid][ds]) attMap[v.salesman_uid][ds]={legacy:true};
-    });
-  });
-  lastAttData.attMap=attMap;
-  lastAttData.daysInMonth=daysInMonth;
-  if(!isEx) renderAttendance(showSalesmen, attMap, month, year, daysInMonth, today);
-  doneLoading();
-}
-
-function renderAttendance(showSalesmen, attMap, month, year, daysInMonth, today){
-  const firstDay=new Date(year,month,1).getDay();
-  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const holidays=lastAttData.holidays||[0];
-  let html='';
-  for(const [uid,sm] of Object.entries(showSalesmen)){
-    let present=0,absent=0;
-    html+=`<div class="tc" style="margin-bottom:20px;">
-      <div class="tc-hd"><div class="tc-title">👤 ${sm.name}</div></div>
-      <div style="padding:20px;">
-      <div class="att-cal">${days.map(d=>`<div class="att-dh">${d}</div>`).join('')}`;
-    for(let i=0;i<firstDay;i++) html+=`<div class="att-d emp"></div>`;
-    for(let d=1;d<=daysInMonth;d++){
-      const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const dt=new Date(year,month,d);
-      const isFuture=dt>today;
-      const att=attMap[uid]?attMap[uid][ds]:null;
-      const dayOfWeek=new Date(year,month,d).getDay();
-      const isHol=holidays.includes(dayOfWeek);
-      let cls='fut';
-      if(!isFuture){
-        if(isHol){ cls='holiday'; }
-        else if(att){ cls='present'; present++; }
-        else{ cls='absent'; absent++; }
-      }
-      html+=`<div class="att-d ${cls}" title="${isHol?days[dayOfWeek]+' (Holiday)':''}">
-        <div class="att-dn">${d}</div>
-        ${att&&att.start_time?`<div class="att-dv">${att.start_time.replace(' AM','a').replace(' PM','p')}</div>`:''}
-      </div>`;
-    }
-    // Build detail rows
-    const detailRows=attMap[uid]?Object.entries(attMap[uid]).filter(([,a])=>a&&!a.legacy).sort((a,b)=>a[0].localeCompare(b[0])).map(([ds,a])=>{
-      let dur='—';
-      if(a.start_timestamp&&a.end_timestamp){
-        const diff=a.end_timestamp-a.start_timestamp;
-        dur=`${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m`;
-      }
-      return `<tr><td>${ds}</td><td style="color:var(--ok)">${a.start_time||'—'}</td><td style="color:var(--err)">${a.end_time||'In Progress'}</td><td>${dur}</td></tr>`;
-    }).join(''):'';
-    html+=`</div>
-      <div class="att-sum">
-        <div class="att-si"><div class="att-dot" style="background:var(--ok);"></div>${present} Present</div>
-        <div class="att-si"><div class="att-dot" style="background:var(--err);"></div>${absent} Absent</div>
-        <div class="att-si"><div class="att-dot" style="background:var(--txt-3);"></div>${daysInMonth-present-absent} Remaining</div>
-      </div>
-      ${detailRows?`<div style="margin-top:16px;overflow-x:auto;">
-        <table class="tbl"><thead><tr><th>Date</th><th>Start</th><th>End</th><th>Duration</th></tr></thead>
-        <tbody>${detailRows}</tbody></table></div>`:''}
-    </div></div>`;
-  }
-  document.getElementById('attContent').innerHTML=html||'<div class="empty"><div class="empty-icon">📅</div>No salesman found</div>';
+  }catch(e){ console.warn('loadVisits error:',e); }
 }
 
 /* ════ MAP ════ */
@@ -3226,194 +3018,7 @@ function xlsData(ws, startRow, headers, rows){
   rows.forEach(()=>ws['!rows'].push({hpt:20}));
 }
 
-/* ── Visit History Excel ── */
-async function exportVisitExcel(src){
-  await loadVisits(src);
-  if(lastVisitData.length===0){ toast('No data available','err'); return; }
-  loading('Generating Excel...');
-  const co=getCompanyName();
-  const ws={};
-  const headers=['#','Date','Department','Salesman','Outlet Name','Time','Remarks'];
-  const data=lastVisitData.map((v,i)=>[i+1,v.date,'Sales',v.salesman_name,v.outlet,v.time,v.remarks||'—']);
-  xlsTitle(ws,`${co} — Visit History Report`,`Total Visits: ${data.length}`,headers.length);
-  xlsData(ws,5,headers,data);
-  ws['!cols']=[{wch:5},{wch:13},{wch:22},{wch:28},{wch:11},{wch:35}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Visit History');
-  XLSX.writeFile(wb,`${co}_Visit_History.xlsx`);
-  doneLoading(); toast('Excel downloading!');
-}
-
-/* ── Detailed Attendance Excel ── */
-async function exportAttExcel(src){
-  await loadAttendance(src);
-  if(!lastAttData.attMap){ toast('Please load data first','err'); return; }
-  loading('Generating Excel...');
-  const {month,year,attMap}=lastAttData;
-  const co=getCompanyName(); const today=new Date();
-  const _activeSM=Object.fromEntries(Object.entries(APP.salesmen).filter(([,u])=>u.status!=='deleted_by_admin'));
-  const sm=lastAttData.salesmanUid?{[lastAttData.salesmanUid]:APP.salesmen[lastAttData.salesmanUid]}:_activeSM;
-  const ws={};
-  const headers=['#','Department','Salesman','Date','Start Time','End Time','Duration'];
-  const data=[];
-  let i=1;
-  for(const [uid,u] of Object.entries(sm)){
-    const dept=u.emp_type==='backoffice'?'Back Office':'Sales';
-    const records=attMap[uid]?Object.entries(attMap[uid]).filter(([,a])=>a&&!a.legacy).sort((a,b)=>a[0].localeCompare(b[0])):[];
-    for(const [ds,a] of records){
-      let dur='—';
-      if(a.start_timestamp&&a.end_timestamp){
-        const diff=a.end_timestamp-a.start_timestamp;
-        dur=`${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m`;
-      }
-      data.push([i++,dept,u.name,ds,a.start_time||'—',a.end_time||'In Progress',dur]);
-    }
-  }
-  xlsTitle(ws,`${co} — Detailed Attendance Report`,`${MONTHS[month]} ${year}  |  Total Records: ${data.length}`,headers.length);
-  xlsData(ws,5,headers,data);
-  ws['!cols']=[{wch:5},{wch:22},{wch:13},{wch:13},{wch:16},{wch:12}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Detailed Attendance');
-  XLSX.writeFile(wb,`${co}_Attendance_Detailed_${MONTHS[month]}_${year}.xlsx`);
-  doneLoading(); toast('Excel downloading!');
-}
-
-/* ── Simple Present/Absent Excel ── */
-async function exportAttSimpleExcel(src){
-  await loadAttendance(src);
-  if(!lastAttData.attMap){ toast('Please load data first','err'); return; }
-  loading('Generating Excel...');
-  const {month,year,daysInMonth,attMap}=lastAttData;
-  const co=getCompanyName(); const today=new Date();
-  const _activeSM=Object.fromEntries(Object.entries(APP.salesmen).filter(([,u])=>u.status!=='deleted_by_admin'));
-  const sm=lastAttData.salesmanUid?{[lastAttData.salesmanUid]:APP.salesmen[lastAttData.salesmanUid]}:_activeSM;
-  const wb=XLSX.utils.book_new();
-
-  // ── Sheet 1: Day-wise P/A ──
-  const ws1={};
-  const h1=['Salesman',...Array.from({length:daysInMonth},(_,i)=>String(i+1)),'Present','Absent','Working Days','Att. %'];
-  const d1=[];
-  for(const [uid,u] of Object.entries(sm)){
-    let present=0,absent=0;
-    const row=[u.name];
-    for(let d=1;d<=daysInMonth;d++){
-      const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const fut=new Date(year,month,d)>today;
-      const att=attMap[uid]?attMap[uid][ds]:null;
-      if(fut) row.push('—');
-      else if(att){ row.push('P'); present++; }
-      else{ row.push('A'); absent++; }
-    }
-    const total=present+absent;
-    row.push(present, absent, total, total>0?`${Math.round(present/total*100)}%`:'0%');
-    d1.push(row);
-  }
-  xlsTitle(ws1,`${co} — Attendance (${MONTHS[month]} ${year})`,`P = Present  |  A = Absent  |  — = Future/N/A`,h1.length);
-  xlsData(ws1,5,h1,d1);
-  const colWidths1=[{wch:22},...Array(daysInMonth).fill({wch:4}),{wch:9},{wch:9},{wch:13},{wch:9}];
-  ws1['!cols']=colWidths1;
-  XLSX.utils.book_append_sheet(wb,ws1,'Day-wise Attendance');
-
-  // ── Sheet 2: Monthly Summary ──
-  const ws2={};
-  const h2=['#','Salesman','Present Days','Absent Days','Working Days','Attendance %'];
-  const d2=Object.entries(sm).map(([uid,u],idx)=>{
-    let present=0,absent=0;
-    for(let d=1;d<=daysInMonth;d++){
-      const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      if(!(new Date(year,month,d)>today)){ if(attMap[uid]&&attMap[uid][ds]) present++; else absent++; }
-    }
-    const total=present+absent;
-    return [idx+1, u.name, present, absent, total, total>0?Math.round(present/total*100):0];
-  });
-  xlsTitle(ws2,`${co} — Monthly Summary`,`${MONTHS[month]} ${year}`,h2.length);
-  xlsData(ws2,5,h2,d2);
-  ws2['!cols']=[{wch:5},{wch:25},{wch:14},{wch:14},{wch:14},{wch:14}];
-  XLSX.utils.book_append_sheet(wb,ws2,'Monthly Summary');
-
-  XLSX.writeFile(wb,`${co}_Attendance_${MONTHS[month]}_${year}.xlsx`);
-  doneLoading(); toast('Excel downloading!');
-}
-
-async function exportAttSimplePDF(src){
-  await loadAttendance(src);
-  if(!lastAttData.attMap){ toast('Please load data first','err'); return; }
-  loading('Generating PDF...');
-  const {month,year,daysInMonth,attMap}=lastAttData;
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF('l','pt','a4');
-  const _activeSM=Object.fromEntries(Object.entries(APP.salesmen).filter(([,u])=>u.status!=='deleted_by_admin'));
-  const sm=lastAttData.salesmanUid?{[lastAttData.salesmanUid]:APP.salesmen[lastAttData.salesmanUid]}:_activeSM;
-  const today=new Date();
-
-  // Title
-  doc.setFontSize(16); doc.setTextColor(239,168,0);
-  doc.text(`SunStar Solutions — Attendance Report (${MONTHS[month]} ${year})`,40,40);
-  doc.setFontSize(11); doc.setTextColor(120,130,180);
-  doc.text(getCompanyName(),40,58);
-
-  // Day-wise table
-  const headers=['Salesman',...Array.from({length:daysInMonth},(_,i)=>String(i+1)),'P','A'];
-  const body=Object.entries(sm).map(([uid,u])=>{
-    let present=0,absent=0;
-    const row=[u.name];
-    for(let d=1;d<=daysInMonth;d++){
-      const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const fut=new Date(year,month,d)>today;
-      const att=attMap[uid]?attMap[uid][ds]:null;
-      if(fut){ row.push('—'); }
-      else if(att){ row.push('P'); present++; }
-      else{ row.push('A'); absent++; }
-    }
-    row.push(present,absent);
-    return row;
-  });
-
-  doc.autoTable({
-    startY:70,
-    head:[headers],
-    body,
-    styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41],halign:'center'},
-    headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[17,26,56]},
-    columnStyles:{
-      0:{halign:'left',fontStyle:'bold',cellWidth:80},
-      [daysInMonth+1]:{fillColor:[31,60,30],textColor:[31,209,122],fontStyle:'bold'},
-      [daysInMonth+2]:{fillColor:[60,20,30],textColor:[255,68,102],fontStyle:'bold'}
-    },
-    didParseCell:(data)=>{
-      if(data.cell.raw==='P') data.cell.styles.textColor=[31,209,122];
-      if(data.cell.raw==='A') data.cell.styles.textColor=[255,68,102];
-    }
-  });
-
-  // Summary table
-  const sumY=doc.lastAutoTable.finalY+20;
-  doc.setFontSize(13); doc.setTextColor(239,168,0);
-  doc.text('Monthly Summary',40,sumY);
-  doc.autoTable({
-    startY:sumY+10,
-    head:[['Salesman','Present Days','Absent Days','Working Days','Attendance %']],
-    body:Object.entries(sm).map(([uid,u])=>{
-      let present=0,absent=0;
-      for(let d=1;d<=daysInMonth;d++){
-        const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        const fut=new Date(year,month,d)>today;
-        if(!fut){ if(attMap[uid]&&attMap[uid][ds]) present++; else absent++; }
-      }
-      const total=present+absent;
-      const pct=total>0?Math.round(present/total*100):0;
-      return [u.name, present, absent, total, `${pct}%`];
-    }),
-    styles:{fontSize:9,textColor:[200,210,240],fillColor:[12,18,41],halign:'center'},
-    headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[17,26,56]},
-    columnStyles:{0:{halign:'left',fontStyle:'bold'}}
-  });
-
-  doc.save(`${getCompanyName()}_Attendance_Simple_${MONTHS[month]}_${year}.pdf`);
-  doneLoading(); toast('PDF downloading!');
-}
+/* ════ SALESMAN SCREEN ════ */
 async function initSalesman(){
   show('salesmanScreen');
   document.getElementById('smAv').textContent=APP.userData.name[0].toUpperCase();
