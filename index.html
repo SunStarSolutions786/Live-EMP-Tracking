@@ -1064,7 +1064,7 @@ button{font-family:'DM Sans',sans-serif;}
           <div class="ov-card" style="cursor:default;">
             <div class="ov-icon">🕐</div>
             <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">B — Attendance Raw</div>
-            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Daily In/Out times for every employee (all dates)</div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Daily In/Out times for every employee (date range)</div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
               <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
                 <select class="fsel-sm" id="rptRawType" style="width:100%;min-width:unset;">
@@ -1073,14 +1073,8 @@ button{font-family:'DM Sans',sans-serif;}
                   <option value="backoffice">Back Office Only</option>
                 </select>
               </div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Month</label>
-                <select class="fsel-sm" id="rptRawMonth" style="width:100%;min-width:unset;">
-                  <option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option>
-                  <option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option>
-                  <option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option>
-                </select>
-              </div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="rptRawYear" style="width:100%;min-width:unset;" value="2025"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">From Date</label><input class="fi-sm" type="date" id="rptRawStart" style="width:100%;min-width:unset;"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">To Date</label><input class="fi-sm" type="date" id="rptRawEnd" style="width:100%;min-width:unset;"></div>
             </div>
             <div style="display:flex;gap:10px;">
               <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptRawExcel()">📊 Excel</button>
@@ -1101,14 +1095,8 @@ button{font-family:'DM Sans',sans-serif;}
                   <option value="backoffice">Back Office Only</option>
                 </select>
               </div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Month</label>
-                <select class="fsel-sm" id="rptSumMonth" style="width:100%;min-width:unset;">
-                  <option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option>
-                  <option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option>
-                  <option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option>
-                </select>
-              </div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="rptSumYear" style="width:100%;min-width:unset;" value="2025"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">From Date</label><input class="fi-sm" type="date" id="rptSumStart" style="width:100%;min-width:unset;"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">To Date</label><input class="fi-sm" type="date" id="rptSumEnd" style="width:100%;min-width:unset;"></div>
             </div>
             <div style="display:flex;gap:10px;">
               <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptSumExcel()">📊 Excel</button>
@@ -1167,7 +1155,8 @@ button{font-family:'DM Sans',sans-serif;}
         <div><div class="pt">All Companies Report</div><div class="ps">Combined report across all companies</div></div>
       </div>
       <div class="fbar">
-        <div class="fg-sm"><label class="fl-sm">Date</label><input class="fi-sm" type="date" id="saReportDate"></div>
+        <div class="fg-sm"><label class="fl-sm">From Date</label><input class="fi-sm" type="date" id="saReportFrom"></div>
+        <div class="fg-sm"><label class="fl-sm">To Date</label><input class="fi-sm" type="date" id="saReportTo"></div>
         <div class="fg-sm"><label class="fl-sm">Company</label>
           <select class="fsel-sm" id="saReportCompany"><option value="">All Companies</option></select>
         </div>
@@ -1179,7 +1168,7 @@ button{font-family:'DM Sans',sans-serif;}
           </div>
         </div>
       </div>
-      <div id="saReportContent"><div class="empty"><div class="empty-icon">📊</div>Select date and click Load</div></div>
+      <div id="saReportContent"><div class="empty"><div class="empty-icon">📊</div>Select date range and click Load</div></div>
     </div>
   </div>
 </div>
@@ -1234,20 +1223,6 @@ button{font-family:'DM Sans',sans-serif;}
     </div>
     <input type="hidden" id="csCoId">
 
-    <!-- Modules -->
-    <div class="settings-section">
-      <div class="settings-title">📦 Employee Modules</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:10px 14px;border:1px solid var(--border);border-radius:var(--r-sm);flex:1;transition:all .2s;">
-          <input type="checkbox" id="csModSales"> <span>📊 Sales Employees</span>
-        </label>
-        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:10px 14px;border:1px solid var(--border);border-radius:var(--r-sm);flex:1;transition:all .2s;">
-          <input type="checkbox" id="csModBo"> <span>🏢 Back Office</span>
-        </label>
-      </div>
-      <div style="font-size:11px;color:var(--txt-3);margin-top:8px;">Company admin will only see enabled module(s) when adding employees.</div>
-    </div>
-
     <!-- Holiday -->
     <div class="settings-section">
       <div class="settings-title">🏖️ Weekly Holidays</div>
@@ -1261,6 +1236,23 @@ button{font-family:'DM Sans',sans-serif;}
         <div class="holiday-chip" data-day="6" onclick="toggleHolidayChip(this)">Sat</div>
       </div>
       <div style="font-size:11px;color:var(--txt-3);margin-top:8px;">Holiday days won't count as absent. Daily report email won't be sent on holidays.</div>
+    </div>
+
+    <!-- Report Mail Required -->
+    <div class="settings-section">
+      <div class="settings-title">📨 Report Mail Required</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <label id="csMailYesLabel" style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:10px 18px;border:1px solid var(--border);border-radius:var(--r-sm);flex:1;transition:all .2s;user-select:none;" onclick="setMailRequired(true)">
+          <div id="csMailYesDot" style="width:16px;height:16px;border-radius:50%;border:2px solid var(--txt-3);flex-shrink:0;transition:all .2s;"></div>
+          <span>✅ Yes — Send daily report email</span>
+        </label>
+        <label id="csMailNoLabel" style="display:flex;align-items:center;gap:7px;cursor:pointer;padding:10px 18px;border:1px solid var(--border);border-radius:var(--r-sm);flex:1;transition:all .2s;user-select:none;" onclick="setMailRequired(false)">
+          <div id="csMailNoDot" style="width:16px;height:16px;border-radius:50%;border:2px solid var(--txt-3);flex-shrink:0;transition:all .2s;"></div>
+          <span>🚫 No — Don't send emails</span>
+        </label>
+      </div>
+      <input type="hidden" id="csMailRequired" value="true">
+      <div style="font-size:11px;color:var(--txt-3);margin-top:8px;">If set to No, daily report emails won't be sent regardless of CC addresses.</div>
     </div>
 
     <!-- CC Emails -->
@@ -1589,13 +1581,12 @@ async function initApp(){
 
   // Set default dates
   const today=todayStr();
-  ['vStartDate','vEndDate','mapDate','rptHistStart','rptHistEnd','saReportDate'].forEach(id=>{
+  ['vStartDate','vEndDate','mapDate','rptHistStart','rptHistEnd','saReportFrom','saReportTo','rptRawStart','rptRawEnd','rptSumStart','rptSumEnd'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value=today;
   });
   const now=new Date();
-  ['rptRawMonth','rptSumMonth','perfMonth'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=now.getMonth(); });
-  ['rptRawYear','rptSumYear','perfYear'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=now.getFullYear(); });
+  ['perfYear'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=now.getFullYear(); });
 
   loading('Please wait...');
   // Timeout fallback — show login if Firebase takes too long
@@ -1710,8 +1701,11 @@ async function initSuperAdmin(){
     document.getElementById('saAvNav').textContent=APP.userData.name[0].toUpperCase();
     document.getElementById('saNmNav').textContent=APP.userData.name;
     document.getElementById('coGrid').innerHTML='<div class="empty"><div class="empty-icon">⏳</div>Loading companies...</div>';
-    const dateEl=document.getElementById('saReportDate');
-    if(dateEl) dateEl.value=todayStr();
+    const today=todayStr();
+    const fromEl=document.getElementById('saReportFrom');
+    const toEl=document.getElementById('saReportTo');
+    if(fromEl&&!fromEl.value) fromEl.value=today;
+    if(toEl&&!toEl.value) toEl.value=today;
     await loadSuperDashboard();
   }catch(e){
     console.error('Super admin init error:',e);
@@ -1889,10 +1883,12 @@ async function saveSalesmanEdit(){
     await db.ref(`users/${uid}`).update(updates);
     if(pass){
       const cfg=JSON.parse(localStorage.getItem('ss_config'));
-      await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,{
+      const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,{
         method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({localId:uid,password:pass})
       });
+      const d=await res.json();
+      if(d.error) throw new Error(d.error.message);
     }
     doneLoading(); toast('Employee updated successfully!');
     await loadSalesmen();
@@ -1900,6 +1896,26 @@ async function saveSalesmanEdit(){
 }
 
 /* ════ HOLIDAY & MODULE HELPERS ════ */
+function setMailRequired(val){
+  const v=!!val;
+  document.getElementById('csMailRequired').value=String(v);
+  const yDot=document.getElementById('csMailYesDot');
+  const nDot=document.getElementById('csMailNoDot');
+  const yLbl=document.getElementById('csMailYesLabel');
+  const nLbl=document.getElementById('csMailNoLabel');
+  if(v){
+    yDot.style.background='var(--gold)'; yDot.style.borderColor='var(--gold)';
+    nDot.style.background=''; nDot.style.borderColor='var(--txt-3)';
+    yLbl.style.borderColor='var(--gold)'; yLbl.style.background='var(--gold-dim)';
+    nLbl.style.borderColor='var(--border)'; nLbl.style.background='';
+  } else {
+    nDot.style.background='var(--err)'; nDot.style.borderColor='var(--err)';
+    yDot.style.background=''; yDot.style.borderColor='var(--txt-3)';
+    nLbl.style.borderColor='var(--err)'; nLbl.style.background='rgba(255,68,102,0.08)';
+    yLbl.style.borderColor='var(--border)'; yLbl.style.background='';
+  }
+}
+
 function toggleHolidayChip(el){
   const isSelected=el.style.background.includes('gradient')||el.classList.contains('selected');
   if(isSelected){
@@ -1941,12 +1957,11 @@ async function openCoSettings(coId, coName){
     const co=snap.val()||{};
     document.getElementById('csCoId').value=coId;
     document.getElementById('coSettingsTitle').textContent=`🔧 ${coName} — Settings`;
-    // Modules
-    const mods=co.modules||{sales:true};
-    document.getElementById('csModSales').checked=!!mods.sales;
-    document.getElementById('csModBo').checked=!!mods.backoffice;
     // Holidays
     setHolidayChips('csHolidayChips', co.holidays||[0]);
+    // Mail required (default true)
+    const mailReq=co.mail_required!==false;
+    setMailRequired(mailReq);
     // CC emails
     document.getElementById('csCcEmails').value=(co.cc_emails||[]).join(', ');
     doneLoading();
@@ -1956,17 +1971,13 @@ async function openCoSettings(coId, coName){
 
 async function saveCoSettings(){
   const coId=document.getElementById('csCoId').value;
-  const modules={
-    sales:document.getElementById('csModSales').checked,
-    backoffice:document.getElementById('csModBo').checked
-  };
-  if(!modules.sales&&!modules.backoffice){ toast('Select at least one module','err'); return; }
   const holidays=getSelectedHolidays('csHolidayChips');
+  const mail_required=document.getElementById('csMailRequired').value==='true';
   const ccRaw=document.getElementById('csCcEmails').value.trim();
   const cc_emails=ccRaw?ccRaw.split(',').map(e=>e.trim()).filter(Boolean):[];
   loading('Saving settings...');
   try{
-    await db.ref(`companies/${coId}`).update({modules, holidays, cc_emails});
+    await db.ref(`companies/${coId}`).update({holidays, mail_required, cc_emails});
     doneLoading(); toast('Settings saved! ✅');
     closeModal('coSettingsModal');
     await loadSuperDashboard();
@@ -2082,7 +2093,9 @@ async function saveAdminEdit2(){
     await db.ref(`companies/${coId}`).update({admin_name:name});
     if(pass){
       const cfg=JSON.parse(localStorage.getItem('ss_config'));
-      await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({localId:uid,password:pass})});
+      const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({localId:uid,password:pass})});
+      const d=await res.json();
+      if(d.error) throw new Error(d.error.message);
     }
     doneLoading(); toast('Admin updated successfully!');
     await loadSuperDashboard();
@@ -2596,7 +2609,7 @@ async function loadVisits(){
 function initMap(){
   if(!document.getElementById('visitMap')) return;
   if(!APP.mapInstance){
-    APP.mapInstance=L.map('visitMap',{zoomControl:true}).setView([23.8103,90.4125],12);
+    APP.mapInstance=L.map('visitMap',{zoomControl:true}).setView([22.5726,88.3639],12);
     // Clean tile layer
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
       attribution:'© OpenStreetMap © CartoDB',maxZoom:19
@@ -3353,18 +3366,28 @@ async function initSAReport(){
         sel.innerHTML+=`<option value="${id}">${co.name}</option>`;
       });
     }
-    const dateEl=document.getElementById('saReportDate');
+    const dateEl=document.getElementById('saReportFrom');
     if(dateEl&&!dateEl.value) dateEl.value=todayStr();
+    const dateTo=document.getElementById('saReportTo');
+    if(dateTo&&!dateTo.value) dateTo.value=todayStr();
     doneLoading();
   }catch(e){ doneLoading(); toast('Error loading companies: '+e.message,'err'); }
 }
 
 async function loadSAReport(){
-  const date=document.getElementById('saReportDate').value;
+  const fromDate=document.getElementById('saReportFrom').value;
+  const toDate=document.getElementById('saReportTo').value;
   const coFilter=document.getElementById('saReportCompany').value;
-  if(!date){ toast('Please select a date','err'); return; }
+  if(!fromDate||!toDate){ toast('Please select from and to date','err'); return; }
+  if(fromDate>toDate){ toast('From date must be before To date','err'); return; }
   loading('Loading all companies report...');
   SA_reportData=[];
+
+  // Build date list
+  const dateList=[];
+  let cur=new Date(fromDate);
+  const end=new Date(toDate);
+  while(cur<=end){ dateList.push(cur.toISOString().split('T')[0]); cur.setDate(cur.getDate()+1); }
 
   try{
     const companies=coFilter?{[coFilter]:SA_companies_cache[coFilter]}:SA_companies_cache;
@@ -3378,58 +3401,57 @@ async function loadSAReport(){
 
     for(const [coId,co] of Object.entries(companies)){
       if(co.status==='inactive') continue;
-      // Get salesmen
       const smSnap=await db.ref('users').orderByChild('company_id').equalTo(coId).get();
       const salesmen={};
       if(smSnap.exists()) Object.entries(smSnap.val()).forEach(([uid,u])=>{
         if(u.role==='salesman'&&u.status!=='deleted_by_admin') salesmen[uid]=u;
       });
 
-      // Get visits
-      const vSnap=await db.ref(`visits/${coId}/${date}`).get();
-      const visits=vSnap.exists()?vSnap.val():{};
-
-      // Get attendance
-      const attSnap=await db.ref(`attendance/${coId}/${date}`).get();
-      const att=attSnap.exists()?attSnap.val():{};
+      // For each date, accumulate data per employee
+      const empData={}; // uid -> {visits, presentDays, lastStart, lastEnd, lastDur}
+      for(const date of dateList){
+        const vSnap=await db.ref(`visits/${coId}/${date}`).get();
+        const visits=vSnap.exists()?vSnap.val():{};
+        const attSnap=await db.ref(`attendance/${coId}/${date}`).get();
+        const att=attSnap.exists()?attSnap.val():{};
+        for(const [uid] of Object.entries(salesmen)){
+          if(!empData[uid]) empData[uid]={visits:0,presentDays:0,absentDays:0};
+          const smVisits=Object.values(visits).filter(v=>v.salesman_uid===uid);
+          const smAtt=att[uid]||null;
+          empData[uid].visits+=smVisits.length;
+          if(smAtt){ empData[uid].presentDays++; empData[uid].lastStart=smAtt.start_time; empData[uid].lastEnd=smAtt.end_time; }
+          else empData[uid].absentDays++;
+          SA_reportData.push({company:co.name,coId,salesman:salesmen[uid].name,status:smAtt?'Present':'Absent',visits:smVisits.length,start:smAtt?smAtt.start_time:'—',end:smAtt?smAtt.end_time:'—',duration:'—',date});
+        }
+        totalVisits+=Object.values(visits).length;
+      }
 
       const smRows=Object.entries(salesmen).map(([uid,sm])=>{
-        const smVisits=Object.values(visits).filter(v=>v.salesman_uid===uid);
-        const smAtt=att[uid]||null;
-        const present=!!smAtt;
-        if(present) totalPresent++; else totalAbsent++;
-        totalVisits+=smVisits.length;
-        let dur='—';
-        if(smAtt&&smAtt.start_timestamp&&smAtt.end_timestamp){
-          const diff=smAtt.end_timestamp-smAtt.start_timestamp;
-          dur=`${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m`;
-        }
-        SA_reportData.push({company:co.name,coId,salesman:sm.name,status:present?'Present':'Absent',visits:smVisits.length,start:smAtt?smAtt.start_time:'—',end:smAtt?smAtt.end_time:'—',duration:dur,date});
-        return {name:sm.name,present,visits:smVisits.length,start:smAtt?smAtt.start_time:'—',end:smAtt?smAtt.end_time:'—',dur};
+        const d=empData[uid]||{visits:0,presentDays:0,absentDays:0};
+        totalPresent+=d.presentDays; totalAbsent+=d.absentDays;
+        return {name:sm.name,visits:d.visits,presentDays:d.presentDays,absentDays:d.absentDays};
       });
 
       const coVisits=smRows.reduce((s,r)=>s+r.visits,0);
-      const coPresent=smRows.filter(r=>r.present).length;
+      const coPresent=smRows.reduce((s,r)=>s+r.presentDays,0);
 
       html+=`<div class="tc" style="margin-bottom:18px;">
         <div class="tc-hd">
           <div style="display:flex;align-items:center;gap:10px;">
             <div class="tc-title">🏢 ${co.name}</div>
-            <span style="font-size:12px;color:var(--txt-2);">${coPresent}/${smRows.length} Present &nbsp;|&nbsp; ${coVisits} Visits</span>
+            <span style="font-size:12px;color:var(--txt-2);">${coVisits} Visits &nbsp;|&nbsp; ${coPresent} Present-days</span>
           </div>
         </div>
         <div style="overflow-x:auto;">
           <table class="tbl">
-            <thead><tr><th>Employee</th><th>Status</th><th>Visits</th><th>Start</th><th>End</th><th>Duration</th></tr></thead>
+            <thead><tr><th>Employee</th><th>Present Days</th><th>Absent Days</th><th>Total Visits</th></tr></thead>
             <tbody>
-              ${smRows.length===0?'<tr><td colspan="6" style="text-align:center;color:var(--txt-3);padding:20px;">No employees</td></tr>':
+              ${smRows.length===0?'<tr><td colspan="4" style="text-align:center;color:var(--txt-3);padding:20px;">No employees</td></tr>':
               smRows.map(r=>`<tr>
                 <td class="tbl-name">${r.name}</td>
-                <td style="color:${r.present?'var(--ok)':'var(--err)'};">${r.present?'✅ Present':'❌ Absent'}</td>
+                <td style="color:var(--ok);text-align:center;">${r.presentDays}</td>
+                <td style="color:var(--err);text-align:center;">${r.absentDays}</td>
                 <td style="text-align:center;">${r.visits}</td>
-                <td style="color:var(--ok);">${r.start}</td>
-                <td style="color:var(--err);">${r.end||'—'}</td>
-                <td>${r.dur}</td>
               </tr>`).join('')}
             </tbody>
           </table>
@@ -3437,11 +3459,10 @@ async function loadSAReport(){
       </div>`;
     }
 
-    // Summary header
     const summaryHtml=`<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px;">
       <div class="ov-card" style="flex:1;min-width:140px;"><div class="ov-icon">📍</div><div class="ov-val">${totalVisits}</div><div class="ov-lbl">Total Visits</div></div>
-      <div class="ov-card" style="flex:1;min-width:140px;"><div class="ov-icon">✅</div><div class="ov-val" style="color:var(--ok);">${totalPresent}</div><div class="ov-lbl">Total Present</div></div>
-      <div class="ov-card" style="flex:1;min-width:140px;"><div class="ov-icon">❌</div><div class="ov-val" style="color:var(--err);">${totalAbsent}</div><div class="ov-lbl">Total Absent</div></div>
+      <div class="ov-card" style="flex:1;min-width:140px;"><div class="ov-icon">✅</div><div class="ov-val" style="color:var(--ok);">${totalPresent}</div><div class="ov-lbl">Present Days</div></div>
+      <div class="ov-card" style="flex:1;min-width:140px;"><div class="ov-icon">❌</div><div class="ov-val" style="color:var(--err);">${totalAbsent}</div><div class="ov-lbl">Absent Days</div></div>
     </div>`;
 
     document.getElementById('saReportContent').innerHTML=summaryHtml+html;
@@ -3452,45 +3473,47 @@ async function loadSAReport(){
 async function exportSAReportExcel(){
   if(SA_reportData.length===0){ toast('Please load data first','err'); return; }
   loading('Generating Excel...');
-  const date=document.getElementById('saReportDate').value;
+  const fromDate=document.getElementById('saReportFrom').value;
+  const toDate=document.getElementById('saReportTo').value;
   const ws={};
-  const headers=['#','Company','Employee','Status','Visits','Start Time','End Time','Duration'];
-  const data=SA_reportData.map((r,i)=>[i+1,r.company,r.salesman,r.status,r.visits,r.start,r.end,r.duration]);
-  xlsTitle(ws,`SunStar Solutions — All Companies Report`,`Date: ${date}  |  Total Records: ${data.length}`,headers.length);
+  const headers=['#','Date','Company','Employee','Status','Visits','Start Time','End Time','Duration'];
+  const data=SA_reportData.map((r,i)=>[i+1,r.date,r.company,r.salesman,r.status,r.visits,r.start,r.end,r.duration]);
+  xlsTitle(ws,`SunStar Solutions — All Companies Report`,`${fromDate} to ${toDate}  |  Total Records: ${data.length}`,headers.length);
   xlsData(ws,5,headers,data);
-  ws['!cols']=[{wch:5},{wch:22},{wch:22},{wch:12},{wch:8},{wch:12},{wch:12},{wch:12}];
+  ws['!cols']=[{wch:5},{wch:13},{wch:22},{wch:22},{wch:12},{wch:8},{wch:12},{wch:12},{wch:12}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'All Companies Report');
-  XLSX.writeFile(wb,`SunStar_AllCompanies_${date}.xlsx`);
+  XLSX.writeFile(wb,`SunStar_AllCompanies_${fromDate}_to_${toDate}.xlsx`);
   doneLoading(); toast('Excel downloading!');
 }
 
 async function exportSAReportPDF(){
   if(SA_reportData.length===0){ toast('Please load data first','err'); return; }
   loading('Generating PDF...');
-  const date=document.getElementById('saReportDate').value;
+  const fromDate=document.getElementById('saReportFrom').value;
+  const toDate=document.getElementById('saReportTo').value;
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF('l','pt','a4');
   doc.setFontSize(18); doc.setTextColor(239,168,0);
   doc.text('SunStar Solutions — All Companies Report',40,40);
   doc.setFontSize(11); doc.setTextColor(120,130,180);
-  doc.text(`Date: ${date}`,40,60);
+  doc.text(`${fromDate} to ${toDate}`,40,60);
   doc.autoTable({
     startY:76,
-    head:[['#','Company','Employee','Status','Visits','Start','End','Duration']],
-    body:SA_reportData.map((r,i)=>[i+1,r.company,r.salesman,r.status,r.visits,r.start,r.end,r.duration]),
+    head:[['#','Date','Company','Employee','Status','Visits','Start','End','Duration']],
+    body:SA_reportData.map((r,i)=>[i+1,r.date,r.company,r.salesman,r.status,r.visits,r.start,r.end,r.duration]),
     styles:{fontSize:8,textColor:[200,210,240],fillColor:[12,18,41]},
     headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
     alternateRowStyles:{fillColor:[17,26,56]},
-    columnStyles:{0:{halign:'center'},1:{fontStyle:'bold'},4:{halign:'center'}},
+    columnStyles:{0:{halign:'center'},2:{fontStyle:'bold'},5:{halign:'center'}},
     didParseCell:(d)=>{
-      if(d.section==='body'&&d.column.index===3){
+      if(d.section==='body'&&d.column.index===4){
         d.cell.styles.textColor=d.cell.raw==='Present'?[31,209,122]:[255,68,102];
         d.cell.styles.fontStyle='bold';
       }
     }
   });
-  doc.save(`SunStar_AllCompanies_${date}.pdf`);
+  doc.save(`SunStar_AllCompanies_${fromDate}_to_${toDate}.pdf`);
   doneLoading(); toast('PDF downloading!');
 }
 
@@ -3601,19 +3624,19 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
 
 /* ════ REPORTS B — ATTENDANCE RAW ════ */
 async function exportRptRawExcel(){
-  const month=parseInt(document.getElementById('rptRawMonth').value);
-  const year=parseInt(document.getElementById('rptRawYear').value);
+  const startDate=document.getElementById('rptRawStart').value;
+  const endDate=document.getElementById('rptRawEnd').value;
   const typeFilter=document.getElementById('rptRawType').value;
+  if(!startDate||!endDate){ toast('Please select from and to date','err'); return; }
   loading('Building Attendance Raw report...');
   try{
-    const {rows,co,monthLabel}=await buildAttRawRows(month,year,typeFilter);
+    const {rows,co,dateLabel}=await buildAttRawRows(startDate,endDate,typeFilter);
     if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
     const ws={};
     const headers=['#','Type','Date','Name','In Time','Out Time','Duration'];
-    xlsTitle(ws,`${co} — Attendance Raw`,`${monthLabel} | Records: ${rows.length}`,headers.length);
+    xlsTitle(ws,`${co} — Attendance Raw`,`${dateLabel} | Records: ${rows.length}`,headers.length);
     xlsData(ws,5,headers,rows.map((r,i)=>[i+1,r.type,r.date,r.name,r.inTime,r.outTime,r.duration]));
     ws['!cols']=[{wch:5},{wch:13},{wch:13},{wch:22},{wch:12},{wch:12},{wch:14}];
-    // Color rows: green inTime, red outTime
     const XLSX2=XLSX;
     const startRow=6;
     for(let i=0;i<rows.length;i++){
@@ -3628,25 +3651,26 @@ async function exportRptRawExcel(){
     }
     const wb=XLSX2.utils.book_new();
     XLSX2.utils.book_append_sheet(wb,ws,'Attendance Raw');
-    XLSX2.writeFile(wb,`${co}_AttRaw_${monthLabel.replace(' ','_')}.xlsx`);
+    XLSX2.writeFile(wb,`${co}_AttRaw_${startDate}_to_${endDate}.xlsx`);
     doneLoading(); toast('Attendance Raw Excel downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
 async function exportRptRawPDF(){
-  const month=parseInt(document.getElementById('rptRawMonth').value);
-  const year=parseInt(document.getElementById('rptRawYear').value);
+  const startDate=document.getElementById('rptRawStart').value;
+  const endDate=document.getElementById('rptRawEnd').value;
   const typeFilter=document.getElementById('rptRawType').value;
+  if(!startDate||!endDate){ toast('Please select from and to date','err'); return; }
   loading('Building Attendance Raw PDF...');
   try{
-    const {rows,co,monthLabel}=await buildAttRawRows(month,year,typeFilter);
+    const {rows,co,dateLabel}=await buildAttRawRows(startDate,endDate,typeFilter);
     if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF('l','pt','a4');
     doc.setFontSize(16); doc.setTextColor(239,168,0);
     doc.text(`${co} — Attendance Raw`,40,40);
     doc.setFontSize(10); doc.setTextColor(120,130,180);
-    doc.text(`${monthLabel}  |  Records: ${rows.length}`,40,58);
+    doc.text(`${dateLabel}  |  Records: ${rows.length}`,40,58);
     doc.autoTable({
       startY:72,
       head:[['#','Type','Date','Name','In Time','Out Time','Duration']],
@@ -3662,15 +3686,14 @@ async function exportRptRawPDF(){
         }
       }
     });
-    doc.save(`${co}_AttRaw_${monthLabel.replace(' ','_')}.pdf`);
+    doc.save(`${co}_AttRaw_${startDate}_to_${endDate}.pdf`);
     doneLoading(); toast('Attendance Raw PDF downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-async function buildAttRawRows(month,year,typeFilter){
+async function buildAttRawRows(startDate,endDate,typeFilter){
   const co=getCompanyName();
-  const monthLabel=MONTHS[month]+' '+year;
-  const daysInMonth=new Date(year,month+1,0).getDate();
+  const dateLabel=`${startDate} to ${endDate}`;
   const today=new Date();
   const coSnap=await db.ref(`companies/${APP.companyId}`).get();
   const holidays=(coSnap.exists()&&coSnap.val().holidays)||[0];
@@ -3680,17 +3703,23 @@ async function buildAttRawRows(month,year,typeFilter){
     if(typeFilter==='backoffice') return u.emp_type==='backoffice';
     return true;
   });
-  const rows=[];
-  const allDates=Array.from({length:daysInMonth},(_,i)=>`${year}-${String(month+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`);
+  // Build all dates in range
+  const allDates=[];
+  let cur=new Date(startDate);
+  const end=new Date(endDate);
+  while(cur<=end){
+    const ds=cur.toISOString().split('T')[0];
+    if(new Date(ds)<=today) allDates.push(ds);
+    cur.setDate(cur.getDate()+1);
+  }
   const attSnaps=await Promise.all(allDates.map(ds=>db.ref(`attendance/${APP.companyId}/${ds}`).get()));
   const attByDate={};
   allDates.forEach((ds,i)=>{ if(attSnaps[i].exists()) attByDate[ds]=attSnaps[i].val(); });
+  const rows=[];
   for(const [uid,u] of empList){
     const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-    for(let d=1;d<=daysInMonth;d++){
-      const ds=allDates[d-1];
-      const dt=new Date(year,month,d);
-      if(dt>today) continue;
+    for(const ds of allDates){
+      const dt=new Date(ds+'T00:00:00');
       const dayOfWeek=dt.getDay();
       const isHol=holidays.includes(dayOfWeek);
       const att=attByDate[ds]?attByDate[ds][uid]:null;
@@ -3707,37 +3736,32 @@ async function buildAttRawRows(month,year,typeFilter){
       rows.push({type,date:ds,name:u.name,inTime,outTime,duration});
     }
   }
-  return {rows,co,monthLabel};
+  return {rows,co,dateLabel};
 }
 
 /* ════ REPORTS C — ATTENDANCE SUMMARY ════ */
 async function exportRptSumExcel(){
-  const month=parseInt(document.getElementById('rptSumMonth').value);
-  const year=parseInt(document.getElementById('rptSumYear').value);
+  const startDate=document.getElementById('rptSumStart').value;
+  const endDate=document.getElementById('rptSumEnd').value;
   const typeFilter=document.getElementById('rptSumType').value;
+  if(!startDate||!endDate){ toast('Please select from and to date','err'); return; }
   loading('Building Attendance Summary...');
   try{
-    const {matrix,co,monthLabel,empList,allDates,holidays}=await buildAttSummaryMatrix(month,year,typeFilter);
+    const {matrix,co,dateLabel,empList,allDates}=await buildAttSummaryMatrix(startDate,endDate,typeFilter);
     const ws={};
-    // Headers: Type | Name | Date1 | Date2 ...
-    const headerRow=['Type','Name',...allDates.map(d=>d.split('-')[2])];
-    // Title
-    xlsTitle(ws,`${co} — Attendance Summary`,`${monthLabel}`,headerRow.length);
-    // Header row
+    const headerRow=['Type','Name',...allDates.map(d=>d.split('-')[2]+'/'+d.split('-')[1])];
+    xlsTitle(ws,`${co} — Attendance Summary`,`${dateLabel}`,headerRow.length);
     const STARTROW=5;
     headerRow.forEach((h,ci)=>{
       const addr=String.fromCharCode(65+ci)+STARTROW;
       ws[addr]={t:'s',v:h,s:{font:{bold:true,color:{rgb:'000000'}},fill:{fgColor:{rgb:'EFA800'}},alignment:{horizontal:'center'}}};
     });
     ws['!ref']=`A1:${String.fromCharCode(65+headerRow.length-1)}${STARTROW+empList.length}`;
-    // Data rows
     empList.forEach(([uid,u],ri)=>{
       const type=u.emp_type==='backoffice'?'Back Office':'Sales';
       const rowNum=STARTROW+1+ri;
-      const addrType='A'+rowNum;
-      const addrName='B'+rowNum;
-      ws[addrType]={t:'s',v:type,s:{font:{bold:false},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'left'}}};
-      ws[addrName]={t:'s',v:u.name,s:{font:{bold:true},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'left'}}};
+      ws['A'+rowNum]={t:'s',v:type,s:{font:{bold:false},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'left'}}};
+      ws['B'+rowNum]={t:'s',v:u.name,s:{font:{bold:true},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'left'}}};
       allDates.forEach((ds,di)=>{
         const addr=String.fromCharCode(67+di)+rowNum;
         const val=matrix[uid]?matrix[uid][ds]||'—':'—';
@@ -3748,33 +3772,33 @@ async function exportRptSumExcel(){
     ws['!cols']=[{wch:14},{wch:22},...allDates.map(()=>({wch:10}))];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Attendance Summary');
-    XLSX.writeFile(wb,`${co}_AttSummary_${monthLabel.replace(' ','_')}.xlsx`);
+    XLSX.writeFile(wb,`${co}_AttSummary_${startDate}_to_${endDate}.xlsx`);
     doneLoading(); toast('Attendance Summary Excel downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
 async function exportRptSumPDF(){
-  const month=parseInt(document.getElementById('rptSumMonth').value);
-  const year=parseInt(document.getElementById('rptSumYear').value);
+  const startDate=document.getElementById('rptSumStart').value;
+  const endDate=document.getElementById('rptSumEnd').value;
   const typeFilter=document.getElementById('rptSumType').value;
+  if(!startDate||!endDate){ toast('Please select from and to date','err'); return; }
   loading('Building Attendance Summary PDF...');
   try{
-    const {matrix,co,monthLabel,empList,allDates}=await buildAttSummaryMatrix(month,year,typeFilter);
+    const {matrix,co,dateLabel,empList,allDates}=await buildAttSummaryMatrix(startDate,endDate,typeFilter);
     if(!empList.length){ doneLoading(); toast('No employees found','err'); return; }
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF('l','pt','a4');
     doc.setFontSize(16); doc.setTextColor(239,168,0);
     doc.text(`${co} — Attendance Summary`,40,40);
     doc.setFontSize(10); doc.setTextColor(120,130,180);
-    doc.text(monthLabel,40,58);
-    // Split into chunks of 15 dates per page
+    doc.text(dateLabel,40,58);
     const chunkSize=15;
     for(let c=0;c<allDates.length;c+=chunkSize){
       if(c>0) doc.addPage();
       const chunk=allDates.slice(c,c+chunkSize);
       doc.autoTable({
         startY:72,
-        head:[['Type','Name',...chunk.map(d=>d.split('-')[2])]],
+        head:[['Type','Name',...chunk.map(d=>d.split('-')[2]+'/'+d.split('-')[1])]],
         body:empList.map(([uid,u])=>{
           const type=u.emp_type==='backoffice'?'Back Office':'Sales';
           return [type,u.name,...chunk.map(ds=>(matrix[uid]&&matrix[uid][ds])||'—')];
@@ -3794,15 +3818,14 @@ async function exportRptSumPDF(){
         }
       });
     }
-    doc.save(`${co}_AttSummary_${monthLabel.replace(' ','_')}.pdf`);
+    doc.save(`${co}_AttSummary_${startDate}_to_${endDate}.pdf`);
     doneLoading(); toast('Attendance Summary PDF downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-async function buildAttSummaryMatrix(month,year,typeFilter){
+async function buildAttSummaryMatrix(startDate,endDate,typeFilter){
   const co=getCompanyName();
-  const monthLabel=MONTHS[month]+' '+year;
-  const daysInMonth=new Date(year,month+1,0).getDate();
+  const dateLabel=`${startDate} to ${endDate}`;
   const today=new Date();
   const coSnap=await db.ref(`companies/${APP.companyId}`).get();
   const holidays=(coSnap.exists()&&coSnap.val().holidays)||[0];
@@ -3812,11 +3835,15 @@ async function buildAttSummaryMatrix(month,year,typeFilter){
     if(typeFilter==='backoffice') return u.emp_type==='backoffice';
     return true;
   });
-  const allDates=Array.from({length:daysInMonth},(_,i)=>{
-    const dt=new Date(year,month,i+1);
-    if(dt>today) return null;
-    return `${year}-${String(month+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;
-  }).filter(Boolean);
+  // Build date list
+  const allDates=[];
+  let cur=new Date(startDate);
+  const end=new Date(endDate);
+  while(cur<=end){
+    const ds=cur.toISOString().split('T')[0];
+    if(new Date(ds)<=today) allDates.push(ds);
+    cur.setDate(cur.getDate()+1);
+  }
   const attSnaps=await Promise.all(allDates.map(ds=>db.ref(`attendance/${APP.companyId}/${ds}`).get()));
   const attByDate={};
   allDates.forEach((ds,i)=>{ if(attSnaps[i].exists()) attByDate[ds]=attSnaps[i].val(); });
@@ -3832,7 +3859,7 @@ async function buildAttSummaryMatrix(month,year,typeFilter){
       else matrix[uid][ds]='Absent';
     });
   });
-  return {matrix,co,monthLabel,empList,allDates,holidays};
+  return {matrix,co,dateLabel,empList,allDates,holidays};
 }
 
 /* ════ PWA INSTALL ════ */
