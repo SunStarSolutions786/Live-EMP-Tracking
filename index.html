@@ -1014,13 +1014,11 @@ async function exportTimesheetPDF(){
     <!-- Sidebar -->
     <div class="sidebar">
       <div class="sid-item active" onclick="adminPage('overview',this)"><span class="sid-icon">📊</span><span>Overview</span></div>
-      <div class="sid-item" onclick="adminPage('salesman',this)"><span class="sid-icon">👥</span><span>Salesman</span></div>
-      <div class="sid-item" onclick="adminPage('visits',this)"><span class="sid-icon">📍</span><span>Visit History</span></div>
-      <div class="sid-item" onclick="adminPage('attendance',this)"><span class="sid-icon">📅</span><span>Attendance</span></div>
+      <div class="sid-item" onclick="adminPage('salesman',this)"><span class="sid-icon">👥</span><span>Employees</span></div>
+      <div class="sid-item" onclick="adminPage('visits',this)"><span class="sid-icon">📋</span><span>History</span></div>
       <div class="sid-item" onclick="adminPage('performance',this)"><span class="sid-icon">🏆</span><span>Performance</span></div>
       <div class="sid-item" onclick="adminPage('map',this)"><span class="sid-icon">🗺️</span><span>Map View</span></div>
-      <div class="sid-item" onclick="adminPage('timesheet',this)"><span class="sid-icon">⏱️</span><span>Timesheet</span></div>
-      <div class="sid-item" onclick="adminPage('export',this)"><span class="sid-icon">📥</span><span>Export</span></div>
+      <div class="sid-item" onclick="adminPage('export',this)"><span class="sid-icon">📥</span><span>Reports</span></div>
     </div>
     <!-- Main -->
     <div class="admin-main">
@@ -1060,85 +1058,50 @@ async function exportTimesheetPDF(){
         </div>
       </div>
 
-      <!-- VISITS PAGE -->
+      <!-- HISTORY PAGE -->
       <div class="admin-page" id="page-visits">
-        <div class="ph"><div class="pt">Visit History</div><div class="ps">Filter by date range and salesman</div></div>
+        <div class="ph"><div class="pt">History</div><div class="ps">Combined attendance & visit history</div></div>
+        <div class="dept-filter" id="histDeptFilter">
+          <button class="dept-btn active" onclick="setHistDept('all',this)">👥 All</button>
+          <button class="dept-btn" onclick="setHistDept('sales',this)">📊 Sales</button>
+          <button class="dept-btn" onclick="setHistDept('backoffice',this)">🏢 Back Office</button>
+        </div>
         <div class="fbar">
           <div class="fg-sm"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="vStartDate"></div>
           <div class="fg-sm"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="vEndDate"></div>
-          <div class="fg-sm"><label class="fl-sm">Salesman</label>
+          <div class="fg-sm"><label class="fl-sm">Employee Name</label>
             <select class="fsel-sm" id="vSalesmanFilter"><option value="">All</option></select>
           </div>
-          <button class="btn-go" onclick="loadVisits()">🔍 Search</button>
-        </div>
-        <div class="dept-filter">
-          <button class="dept-btn active" onclick="setDeptFilter('visits','all',this)">👥 All Sales Employees</button>
+          <button class="btn-go" onclick="loadHistory()">🔍 Search</button>
         </div>
         <div class="tc">
           <div class="tc-hd">
-            <div class="tc-title">Visit Records</div>
+            <div class="tc-title">History Records</div>
             <div class="tc-acts">
-              <button class="btn-exp" onclick="exportVisitExcel()">📊 Excel</button>
-              <button class="btn-exp" onclick="exportVisitPDF()">📄 PDF</button>
+              <button class="btn-exp" onclick="exportHistoryExcel()">📊 Excel</button>
+              <button class="btn-exp" onclick="exportHistoryPDF()">📄 PDF</button>
             </div>
           </div>
           <div style="overflow-x:auto;">
             <table class="tbl" id="visitTable">
-              <thead><tr><th>Date</th><th>Salesman</th><th>Outlet</th><th>Time</th><th>Remarks</th></tr></thead>
-              <tbody id="visitTbody"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--txt-3);">Apply filter and search</td></tr></tbody>
+              <thead><tr><th>Date</th><th>Status</th><th>Name</th><th>Location</th><th>Time</th><th>Remarks</th></tr></thead>
+              <tbody id="visitTbody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--txt-3);">Apply filter and search</td></tr></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- ATTENDANCE PAGE -->
-      <div class="admin-page" id="page-attendance">
-        <div class="ph"><div class="pt">Attendance</div><div class="ps">Monthly attendance report</div></div>
-        <div class="fbar">
-          <div class="fg-sm"><label class="fl-sm">Month</label>
-            <select class="fsel-sm" id="attMonth">
-              <option value="0">January</option><option value="1">February</option>
-              <option value="2">March</option><option value="3">April</option>
-              <option value="4">May</option><option value="5">June</option>
-              <option value="6">July</option><option value="7">August</option>
-              <option value="8">September</option><option value="9">October</option>
-              <option value="10">November</option><option value="11">December</option>
-            </select>
-          </div>
-          <div class="fg-sm"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="attYear" value="2024" min="2020" max="2030" style="max-width:100px;"></div>
-          <div class="fg-sm"><label class="fl-sm">Salesman</label>
-            <select class="fsel-sm" id="attSalesmanFilter"><option value="">All</option></select>
-          </div>
-          <button class="btn-go" onclick="loadAttendance()">📅 Load</button>
-          <div class="fg-sm" style="margin-left:auto;">
-            <label class="fl-sm">&nbsp;</label>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <div style="display:flex;flex-direction:column;gap:4px;">
-                <div style="font-size:10px;color:var(--txt-3);text-align:center;">Detailed Report</div>
-                <div style="display:flex;gap:6px;">
-                  <button class="btn-exp" onclick="exportAttExcel()">📊 Excel</button>
-                  <button class="btn-exp" onclick="exportAttPDF()">📄 PDF</button>
-                </div>
-              </div>
-              <div style="display:flex;flex-direction:column;gap:4px;">
-                <div style="font-size:10px;color:var(--txt-3);text-align:center;">Present/Absent Only</div>
-                <div style="display:flex;gap:6px;">
-                  <button class="btn-exp" onclick="exportAttSimpleExcel()">📊 Excel</button>
-                  <button class="btn-exp" onclick="exportAttSimplePDF()">📄 PDF</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div id="attContent"><div class="empty"><div class="empty-icon">📅</div>Select Month and Year then click Load</div></div>
-      </div>
-
       <!-- MAP PAGE -->
       <div class="admin-page" id="page-map">
         <div class="ph"><div class="pt">Map View</div><div class="ps">View all visit locations on map</div></div>
+        <div class="dept-filter" id="mapDeptFilter">
+          <button class="dept-btn active" onclick="setMapDept('all',this)">👥 All</button>
+          <button class="dept-btn" onclick="setMapDept('sales',this)">📊 Sales</button>
+          <button class="dept-btn" onclick="setMapDept('backoffice',this)">🏢 Back Office</button>
+        </div>
         <div class="fbar">
           <div class="fg-sm"><label class="fl-sm">Date</label><input class="fi-sm" type="date" id="mapDate"></div>
-          <div class="fg-sm"><label class="fl-sm">Salesman</label>
+          <div class="fg-sm"><label class="fl-sm">Employee</label>
             <select class="fsel-sm" id="mapSalesmanFilter"><option value="">All</option></select>
           </div>
           <button class="btn-go" onclick="loadMap()">🗺️ Show Map</button>
@@ -1148,7 +1111,12 @@ async function exportTimesheetPDF(){
 
       <!-- PERFORMANCE PAGE -->
       <div class="admin-page" id="page-performance">
-        <div class="ph"><div class="pt">Performance Score</div><div class="ps">Monthly salesman performance summary</div></div>
+        <div class="ph"><div class="pt">Performance Score</div><div class="ps">Monthly employee performance summary</div></div>
+        <div class="dept-filter" id="perfDeptFilter">
+          <button class="dept-btn active" onclick="setPerfDept('all',this)">👥 All</button>
+          <button class="dept-btn" onclick="setPerfDept('sales',this)">📊 Sales</button>
+          <button class="dept-btn" onclick="setPerfDept('backoffice',this)">🏢 Back Office</button>
+        </div>
         <div class="fbar">
           <div class="fg-sm"><label class="fl-sm">Month</label>
             <select class="fsel-sm" id="perfMonth">
@@ -1190,94 +1158,99 @@ async function exportTimesheetPDF(){
         <div id="perfContent"><div class="empty"><div class="empty-icon">🏆</div>Select month and year, then click Calculate</div></div>
       </div>
 
-      <!-- TIMESHEET PAGE -->
-      <div class="admin-page" id="page-timesheet">
-        <div class="ph"><div class="pt">Timesheet</div><div class="ps">Daily start/end time & duration for all employees</div></div>
-        <div class="fbar">
-          <div class="fg-sm"><label class="fl-sm">Month</label>
-            <select class="fsel-sm" id="tsMonth">
-              <option value="0">January</option><option value="1">February</option>
-              <option value="2">March</option><option value="3">April</option>
-              <option value="4">May</option><option value="5">June</option>
-              <option value="6">July</option><option value="7">August</option>
-              <option value="8">September</option><option value="9">October</option>
-              <option value="10">November</option><option value="11">December</option>
-            </select>
-          </div>
-          <div class="fg-sm"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="tsYear" value="2024" min="2020" max="2030" style="max-width:100px;"></div>
-          <div class="fg-sm"><label class="fl-sm">Department</label>
-            <select class="fsel-sm" id="tsDept">
-              <option value="all">All Employees</option>
-              <option value="sales">Sales Only</option>
-              <option value="backoffice">Back Office Only</option>
-            </select>
-          </div>
-          <div class="fg-sm"><label class="fl-sm">Employee</label>
-            <select class="fsel-sm" id="tsEmployee"><option value="">All</option></select>
-          </div>
-          <button class="btn-go" onclick="loadTimesheet()">⏱️ Load</button>
-          <div class="fg-sm" style="margin-left:auto;"><label class="fl-sm">&nbsp;</label>
-            <div style="display:flex;gap:8px;">
-              <button class="btn-exp" onclick="exportTimesheetExcel()">📊 Excel</button>
-              <button class="btn-exp" onclick="exportTimesheetPDF()">📄 PDF</button>
-            </div>
-          </div>
-        </div>
-        <div id="tsContent"><div class="empty"><div class="empty-icon">⏱️</div>Select month and click Load</div></div>
-      </div>
-
-      <!-- EXPORT PAGE -->
+      <!-- REPORTS PAGE -->
       <div class="admin-page" id="page-export">
-        <div class="ph"><div class="pt">Export Reports</div><div class="ps">Download your data</div></div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;">
+        <div class="ph"><div class="pt">Reports</div><div class="ps">Export professional Excel & PDF reports</div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;">
+
+          <!-- A) History Report -->
           <div class="ov-card" style="cursor:default;">
-            <div class="ov-icon">📊</div>
-            <div style="font-size:17px;font-weight:700;margin:12px 0 6px;">Visit History Export</div>
-            <div style="font-size:13px;color:var(--txt-2);margin-bottom:18px;">Export all visits by date range</div>
-            <div class="fbar" style="flex-direction:column;gap:12px;padding:0;border:none;background:transparent;margin-bottom:14px;">
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="exVStart" style="width:100%;min-width:unset;"></div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="exVEnd" style="width:100%;min-width:unset;"></div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Salesman</label><select class="fsel-sm" id="exVSalesman" style="width:100%;min-width:unset;"><option value="">All</option></select></div>
-            </div>
-            <div style="display:flex;gap:10px;">
-              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportVisitExcel('ex')">📊 Excel</button>
-              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportVisitPDF('ex')">📄 PDF</button>
-            </div>
-          </div>
-          <div class="ov-card" style="cursor:default;">
-            <div class="ov-icon">📅</div>
-            <div style="font-size:17px;font-weight:700;margin:12px 0 6px;">Attendance Export</div>
-            <div style="font-size:13px;color:var(--txt-2);margin-bottom:18px;">Export monthly attendance report</div>
-            <div class="fbar" style="flex-direction:column;gap:12px;padding:0;border:none;background:transparent;margin-bottom:14px;">
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Month</label>
-                <select class="fsel-sm" id="exAttMonth" style="width:100%;min-width:unset;">
-                  <option value="0">January</option><option value="1">February</option>
-                  <option value="2">March</option><option value="3">April</option>
-                  <option value="4">May</option><option value="5">June</option>
-                  <option value="6">July</option><option value="7">August</option>
-                  <option value="8">September</option><option value="9">October</option>
-                  <option value="10">November</option><option value="11">December</option>
+            <div class="ov-icon">📋</div>
+            <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">A — History Report</div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">All In / Out / Visit events by date range</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
+                <select class="fsel-sm" id="rptHistType" style="width:100%;min-width:unset;">
+                  <option value="all">All Employees</option>
+                  <option value="sales">Sales Only</option>
+                  <option value="backoffice">Back Office Only</option>
                 </select>
               </div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="exAttYear" value="2024" style="width:100%;min-width:unset;"></div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Salesman</label><select class="fsel-sm" id="exAttSalesman" style="width:100%;min-width:unset;"><option value="">All</option></select></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="rptHistStart" style="width:100%;min-width:unset;"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="rptHistEnd" style="width:100%;min-width:unset;"></div>
             </div>
-            <div style="margin-bottom:10px;">
-              <div style="font-size:11px;color:var(--txt-3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Detailed (Start/End/Duration)</div>
-              <div style="display:flex;gap:10px;">
-                <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportAttExcel('ex')">📊 Excel</button>
-                <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportAttPDF('ex')">📄 PDF</button>
+            <div style="display:flex;gap:10px;">
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptHistExcel()">📊 Excel</button>
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptHistPDF()">📄 PDF</button>
+            </div>
+          </div>
+
+          <!-- B) Attendance Raw -->
+          <div class="ov-card" style="cursor:default;">
+            <div class="ov-icon">🕐</div>
+            <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">B — Attendance Raw</div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Daily In/Out times for every employee (all dates)</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
+                <select class="fsel-sm" id="rptRawType" style="width:100%;min-width:unset;">
+                  <option value="all">All Employees</option>
+                  <option value="sales">Sales Only</option>
+                  <option value="backoffice">Back Office Only</option>
+                </select>
               </div>
-            </div>
-            <div>
-              <div style="font-size:11px;color:var(--txt-3);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">Simple (Present/Absent Only)</div>
-              <div style="display:flex;gap:10px;">
-                <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportAttSimpleExcel('ex')">📊 Excel</button>
-                <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportAttSimplePDF('ex')">📄 PDF</button>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Month</label>
+                <select class="fsel-sm" id="rptRawMonth" style="width:100%;min-width:unset;">
+                  <option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option>
+                  <option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option>
+                  <option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option>
+                </select>
               </div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="rptRawYear" style="width:100%;min-width:unset;" value="2025"></div>
             </div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptRawExcel()">📊 Excel</button>
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptRawPDF()">📄 PDF</button>
+            </div>
+          </div>
+
+          <!-- C) Attendance Summary -->
+          <div class="ov-card" style="cursor:default;">
+            <div class="ov-icon">📆</div>
+            <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">C — Attendance Summary</div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Monthly Present/Absent/Holiday matrix per employee</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
+                <select class="fsel-sm" id="rptSumType" style="width:100%;min-width:unset;">
+                  <option value="all">All Employees</option>
+                  <option value="sales">Sales Only</option>
+                  <option value="backoffice">Back Office Only</option>
+                </select>
+              </div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Month</label>
+                <select class="fsel-sm" id="rptSumMonth" style="width:100%;min-width:unset;">
+                  <option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option>
+                  <option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option>
+                  <option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option>
+                </select>
+              </div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="rptSumYear" style="width:100%;min-width:unset;" value="2025"></div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptSumExcel()">📊 Excel</button>
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptSumPDF()">📄 PDF</button>
+            </div>
+          </div><!-- end rptSumCard -->
+        </div><!-- end grid -->
+      </div><!-- end page-export -->
+
+    </div><!-- end admin-main -->
+  </div><!-- end admin-body -->
+</div><!-- end adminScreen -->
+
+<!-- ══════════════════════════════════════════════
+     SUPER ADMIN SCREEN
 ══════════════════════════════════════════════ -->
-<div id="superScreen">
+<div id="superScreen" class="screen">
   <div class="nav">
     <div class="nav-brand">
       <div style="width:32px;height:32px;"><img src="data:image/png;base64,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" style="width:100%;height:100%;object-fit:contain;" alt="SunStar"></div>
@@ -1593,7 +1566,12 @@ function show(id){ document.getElementById(id).classList.add('on'); }
 function hide(id){ document.getElementById(id).classList.remove('on'); }
 function showEl(id){ document.getElementById(id).style.display=''; }
 function hideEl(id){ document.getElementById(id).style.display='none'; }
-function hideAll(){ ['setupScreen','loginScreen','salesmanScreen','adminScreen','superScreen'].forEach(hide); }
+function hideAll(){ 
+  ['setupScreen','loginScreen','salesmanScreen','adminScreen','superScreen'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.classList.remove('on'); }
+  });
+}
 
 function loading(txt='Loading...'){ 
   document.getElementById('loaderTxt').textContent=txt;
@@ -1739,14 +1717,13 @@ async function initApp(){
 
   // Set default dates
   const today=todayStr();
-  const d=document.getElementById;
-  ['vStartDate','vEndDate','mapDate','exVStart','exVEnd','saReportDate'].forEach(id=>{
+  ['vStartDate','vEndDate','mapDate','rptHistStart','rptHistEnd','saReportDate'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value=today;
   });
   const now=new Date();
-  ['attMonth','exAttMonth','perfMonth','tsMonth'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=now.getMonth(); });
-  ['attYear','exAttYear','perfYear','tsYear'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=now.getFullYear(); });
+  ['rptRawMonth','rptSumMonth','perfMonth'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=now.getMonth(); });
+  ['rptRawYear','rptSumYear','perfYear'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=now.getFullYear(); });
 
   loading('Please wait...');
   // Timeout fallback — show login if Firebase takes too long
@@ -2250,19 +2227,11 @@ async function openAddSalesmanFromSA(){
   document.getElementById('asErrSA').style.display='none';
   document.getElementById('asCoIdSA').value=SA_currentCoId;
   document.getElementById('addSmSACompanyName').textContent=`Adding to: ${SA_currentCoName}`;
-  // Show/hide emp type based on company modules
-  const coSnap=await db.ref(`companies/${SA_currentCoId}`).get();
-  const mods=coSnap.exists()?(coSnap.val().modules||{sales:true}):{sales:true};
+  // Always show both employee types for Super Admin
   const wrap=document.getElementById('asEmpTypeSAWrap');
   const sel=document.getElementById('asEmpTypeSA');
-  if(mods.sales&&mods.backoffice){
-    wrap.style.display='block';
-    sel.innerHTML='<option value="sales">📊 Sales Employee</option><option value="backoffice">🏢 Back Office Employee</option>';
-  } else if(mods.sales){
-    wrap.style.display='none'; sel.value='sales';
-  } else {
-    wrap.style.display='none'; sel.value='backoffice';
-  }
+  wrap.style.display='block';
+  sel.innerHTML='<option value="sales">📊 Sales Employee</option><option value="backoffice">🏢 Back Office Employee</option>';
   openModal('addSmSAModal');
 }
 
@@ -2311,11 +2280,9 @@ async function editSalesmanSA(uid){
     document.getElementById('esErr').style.display='none';
     const empTypeSel=document.getElementById('esEmpType');
     if(empTypeSel) empTypeSel.value=u.emp_type||'sales';
-    // Show/hide emp type based on company modules
-    const coSnap=await db.ref(`companies/${u.company_id}`).get();
-    const mods=coSnap.exists()?(coSnap.val().modules||{sales:true}):{sales:true};
+    // Always show emp type
     const wrap=document.getElementById('esEmpTypeWrap');
-    if(wrap) wrap.style.display=(mods.sales&&mods.backoffice)?'block':'none';
+    if(wrap) wrap.style.display='block';
     doneLoading(); openModal('editSalesmanModal');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -2342,15 +2309,14 @@ async function initAdmin(){
   if(coSnap.exists()){
     const co=coSnap.val();
     document.getElementById('adCompanyName').textContent=co.name;
-    APP.companyModules=co.modules||{sales:true};
+    APP.companyModules=co.modules||{sales:true,backoffice:true};
     APP.companyHolidays=co.holidays||[0];
     APP.companyCcEmails=co.cc_emails||[];
-    // Show/hide dept filter buttons based on modules
-    const mods=APP.companyModules;
+    // Always show both Sales and Back Office filter/add options
     const filterSales=document.getElementById('smFilterSales');
     const filterBo=document.getElementById('smFilterBo');
-    if(filterSales) filterSales.style.display=mods.sales?'':'none';
-    if(filterBo) filterBo.style.display=mods.backoffice?'':'none';
+    if(filterSales) filterSales.style.display='';
+    if(filterBo) filterBo.style.display='';
   }
   await loadSalesmen();
   await loadOverview();
@@ -2362,7 +2328,6 @@ function adminPage(page,el){
   document.getElementById(`page-${page}`).classList.add('active');
   el.classList.add('active');
   if(page==='map') setTimeout(()=>{ initMap(); if(APP.mapInstance) APP.mapInstance.invalidateSize(); },150);
-  if(page==='timesheet'){ document.getElementById('tsMonth').value=new Date().getMonth(); document.getElementById('tsYear').value=new Date().getFullYear(); }
 }
 
 async function loadSalesmen(){
@@ -2377,7 +2342,7 @@ async function loadSalesmen(){
   const activeOpts='<option value="">All</option>'+Object.entries(APP.salesmen)
     .filter(([,u])=>u.status!=='deleted_by_admin')
     .map(([uid,u])=>`<option value="${uid}">${u.name}${u.status==='inactive'?' (Inactive)':''}</option>`).join('');
-  ['vSalesmanFilter','attSalesmanFilter','mapSalesmanFilter','exVSalesman','exAttSalesman','tsEmployee'].forEach(id=>{
+  ['vSalesmanFilter','mapSalesmanFilter'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.innerHTML=activeOpts;
   });
   renderSalesmanList();
@@ -2454,6 +2419,9 @@ async function softDeleteSalesman(uid, name){
 async function openAddSalesmanModal(){
   ['asName','asEmail','asPass'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('asErr').style.display='none';
+  // Always show both emp type options
+  const wrap=document.getElementById('asEmpTypeWrap');
+  if(wrap) wrap.style.display='block';
   openModal('addSalesmanModal');
 }
 
@@ -2556,7 +2524,177 @@ async function loadOverview(){
   tbody.innerHTML=visits.map(v=>`<tr><td>${v.salesman_name}</td><td class="tbl-name">${v.outlet}</td><td>${v.time}</td><td>${v.remarks||'—'}</td></tr>`).join('');
 }
 
-/* ════ VISITS ════ */
+/* ════ HISTORY DEPT FILTER ════ */
+let currentHistDept='all', currentMapDept='all', currentPerfDept='all';
+
+function setHistDept(dept, btn){
+  currentHistDept=dept;
+  document.querySelectorAll('#histDeptFilter .dept-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  populateEmpFilter('vSalesmanFilter', dept);
+}
+function setMapDept(dept, btn){
+  currentMapDept=dept;
+  document.querySelectorAll('#mapDeptFilter .dept-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  populateEmpFilter('mapSalesmanFilter', dept);
+}
+function setPerfDept(dept, btn){
+  currentPerfDept=dept;
+  document.querySelectorAll('#perfDeptFilter .dept-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+}
+function populateEmpFilter(selectId, dept){
+  const sel=document.getElementById(selectId);
+  if(!sel) return;
+  const prev=sel.value;
+  sel.innerHTML='<option value="">All</option>';
+  Object.entries(APP.salesmen).forEach(([uid,u])=>{
+    if(u.status==='deleted_by_admin') return;
+    const isBO=u.emp_type==='backoffice';
+    if(dept==='sales'&&isBO) return;
+    if(dept==='backoffice'&&!isBO) return;
+    sel.innerHTML+=`<option value="${uid}" ${uid===prev?'selected':''}>${u.name}</option>`;
+  });
+}
+
+/* ════ HISTORY (combined In/Out/Visit) ════ */
+let lastHistoryData=[];
+async function loadHistory(){
+  const startDate=document.getElementById('vStartDate').value;
+  const endDate=document.getElementById('vEndDate').value;
+  const empUid=document.getElementById('vSalesmanFilter').value;
+  if(!startDate||!endDate){ toast('Please enter start and end date','err'); return; }
+  loading('Loading history...');
+  lastHistoryData=[];
+  try{
+    const dates=[];
+    let cur=new Date(startDate+'T00:00:00');
+    const end=new Date(endDate+'T00:00:00');
+    while(cur<=end){ dates.push(cur.toISOString().split('T')[0]); cur.setDate(cur.getDate()+1); }
+    const dept=currentHistDept;
+    // Filter active employees by dept
+    const activeEmp=Object.entries(APP.salesmen).filter(([,u])=>{
+      if(u.status==='deleted_by_admin') return false;
+      const isBO=u.emp_type==='backoffice';
+      if(dept==='sales'&&isBO) return false;
+      if(dept==='backoffice'&&!isBO) return false;
+      if(empUid&&u!==APP.salesmen[empUid]&&Object.keys(APP.salesmen).indexOf(empUid)!==-1) return false;
+      return true;
+    });
+    const empUidSet=empUid?new Set([empUid]):new Set(activeEmp.map(([uid])=>uid));
+
+    for(const date of dates){
+      // Load attendance + visits in parallel
+      const [attSnap,vSnap]=await Promise.all([
+        db.ref(`attendance/${APP.companyId}/${date}`).get(),
+        db.ref(`visits/${APP.companyId}/${date}`).get()
+      ]);
+      // Attendance: In events
+      if(attSnap.exists()){
+        Object.entries(attSnap.val()).forEach(([uid,att])=>{
+          if(!empUidSet.has(uid)) return;
+          const u=APP.salesmen[uid]||{name:'Unknown',emp_type:'sales'};
+          if(att.start_time){
+            lastHistoryData.push({
+              date, status:'In', name:u.name,
+              location:att.start_location||'—', time:att.start_time,
+              remarks:'Day Started', emp_type:u.emp_type||'sales',
+              sort_ts: att.start_timestamp||0
+            });
+          }
+          if(att.end_time){
+            lastHistoryData.push({
+              date, status:'Out', name:u.name,
+              location:att.end_location||'—', time:att.end_time,
+              remarks:'Day Ended', emp_type:u.emp_type||'sales',
+              sort_ts: att.end_timestamp||0
+            });
+          }
+        });
+      }
+      // Visits
+      if(vSnap.exists()){
+        Object.values(vSnap.val()).forEach(v=>{
+          if(!empUidSet.has(v.salesman_uid)) return;
+          const u=APP.salesmen[v.salesman_uid]||{emp_type:'sales'};
+          lastHistoryData.push({
+            date, status:'Visit', name:v.salesman_name||'—',
+            location:v.location||'—', time:v.time||'—',
+            remarks:v.outlet+(v.remarks?` — ${v.remarks}`:''),
+            emp_type:u.emp_type||'sales', sort_ts:v.timestamp||0
+          });
+        });
+      }
+    }
+    lastHistoryData.sort((a,b)=>a.sort_ts-b.sort_ts);
+    const tbody=document.getElementById('visitTbody');
+    if(lastHistoryData.length===0){
+      tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--txt-3);">No records found for this period</td></tr>';
+    } else {
+      tbody.innerHTML=lastHistoryData.map(r=>{
+        const statusColor=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':'var(--info)';
+        const statusIcon=r.status==='In'?'🟢':r.status==='Out'?'🔴':'📍';
+        return `<tr>
+          <td>${r.date}</td>
+          <td><span style="color:${statusColor};font-weight:700;">${statusIcon} ${r.status}</span></td>
+          <td class="tbl-name">${r.name}</td>
+          <td style="font-size:12px;color:var(--txt-2);">${r.location}</td>
+          <td>${r.time}</td>
+          <td style="font-size:12px;">${r.remarks}</td>
+        </tr>`;
+      }).join('');
+    }
+    doneLoading();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+/* ════ HISTORY EXPORT ════ */
+function exportHistoryExcel(){
+  if(lastHistoryData.length===0){ toast('Load history data first','err'); return; }
+  loading('Generating Excel...');
+  const co=getCompanyName();
+  const ws={};
+  const headers=['#','Type','Date','Status','Name','Location','Time','Remarks'];
+  const data=lastHistoryData.map((r,i)=>[i+1,r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,r.location,r.time,r.remarks]);
+  xlsTitle(ws,`${co} — History Report`,`Records: ${data.length}`,headers.length);
+  xlsData(ws,5,headers,data);
+  ws['!cols']=[{wch:5},{wch:13},{wch:13},{wch:8},{wch:22},{wch:25},{wch:10},{wch:35}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'History');
+  XLSX.writeFile(wb,`${co}_History_Report.xlsx`);
+  doneLoading(); toast('Excel downloading!');
+}
+
+function exportHistoryPDF(){
+  if(lastHistoryData.length===0){ toast('Load history data first','err'); return; }
+  loading('Generating PDF...');
+  const co=getCompanyName();
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF('l','pt','a4');
+  doc.setFontSize(16); doc.setTextColor(239,168,0);
+  doc.text(`${co} — History Report`,40,40);
+  doc.setFontSize(10); doc.setTextColor(120,130,180);
+  doc.text(`Records: ${lastHistoryData.length}`,40,58);
+  doc.autoTable({
+    startY:72,
+    head:[['#','Type','Date','Status','Name','Location','Time','Remarks']],
+    body:lastHistoryData.map((r,i)=>[i+1,r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,r.location,r.time,r.remarks]),
+    styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41]},
+    headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[17,26,56]},
+    didParseCell:(d)=>{
+      if(d.section==='body'&&d.column.index===3){
+        const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:[75,159,255];
+        d.cell.styles.textColor=c; d.cell.styles.fontStyle='bold';
+      }
+    }
+  });
+  doc.save(`${co}_History_Report.pdf`);
+  doneLoading(); toast('PDF downloading!');
+}
+
+/* ════ VISITS (kept for compatibility) ════ */
 let lastVisitData=[];
 async function loadVisits(src){
   const isEx=src==='ex';
@@ -2722,12 +2860,20 @@ async function loadMap(){
   if(!date){ toast('Please enter a date','err'); return; }
   loading('Loading map...');
   initMap();
-  // Clear all layers except tile
   APP.mapInstance.eachLayer(l=>{ if(!(l instanceof L.TileLayer)) APP.mapInstance.removeLayer(l); });
   try{
     const snap=await db.ref(`visits/${APP.companyId}/${date}`).get();
     if(!snap.exists()){ doneLoading(); toast('No visits found for this date','err'); return; }
-    const visits=Object.values(snap.val()).filter(v=>!salesmanUid||v.salesman_uid===salesmanUid);
+    const dept=currentMapDept;
+    const visits=Object.values(snap.val()).filter(v=>{
+      if(salesmanUid&&v.salesman_uid!==salesmanUid) return false;
+      const u=APP.salesmen[v.salesman_uid];
+      if(!u) return dept==='all'||dept==='sales'; // default to sales
+      const isBO=u.emp_type==='backoffice';
+      if(dept==='sales'&&isBO) return false;
+      if(dept==='backoffice'&&!isBO) return false;
+      return true;
+    });
     if(visits.length===0){ doneLoading(); toast('No visits found','err'); return; }
     
     const bySm={};
@@ -2815,8 +2961,15 @@ async function loadPerformance(){
   const content=document.getElementById('perfContent');
 
   try{
-    // Load all data for all salesmen
-    const activeSM=Object.entries(APP.salesmen).filter(([,u])=>u.status!=='deleted_by_admin');
+    // Load all data filtered by dept
+    const dept=currentPerfDept||'all';
+    const activeSM=Object.entries(APP.salesmen).filter(([,u])=>{
+      if(u.status==='deleted_by_admin') return false;
+      const isBO=u.emp_type==='backoffice';
+      if(dept==='sales'&&isBO) return false;
+      if(dept==='backoffice'&&!isBO) return false;
+      return true;
+    });
     const results=await Promise.all(activeSM.map(async([uid,u])=>{
       let presentDays=0, totalVisits=0, totalDurationMs=0, durationDays=0;
 
@@ -3000,7 +3153,7 @@ async function exportPerfPDF(){
 }
 
 /* ════ EXPORT ════ */
-function getCompanyName(){ return document.getElementById('adCompanyName').textContent||'SunStar'; }
+function getCompanyName2_unused(){ return document.getElementById('adCompanyName').textContent||'SunStar'; }
 
 /* ── Column letter helper ── */
 function numToCol(n){
@@ -3772,6 +3925,347 @@ async function exportSAReportPDF(){
   });
   doc.save(`SunStar_AllCompanies_${date}.pdf`);
   doneLoading(); toast('PDF downloading!');
+}
+
+/* ════ HELPER: get company name ════ */
+function getCompanyName(){ 
+  const el=document.getElementById('adCompanyName'); 
+  return el?el.textContent.replace(/\s+/g,' ').trim():'Company';
+}
+
+/* ════ REPORTS A — HISTORY ════ */
+async function exportRptHistExcel(){
+  const startDate=document.getElementById('rptHistStart').value;
+  const endDate=document.getElementById('rptHistEnd').value;
+  const typeFilter=document.getElementById('rptHistType').value;
+  if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
+  loading('Building History report...');
+  try{
+    const rows=await buildHistoryRows(startDate, endDate, typeFilter);
+    if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
+    const co=getCompanyName();
+    const ws={};
+    const headers=['#','Type','Date','Status','Name','Location','Time','Remarks'];
+    xlsTitle(ws,`${co} — History Report`,`${startDate} to ${endDate}  |  Records: ${rows.length}`,headers.length);
+    xlsData(ws,5,headers,rows.map((r,i)=>[i+1,r.type,r.date,r.status,r.name,r.location,r.time,r.remarks]));
+    ws['!cols']=[{wch:5},{wch:13},{wch:13},{wch:8},{wch:22},{wch:25},{wch:10},{wch:35}];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'History');
+    XLSX.writeFile(wb,`${co}_History_${startDate}_${endDate}.xlsx`);
+    doneLoading(); toast('History Excel downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function exportRptHistPDF(){
+  const startDate=document.getElementById('rptHistStart').value;
+  const endDate=document.getElementById('rptHistEnd').value;
+  const typeFilter=document.getElementById('rptHistType').value;
+  if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
+  loading('Building History PDF...');
+  try{
+    const rows=await buildHistoryRows(startDate, endDate, typeFilter);
+    if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
+    const co=getCompanyName();
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF('l','pt','a4');
+    doc.setFontSize(16); doc.setTextColor(239,168,0);
+    doc.text(`${co} — History Report`,40,40);
+    doc.setFontSize(10); doc.setTextColor(120,130,180);
+    doc.text(`${startDate} to ${endDate}  |  Records: ${rows.length}`,40,58);
+    doc.autoTable({
+      startY:72,
+      head:[['#','Type','Date','Status','Name','Location','Time','Remarks']],
+      body:rows.map((r,i)=>[i+1,r.type,r.date,r.status,r.name,r.location,r.time,r.remarks]),
+      styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41]},
+      headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[17,26,56]},
+      columnStyles:{3:{fontStyle:'bold'}},
+      didParseCell:(d)=>{
+        if(d.section==='body'&&d.column.index===3){
+          const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:[75,159,255];
+          d.cell.styles.textColor=c;
+        }
+      }
+    });
+    doc.save(`${co}_History_${startDate}_${endDate}.pdf`);
+    doneLoading(); toast('History PDF downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function buildHistoryRows(startDate, endDate, typeFilter){
+  const rows=[];
+  const dates=[];
+  let cur=new Date(startDate+'T00:00:00');
+  const end=new Date(endDate+'T00:00:00');
+  while(cur<=end){ dates.push(cur.toISOString().split('T')[0]); cur.setDate(cur.getDate()+1); }
+  const empList=Object.entries(APP.salesmen).filter(([,u])=>{
+    if(u.status==='deleted_by_admin') return false;
+    if(typeFilter==='sales') return u.emp_type!=='backoffice';
+    if(typeFilter==='backoffice') return u.emp_type==='backoffice';
+    return true;
+  });
+  const empUidSet=new Set(empList.map(([uid])=>uid));
+  for(const date of dates){
+    const [attSnap,vSnap]=await Promise.all([
+      db.ref(`attendance/${APP.companyId}/${date}`).get(),
+      db.ref(`visits/${APP.companyId}/${date}`).get()
+    ]);
+    if(attSnap.exists()){
+      Object.entries(attSnap.val()).forEach(([uid,att])=>{
+        if(!empUidSet.has(uid)) return;
+        const u=APP.salesmen[uid]||{name:'Unknown',emp_type:'sales'};
+        const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+        if(att.start_time) rows.push({date,status:'In',name:u.name,location:att.start_location||'—',time:att.start_time,remarks:'Day Started',type,sort_ts:att.start_timestamp||0});
+        if(att.end_time) rows.push({date,status:'Out',name:u.name,location:att.end_location||'—',time:att.end_time,remarks:'Day Ended',type,sort_ts:att.end_timestamp||0});
+      });
+    }
+    if(vSnap.exists()){
+      Object.values(vSnap.val()).forEach(v=>{
+        if(!empUidSet.has(v.salesman_uid)) return;
+        const u=APP.salesmen[v.salesman_uid]||{emp_type:'sales'};
+        const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+        rows.push({date,status:'Visit',name:v.salesman_name||'—',location:v.location||'—',time:v.time||'—',remarks:v.outlet+(v.remarks?` — ${v.remarks}`:''),type,sort_ts:v.timestamp||0});
+      });
+    }
+  }
+  rows.sort((a,b)=>a.sort_ts-b.sort_ts);
+  return rows;
+}
+
+/* ════ REPORTS B — ATTENDANCE RAW ════ */
+async function exportRptRawExcel(){
+  const month=parseInt(document.getElementById('rptRawMonth').value);
+  const year=parseInt(document.getElementById('rptRawYear').value);
+  const typeFilter=document.getElementById('rptRawType').value;
+  loading('Building Attendance Raw report...');
+  try{
+    const {rows,co,monthLabel}=await buildAttRawRows(month,year,typeFilter);
+    if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
+    const ws={};
+    const headers=['#','Type','Date','Name','In Time','Out Time','Duration'];
+    xlsTitle(ws,`${co} — Attendance Raw`,`${monthLabel} | Records: ${rows.length}`,headers.length);
+    xlsData(ws,5,headers,rows.map((r,i)=>[i+1,r.type,r.date,r.name,r.inTime,r.outTime,r.duration]));
+    ws['!cols']=[{wch:5},{wch:13},{wch:13},{wch:22},{wch:12},{wch:12},{wch:14}];
+    // Color rows: green inTime, red outTime
+    const XLSX2=XLSX;
+    const startRow=6;
+    for(let i=0;i<rows.length;i++){
+      const ri=startRow+i;
+      const r=rows[i];
+      const isAbsent=r.inTime==='Absent';
+      ['A','B','C','D','E','F','G'].forEach(col=>{
+        const addr=col+ri;
+        if(!ws[addr]) ws[addr]={t:'s',v:''};
+        ws[addr].s={font:{bold:col==='D'},fill:{fgColor:{rgb:isAbsent?'2A0A0F':'0C1229'}},alignment:{horizontal:'left'}};
+      });
+    }
+    const wb=XLSX2.utils.book_new();
+    XLSX2.utils.book_append_sheet(wb,ws,'Attendance Raw');
+    XLSX2.writeFile(wb,`${co}_AttRaw_${monthLabel.replace(' ','_')}.xlsx`);
+    doneLoading(); toast('Attendance Raw Excel downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function exportRptRawPDF(){
+  const month=parseInt(document.getElementById('rptRawMonth').value);
+  const year=parseInt(document.getElementById('rptRawYear').value);
+  const typeFilter=document.getElementById('rptRawType').value;
+  loading('Building Attendance Raw PDF...');
+  try{
+    const {rows,co,monthLabel}=await buildAttRawRows(month,year,typeFilter);
+    if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF('l','pt','a4');
+    doc.setFontSize(16); doc.setTextColor(239,168,0);
+    doc.text(`${co} — Attendance Raw`,40,40);
+    doc.setFontSize(10); doc.setTextColor(120,130,180);
+    doc.text(`${monthLabel}  |  Records: ${rows.length}`,40,58);
+    doc.autoTable({
+      startY:72,
+      head:[['#','Type','Date','Name','In Time','Out Time','Duration']],
+      body:rows.map((r,i)=>[i+1,r.type,r.date,r.name,r.inTime,r.outTime,r.duration]),
+      styles:{fontSize:8,textColor:[200,210,240],fillColor:[12,18,41]},
+      headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[17,26,56]},
+      didParseCell:(d)=>{
+        if(d.section==='body'){
+          if(d.column.index===4&&d.cell.raw!=='Absent') d.cell.styles.textColor=[31,209,122];
+          if(d.column.index===5&&d.cell.raw!=='—') d.cell.styles.textColor=[255,68,102];
+          if(d.cell.raw==='Absent'||d.cell.raw==='Holiday') d.cell.styles.textColor=[255,68,102];
+        }
+      }
+    });
+    doc.save(`${co}_AttRaw_${monthLabel.replace(' ','_')}.pdf`);
+    doneLoading(); toast('Attendance Raw PDF downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function buildAttRawRows(month,year,typeFilter){
+  const co=getCompanyName();
+  const monthLabel=MONTHS[month]+' '+year;
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=new Date();
+  const coSnap=await db.ref(`companies/${APP.companyId}`).get();
+  const holidays=(coSnap.exists()&&coSnap.val().holidays)||[0];
+  const empList=Object.entries(APP.salesmen).filter(([,u])=>{
+    if(u.status==='deleted_by_admin') return false;
+    if(typeFilter==='sales') return u.emp_type!=='backoffice';
+    if(typeFilter==='backoffice') return u.emp_type==='backoffice';
+    return true;
+  });
+  const rows=[];
+  const allDates=Array.from({length:daysInMonth},(_,i)=>`${year}-${String(month+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`);
+  const attSnaps=await Promise.all(allDates.map(ds=>db.ref(`attendance/${APP.companyId}/${ds}`).get()));
+  const attByDate={};
+  allDates.forEach((ds,i)=>{ if(attSnaps[i].exists()) attByDate[ds]=attSnaps[i].val(); });
+  for(const [uid,u] of empList){
+    const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+    for(let d=1;d<=daysInMonth;d++){
+      const ds=allDates[d-1];
+      const dt=new Date(year,month,d);
+      if(dt>today) continue;
+      const dayOfWeek=dt.getDay();
+      const isHol=holidays.includes(dayOfWeek);
+      const att=attByDate[ds]?attByDate[ds][uid]:null;
+      let inTime='Absent', outTime='—', duration='—';
+      if(isHol){ inTime='Holiday'; outTime='—'; duration='Holiday'; }
+      else if(att){
+        inTime=att.start_time||'—';
+        outTime=att.end_time||'In Progress';
+        if(att.start_timestamp&&att.end_timestamp){
+          const diff=att.end_timestamp-att.start_timestamp;
+          duration=`${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m`;
+        }
+      }
+      rows.push({type,date:ds,name:u.name,inTime,outTime,duration});
+    }
+  }
+  return {rows,co,monthLabel};
+}
+
+/* ════ REPORTS C — ATTENDANCE SUMMARY ════ */
+async function exportRptSumExcel(){
+  const month=parseInt(document.getElementById('rptSumMonth').value);
+  const year=parseInt(document.getElementById('rptSumYear').value);
+  const typeFilter=document.getElementById('rptSumType').value;
+  loading('Building Attendance Summary...');
+  try{
+    const {matrix,co,monthLabel,empList,allDates,holidays}=await buildAttSummaryMatrix(month,year,typeFilter);
+    const ws={};
+    // Headers: Type | Name | Date1 | Date2 ...
+    const headerRow=['Type','Name',...allDates.map(d=>d.split('-')[2])];
+    // Title
+    xlsTitle(ws,`${co} — Attendance Summary`,`${monthLabel}`,headerRow.length);
+    // Header row
+    const STARTROW=5;
+    headerRow.forEach((h,ci)=>{
+      const addr=String.fromCharCode(65+ci)+STARTROW;
+      ws[addr]={t:'s',v:h,s:{font:{bold:true,color:{rgb:'000000'}},fill:{fgColor:{rgb:'EFA800'}},alignment:{horizontal:'center'}}};
+    });
+    ws['!ref']=`A1:${String.fromCharCode(65+headerRow.length-1)}${STARTROW+empList.length}`;
+    // Data rows
+    empList.forEach(([uid,u],ri)=>{
+      const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+      const rowNum=STARTROW+1+ri;
+      const addrType='A'+rowNum;
+      const addrName='B'+rowNum;
+      ws[addrType]={t:'s',v:type,s:{font:{bold:false},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'left'}}};
+      ws[addrName]={t:'s',v:u.name,s:{font:{bold:true},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'left'}}};
+      allDates.forEach((ds,di)=>{
+        const addr=String.fromCharCode(67+di)+rowNum;
+        const val=matrix[uid]?matrix[uid][ds]||'—':'—';
+        const color=val==='Present'?'1FD17A':val==='Absent'?'FF4466':val==='Holiday'?'EFA800':'3E4E78';
+        ws[addr]={t:'s',v:val,s:{font:{color:{rgb:color},bold:true},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'center'}}};
+      });
+    });
+    ws['!cols']=[{wch:14},{wch:22},...allDates.map(()=>({wch:10}))];
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Attendance Summary');
+    XLSX.writeFile(wb,`${co}_AttSummary_${monthLabel.replace(' ','_')}.xlsx`);
+    doneLoading(); toast('Attendance Summary Excel downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function exportRptSumPDF(){
+  const month=parseInt(document.getElementById('rptSumMonth').value);
+  const year=parseInt(document.getElementById('rptSumYear').value);
+  const typeFilter=document.getElementById('rptSumType').value;
+  loading('Building Attendance Summary PDF...');
+  try{
+    const {matrix,co,monthLabel,empList,allDates}=await buildAttSummaryMatrix(month,year,typeFilter);
+    if(!empList.length){ doneLoading(); toast('No employees found','err'); return; }
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF('l','pt','a4');
+    doc.setFontSize(16); doc.setTextColor(239,168,0);
+    doc.text(`${co} — Attendance Summary`,40,40);
+    doc.setFontSize(10); doc.setTextColor(120,130,180);
+    doc.text(monthLabel,40,58);
+    // Split into chunks of 15 dates per page
+    const chunkSize=15;
+    for(let c=0;c<allDates.length;c+=chunkSize){
+      if(c>0) doc.addPage();
+      const chunk=allDates.slice(c,c+chunkSize);
+      doc.autoTable({
+        startY:72,
+        head:[['Type','Name',...chunk.map(d=>d.split('-')[2])]],
+        body:empList.map(([uid,u])=>{
+          const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+          return [type,u.name,...chunk.map(ds=>(matrix[uid]&&matrix[uid][ds])||'—')];
+        }),
+        styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41],halign:'center'},
+        headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
+        columnStyles:{0:{cellWidth:55,halign:'left'},1:{cellWidth:80,halign:'left',fontStyle:'bold'}},
+        alternateRowStyles:{fillColor:[17,26,56]},
+        didParseCell:(d)=>{
+          if(d.section==='body'&&d.column.index>=2){
+            const v=d.cell.raw;
+            if(v==='Present') d.cell.styles.textColor=[31,209,122];
+            else if(v==='Absent') d.cell.styles.textColor=[255,68,102];
+            else if(v==='Holiday') d.cell.styles.textColor=[239,168,0];
+            d.cell.styles.fontStyle='bold';
+          }
+        }
+      });
+    }
+    doc.save(`${co}_AttSummary_${monthLabel.replace(' ','_')}.pdf`);
+    doneLoading(); toast('Attendance Summary PDF downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function buildAttSummaryMatrix(month,year,typeFilter){
+  const co=getCompanyName();
+  const monthLabel=MONTHS[month]+' '+year;
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=new Date();
+  const coSnap=await db.ref(`companies/${APP.companyId}`).get();
+  const holidays=(coSnap.exists()&&coSnap.val().holidays)||[0];
+  const empList=Object.entries(APP.salesmen).filter(([,u])=>{
+    if(u.status==='deleted_by_admin') return false;
+    if(typeFilter==='sales') return u.emp_type!=='backoffice';
+    if(typeFilter==='backoffice') return u.emp_type==='backoffice';
+    return true;
+  });
+  const allDates=Array.from({length:daysInMonth},(_,i)=>{
+    const dt=new Date(year,month,i+1);
+    if(dt>today) return null;
+    return `${year}-${String(month+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;
+  }).filter(Boolean);
+  const attSnaps=await Promise.all(allDates.map(ds=>db.ref(`attendance/${APP.companyId}/${ds}`).get()));
+  const attByDate={};
+  allDates.forEach((ds,i)=>{ if(attSnaps[i].exists()) attByDate[ds]=attSnaps[i].val(); });
+  const matrix={};
+  empList.forEach(([uid])=>{
+    matrix[uid]={};
+    allDates.forEach(ds=>{
+      const dayOfWeek=new Date(ds+'T00:00:00').getDay();
+      const isHol=holidays.includes(dayOfWeek);
+      const att=attByDate[ds]?attByDate[ds][uid]:null;
+      if(isHol) matrix[uid][ds]='Holiday';
+      else if(att) matrix[uid][ds]='Present';
+      else matrix[uid][ds]='Absent';
+    });
+  });
+  return {matrix,co,monthLabel,empList,allDates,holidays};
 }
 
 /* ════ PWA INSTALL ════ */
