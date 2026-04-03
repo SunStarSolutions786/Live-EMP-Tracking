@@ -1876,21 +1876,42 @@ async function saveSalesmanEdit(){
   loading('Saving changes...');
   closeModal('editSalesmanModal');
   try{
+    const cfg=JSON.parse(localStorage.getItem('ss_config'));
+
+    if(pass){
+      // Get current stored password before overwriting it
+      const curSnap=await db.ref(`users/${uid}`).get();
+      const curData=curSnap.val()||{};
+      const oldPass=curData.password||'';
+      if(!oldPass) throw new Error('Current password not found in database.');
+
+      // Sign in as the employee to get their idToken
+      const signInRes=await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,
+        {method:'POST',headers:{'Content-Type':'application/json'},
+         body:JSON.stringify({email:curData.email||email, password:oldPass, returnSecureToken:true})}
+      );
+      const signInData=await signInRes.json();
+      if(signInData.error) throw new Error('Auth sign-in failed: '+signInData.error.message);
+
+      // Change password using their idToken
+      const updateRes=await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,
+        {method:'POST',headers:{'Content-Type':'application/json'},
+         body:JSON.stringify({idToken:signInData.idToken, password:pass, returnSecureToken:false})}
+      );
+      const updateData=await updateRes.json();
+      if(updateData.error) throw new Error('Password update failed: '+updateData.error.message);
+    }
+
+    // Update DB after Auth change succeeds
     const updates={name, email};
     if(pass) updates.password=pass;
     const empTypeEl=document.getElementById('esEmpType');
     if(empTypeEl) updates.emp_type=empTypeEl.value;
     await db.ref(`users/${uid}`).update(updates);
-    if(pass){
-      const cfg=JSON.parse(localStorage.getItem('ss_config'));
-      const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,{
-        method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({localId:uid,password:pass})
-      });
-      const d=await res.json();
-      if(d.error) throw new Error(d.error.message);
-    }
-    doneLoading(); toast('Employee updated successfully!');
+
+    doneLoading(); toast('Employee updated successfully! ✅');
     await loadSalesmen();
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -2088,16 +2109,47 @@ async function saveAdminEdit2(){
   if(pass&&pass.length<6){ errEl.textContent='Password must be at least 6 characters'; errEl.style.display='block'; return; }
   loading('Saving...');
   try{
-    const updates={name,email}; if(pass) updates.password=pass;
+    const cfg=JSON.parse(localStorage.getItem('ss_config'));
+
+    if(pass){
+      // Step 1: Get the user's current stored password from DB (before we update it)
+      const curSnap=await db.ref(`users/${uid}`).get();
+      const curData=curSnap.val()||{};
+      const oldPass=curData.password||'';
+
+      if(!oldPass){
+        doneLoading();
+        errEl.textContent='Cannot change password: current password not found in database.';
+        errEl.style.display='block';
+        return;
+      }
+
+      // Step 2: Sign in as the target user to get their idToken
+      const signInRes=await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,
+        {method:'POST',headers:{'Content-Type':'application/json'},
+         body:JSON.stringify({email:curData.email||email, password:oldPass, returnSecureToken:true})}
+      );
+      const signInData=await signInRes.json();
+      if(signInData.error) throw new Error('Auth sign-in failed: '+signInData.error.message+'. Please check the current password in the database.');
+
+      // Step 3: Change Firebase Auth password using the user's idToken
+      const updateRes=await fetch(
+        `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,
+        {method:'POST',headers:{'Content-Type':'application/json'},
+         body:JSON.stringify({idToken:signInData.idToken, password:pass, returnSecureToken:false})}
+      );
+      const updateData=await updateRes.json();
+      if(updateData.error) throw new Error('Password update failed: '+updateData.error.message);
+    }
+
+    // Step 4: Update name, email, and new password in DB
+    const updates={name,email};
+    if(pass) updates.password=pass;
     await db.ref(`users/${uid}`).update(updates);
     await db.ref(`companies/${coId}`).update({admin_name:name});
-    if(pass){
-      const cfg=JSON.parse(localStorage.getItem('ss_config'));
-      const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({localId:uid,password:pass})});
-      const d=await res.json();
-      if(d.error) throw new Error(d.error.message);
-    }
-    doneLoading(); toast('Admin updated successfully!');
+
+    doneLoading(); toast('Admin updated successfully! ✅');
     await loadSuperDashboard();
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
