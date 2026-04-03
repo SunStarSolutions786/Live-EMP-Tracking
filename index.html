@@ -1660,12 +1660,9 @@ async function authAction(uid, action){
   const cfg=JSON.parse(localStorage.getItem('ss_config'));
   const apiKey=cfg.apiKey;
   if(action==='delete'){
-    const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({localId:uid})
-    });
-    const d=await res.json();
-    if(d.error) throw new Error(d.error.message);
+    // Firebase REST API requires idToken (not localId) for client-side deletion
+    // So we sign in as the user first, then delete with their idToken
+    await deleteAuthUserByUid(uid);
   } else {
     const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
@@ -1674,6 +1671,51 @@ async function authAction(uid, action){
     const d=await res.json();
     if(d.error) throw new Error(d.error.message);
   }
+}
+
+/* ════════════════════════════════════════════════
+   DELETE FIREBASE AUTH USER (client-side safe)
+   Must be called BEFORE removing from DB
+   so credentials are still available
+════════════════════════════════════════════════ */
+async function deleteAuthUserByUid(uid){
+  const cfg=JSON.parse(localStorage.getItem('ss_config'));
+  const apiKey=cfg.apiKey;
+
+  // Step 1: Get user credentials from DB (must do BEFORE deleting DB record)
+  const snap=await db.ref(`users/${uid}`).get();
+  if(!snap.exists()) return; // Already gone, skip
+  const u=snap.val();
+  const email=u.email;
+  const password=u.password;
+
+  if(!email||!password){
+    console.warn(`No credentials in DB for uid=${uid}, skipping Auth delete`);
+    return;
+  }
+
+  // Step 2: Sign in as the user to get their idToken
+  const signInRes=await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({email, password, returnSecureToken:true})}
+  );
+  const signInData=await signInRes.json();
+  if(signInData.error){
+    // If sign-in fails (e.g. password mismatch), we cannot delete Auth user
+    // Log warning but continue — DB will still be cleaned up
+    console.warn(`Auth sign-in failed for ${email}: ${signInData.error.message}. Auth user may remain.`);
+    return;
+  }
+
+  // Step 3: Delete the Firebase Auth account using idToken
+  const deleteRes=await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({idToken:signInData.idToken})}
+  );
+  const deleteData=await deleteRes.json();
+  if(deleteData.error) throw new Error('Firebase Auth delete failed: '+deleteData.error.message);
 }
 
 /* ════════════════════════════════════════════════
@@ -1845,20 +1887,25 @@ function deleteCompanyConfirm(id,name){
 
 async function deleteCompany(id){
   closeModal('deleteModal');
-  loading('Deleting...');
+  loading('Deleting company...');
   try{
-    // Delete all salesmen from Auth first
+    // Step 1: Get all users under this company
     const usersSnap=await db.ref('users').orderByChild('company_id').equalTo(id).get();
     if(usersSnap.exists()){
-      for(const [uid] of Object.entries(usersSnap.val())){
+      const users=Object.entries(usersSnap.val());
+      for(const [uid] of users){
+        // Delete from Firebase Auth FIRST (while DB credentials still exist)
+        try{ await deleteAuthUserByUid(uid); }
+        catch(e){ console.warn(`Auth delete failed for uid=${uid}:`,e.message); }
+        // Then delete from DB
         await db.ref(`users/${uid}`).remove();
-        try{ await authAction(uid,'delete'); }catch(e){}
       }
     }
+    // Step 2: Delete all company data from DB
     await db.ref(`companies/${id}`).remove();
     await db.ref(`visits/${id}`).remove();
     await db.ref(`attendance/${id}`).remove();
-    doneLoading(); toast('Company permanently deleted');
+    doneLoading(); toast('Company permanently deleted ✅');
     await loadSuperDashboard();
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -2220,13 +2267,16 @@ async function editSalesmanSA(uid){
 }
 
 async function deleteSalesmanSA(uid,name){
-  document.getElementById('deleteModalMsg').textContent=`Permanently delete "${name}"? All data will be lost!`;
+  document.getElementById('deleteModalMsg').textContent=`Permanently delete "${name}"? This will remove them from Firebase Auth and all data!`;
   document.getElementById('deleteConfirmBtn').onclick=async()=>{
     closeModal('deleteModal'); loading('Deleting...');
     try{
+      // Delete from Firebase Auth FIRST (while DB credentials still exist)
+      try{ await deleteAuthUserByUid(uid); }
+      catch(e){ console.warn('Auth delete failed:',e.message); }
+      // Then remove from DB
       await db.ref(`users/${uid}`).remove();
-      try{ await authAction(uid,'delete'); }catch(e){ console.warn('Auth delete:',e.message); }
-      doneLoading(); toast(`"${name}" permanently deleted`);
+      doneLoading(); toast(`"${name}" permanently deleted ✅`);
       await loadCoMgmtSalesmen(); await loadSuperDashboard();
     }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
   };
