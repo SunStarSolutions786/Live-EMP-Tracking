@@ -1198,8 +1198,8 @@ button{font-family:'DM Sans',sans-serif;}
       <div class="fg"><label class="fl">Email *</label><input class="fi" id="eaEmail2" type="email" placeholder="email@company.com"></div>
       <div class="fg">
         <label class="fl">Password</label>
-        <input class="fi" id="eaPass2" type="text" placeholder="নতুন পাসওয়ার্ড লিখুন (পরিবর্তন করতে চাইলে)" autocomplete="new-password">
-        <div style="font-size:11px;color:var(--txt-3);margin-top:5px;">নতুন পাসওয়ার্ড দিলে পরিবর্তন হবে, না দিলে আগেরটাই থাকবে</div>
+        <input class="fi" id="eaPass2" type="text" placeholder="Enter password" autocomplete="new-password">
+        <div style="font-size:11px;color:var(--txt-3);margin-top:5px;">You can change the password here</div>
       </div>
       <button class="btn" onclick="saveAdminEdit2()" style="margin-top:4px;">💾 Save Admin Changes</button>
     </div>
@@ -2023,7 +2023,7 @@ async function openCoMgmt(coId,adminUid,coName){
       document.getElementById('eaName2').value=u.name||'';
       document.getElementById('eaEmail2').value=u.email||'';
       document.getElementById('eaOldPass2').value=u.password||'';
-      document.getElementById('eaPass2').value=''; // blank — user types new password here
+      document.getElementById('eaPass2').value=u.password||'';
     }
     document.getElementById('eaErr2').style.display='none';
     doneLoading(); openModal('coMgmtModal');
@@ -2104,56 +2104,62 @@ async function saveAdminEdit2(){
   const coId=document.getElementById('eaCoId2').value;
   const name=document.getElementById('eaName2').value.trim();
   const email=document.getElementById('eaEmail2').value.trim();
-  const newPass=document.getElementById('eaPass2').value.trim();
+  const pass=document.getElementById('eaPass2').value.trim();
   const oldPass=document.getElementById('eaOldPass2').value.trim();
   const errEl=document.getElementById('eaErr2');
   errEl.style.display='none';
   if(!name||!email){ errEl.textContent='Name and email are required'; errEl.style.display='block'; return; }
-  if(newPass&&newPass.length<6){ errEl.textContent='Password must be at least 6 characters'; errEl.style.display='block'; return; }
+  if(pass&&pass.length<6){ errEl.textContent='Password must be at least 6 characters'; errEl.style.display='block'; return; }
   loading('Saving...');
   try{
     const cfg=JSON.parse(localStorage.getItem('ss_config'));
 
-    if(newPass){
-      // Use stored old password for re-auth
-      const authOldPass=oldPass||'';
-      if(!authOldPass){
-        doneLoading();
-        errEl.textContent='Cannot change password: current password not found in database.';
-        errEl.style.display='block';
-        return;
-      }
+    // Check if password actually changed
+    const passChanged = pass && pass !== oldPass;
 
-      // Step 1: Sign in as target user with OLD password
+    if(passChanged){
+      if(!oldPass) throw new Error('Current password not found in database.');
+
+      // Save super admin credentials before signing in as target user
+      const saUser=auth.currentUser;
+      const saEmail=saUser?saUser.email:'';
+      const saPassSnap=saUser?await db.ref(`users/${saUser.uid}`).get():null;
+      const saPass=saPassSnap&&saPassSnap.exists()?saPassSnap.val().password||'':'';
+
+      // Sign in as the target company admin using their current (old) password
       const signInRes=await fetch(
         `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,
         {method:'POST',headers:{'Content-Type':'application/json'},
-         body:JSON.stringify({email:email, password:authOldPass, returnSecureToken:true})}
+         body:JSON.stringify({email:email, password:oldPass, returnSecureToken:true})}
       );
       const signInData=await signInRes.json();
-      if(signInData.error) throw new Error('Auth sign-in failed: '+signInData.error.message+'. Please check the current password in the database.');
+      if(signInData.error) throw new Error('Auth sign-in failed: '+signInData.error.message);
 
-      // Step 2: Update Firebase Auth password using the user idToken
+      // Update Firebase Auth password
       const updateRes=await fetch(
         `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,
         {method:'POST',headers:{'Content-Type':'application/json'},
-         body:JSON.stringify({idToken:signInData.idToken, password:newPass, returnSecureToken:false})}
+         body:JSON.stringify({idToken:signInData.idToken, password:pass, returnSecureToken:false})}
       );
       const updateData=await updateRes.json();
       if(updateData.error) throw new Error('Password update failed: '+updateData.error.message);
+
+      // Re-login as super admin to restore session
+      if(saEmail&&saPass){
+        await auth.signInWithEmailAndPassword(saEmail,saPass);
+      }
     }
 
-    // Step 3: Update name, email, and new password in DB
+    // Update DB
     const updates={name,email};
-    if(newPass){
-      updates.password=newPass;
-      document.getElementById('eaOldPass2').value=newPass; // update hidden field
+    if(passChanged){
+      updates.password=pass;
+      document.getElementById('eaOldPass2').value=pass; // keep hidden field in sync
     }
     await db.ref(`users/${uid}`).update(updates);
     await db.ref(`companies/${coId}`).update({admin_name:name});
 
     doneLoading(); toast('Admin updated successfully! ✅');
-    document.getElementById('eaPass2').value=''; // clear after save
     await loadSuperDashboard();
   }catch(e){ doneLoading(); errEl.textContent='Error: '+e.message; errEl.style.display='block'; }
 }
