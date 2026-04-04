@@ -841,8 +841,8 @@ button{font-family:'DM Sans',sans-serif;}
     </div>
 
     <div class="stats-row">
-      <div class="sc"><div class="sc-val" id="smTodayCount">0</div><div class="sc-lbl">Today's Visits</div></div>
-      <div class="sc"><div class="sc-val" id="smMonthCount">0</div><div class="sc-lbl">This Month</div></div>
+      <div class="sc" id="smStatToday"><div class="sc-val" id="smTodayCount">0</div><div class="sc-lbl">Today's Visits</div></div>
+      <div class="sc" id="smStatMonth"><div class="sc-val" id="smMonthCount">0</div><div class="sc-lbl">This Month</div></div>
       <div class="sc"><div class="sc-val" id="smPresent">0</div><div class="sc-lbl">Days Present</div></div>
     </div>
 
@@ -861,8 +861,8 @@ button{font-family:'DM Sans',sans-serif;}
       <button class="btn" id="submitBtn" onclick="submitVisit()">✅ Submit Visit</button>
     </div>
     <!-- Today's visits -->
-    <div class="card-hd" style="padding:0;margin-bottom:14px;"><div class="card-icon">📋</div>Today's Visits</div>
-    <div id="smVisitList"><div class="empty"><div class="empty-icon">🏪</div>No visits submitted yet</div></div>
+    <div id="smVisitHeading" class="card-hd" style="padding:0;margin-bottom:14px;"><div class="card-icon">📋</div>Today's Visits</div>
+    <div id="smVisitListWrap"><div id="smVisitList"><div class="empty"><div class="empty-icon">🏪</div>No visits submitted yet</div></div></div>
   </div>
 </div>
 
@@ -1595,6 +1595,7 @@ async function initApp(){
   
   auth.onAuthStateChanged(async user=>{
     clearTimeout(authTimeout);
+    if(APP._suppressAuth) return; // suppress during password change re-auth swap
     if(!user){ doneLoading(); hideAll(); show('loginScreen'); return; }
     loading('Loading your account...');
     try{
@@ -1765,12 +1766,12 @@ async function loadSuperDashboard(){
           <div><div class="co-sv">${co.todayV}</div><div class="co-sl">Today's Visits</div></div>
         </div>
         <div class="co-acts">
-          <button class="btn-sm-g" onclick="openCoMgmt('${co.id}','${co.admin_uid}','${co.name}')">⚙️ Manage</button>
-          <button class="btn-sm-g" onclick="openCoSettings('${co.id}','${co.name}')">🔧 Settings</button>
+          <button class="btn-sm-g" onclick="openCoMgmt('${co.id}','${co.admin_uid}','${co.name.replace(/'/g,"\\'")}')">⚙️ Manage</button>
+          <button class="btn-sm-g" onclick="openCoSettings('${co.id}','${co.name.replace(/'/g,"\\'")}')">🔧 Settings</button>
           <button class="btn-sm-g" style="${co.status==='inactive'?'color:var(--ok);border-color:rgba(31,209,122,0.3);':''}"
-            onclick="toggleCompanyStatus('${co.id}','${co.name}','${co.admin_uid}','${co.status==='inactive'?'active':'inactive'}')">
+            onclick="toggleCompanyStatus('${co.id}','${co.name.replace(/'/g,"\\'")}','${co.admin_uid}','${co.status==='inactive'?'active':'inactive'}')">
             ${co.status==='inactive'?'✅':'🚫'}</button>
-          <button class="btn-sm-d" onclick="deleteCompanyConfirm('${co.id}','${co.name}')">🗑</button>
+          <button class="btn-sm-d" onclick="deleteCompanyConfirm('${co.id}','${co.name.replace(/'/g,"\\'")}')">🗑</button>
         </div>
       </div>`;
     }).join('');
@@ -1790,8 +1791,18 @@ async function toggleCompanyStatus(coId, coName, adminUid, newStatus){
     if(smSnap.exists()){
       for(const [uid,u] of Object.entries(smSnap.val())){
         if(u.role==='salesman'){
-          await db.ref(`users/${uid}`).update({status:newStatus});
-          try{ await authAction(uid, newStatus==='inactive'?'disable':'enable'); }catch(e){}
+          // When deactivating: set all to inactive
+          // When activating: only restore those that were active before (not individually deactivated or deleted)
+          if(newStatus==='inactive'){
+            await db.ref(`users/${uid}`).update({status:'inactive'});
+            try{ await authAction(uid,'disable'); }catch(e){}
+          } else {
+            // Only activate employees that were inactive due to company deactivation (not deleted_by_admin or individually managed)
+            if(u.status==='inactive'){
+              await db.ref(`users/${uid}`).update({status:'active'});
+              try{ await authAction(uid,'enable'); }catch(e){}
+            }
+          }
         }
       }
     }
@@ -2126,6 +2137,7 @@ async function saveAdminEdit2(){
       const saPass=saPassSnap&&saPassSnap.exists()?saPassSnap.val().password||'':'';
 
       // Try re-auth with DB stored password first, then fallback to field value
+      APP._suppressAuth=true; // suppress auth state changes during user swap
       let idToken=null;
       const tryPasswords=[oldPass, pass].filter(Boolean);
       for(const tryPass of tryPasswords){
@@ -2148,9 +2160,11 @@ async function saveAdminEdit2(){
       const updateData=await updateRes.json();
       if(updateData.error) throw new Error('Password update failed: '+updateData.error.message);
 
-      // Re-login as super admin to restore session
+      // Re-login as super admin — suppress onAuthStateChanged during swap
       if(saEmail&&saPass){
+        APP._suppressAuth=true;
         await auth.signInWithEmailAndPassword(saEmail,saPass);
+        APP._suppressAuth=false;
       }
     }
 
@@ -2572,7 +2586,7 @@ async function loadHistory(){
           const u=APP.salesmen[v.salesman_uid]||{emp_type:'sales'};
           lastHistoryData.push({
             date, status:'Visit', name:v.salesman_name||'—',
-            location:v.location||'—', time:v.time||'—',
+            location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—', time:v.time||'—',
             remarks:v.outlet+(v.remarks?` — ${v.remarks}`:''),
             emp_type:u.emp_type||'sales', sort_ts:v.timestamp||0
           });
@@ -2709,70 +2723,95 @@ async function loadMap(){
   initMap();
   APP.mapInstance.eachLayer(l=>{ if(!(l instanceof L.TileLayer)) APP.mapInstance.removeLayer(l); });
   try{
-    const snap=await db.ref(`visits/${APP.companyId}/${date}`).get();
-    if(!snap.exists()){ doneLoading(); toast('No visits found for this date','err'); return; }
     const dept=currentMapDept;
-    const visits=Object.values(snap.val()).filter(v=>{
-      if(salesmanUid&&v.salesman_uid!==salesmanUid) return false;
-      const u=APP.salesmen[v.salesman_uid];
-      if(!u) return dept==='all'||dept==='sales'; // default to sales
-      const isBO=u.emp_type==='backoffice';
-      if(dept==='sales'&&isBO) return false;
-      if(dept==='backoffice'&&!isBO) return false;
-      return true;
-    });
-    if(visits.length===0){ doneLoading(); toast('No visits found','err'); return; }
-    
-    const bySm={};
-    visits.forEach(v=>{ (bySm[v.salesman_uid]=bySm[v.salesman_uid]||[]).push(v); });
-    
-    // Distinct colors for each salesman
-    const palette=['#EFA800','#3B82F6','#10B981','#EF4444','#8B5CF6','#F97316','#06B6D4','#EC4899'];
-    let ci=0;
     const bounds=[];
     const legend=[];
+    const palette=['#EFA800','#3B82F6','#10B981','#EF4444','#8B5CF6','#F97316','#06B6D4','#EC4899'];
+    let ci=0;
 
-    for(const [uid,smVisits] of Object.entries(bySm)){
+    // ── Load visits ──
+    const visitSnap=await db.ref(`visits/${APP.companyId}/${date}`).get();
+    const visitsBySm={};
+    if(visitSnap.exists()){
+      Object.values(visitSnap.val()).forEach(v=>{
+        if(salesmanUid&&v.salesman_uid!==salesmanUid) return;
+        const u=APP.salesmen[v.salesman_uid];
+        const isBO=u?u.emp_type==='backoffice':false;
+        if(dept==='sales'&&isBO) return;
+        if(dept==='backoffice'&&!isBO) return;
+        (visitsBySm[v.salesman_uid]=visitsBySm[v.salesman_uid]||[]).push(v);
+      });
+    }
+
+    // ── Load attendance (check in / check out) ──
+    const attSnap=await db.ref(`attendance/${APP.companyId}/${date}`).get();
+    const attBySm={};
+    if(attSnap.exists()){
+      Object.entries(attSnap.val()).forEach(([uid,att])=>{
+        if(salesmanUid&&uid!==salesmanUid) return;
+        const u=APP.salesmen[uid];
+        if(!u) return;
+        const isBO=u.emp_type==='backoffice';
+        if(dept==='sales'&&isBO) return;
+        if(dept==='backoffice'&&!isBO) return;
+        attBySm[uid]=att;
+      });
+    }
+
+    const smUids=new Set([...Object.keys(visitsBySm),...Object.keys(attBySm)]);
+    if(smUids.size===0){ doneLoading(); toast('No data found for this date','err'); return; }
+
+    for(const uid of smUids){
       const color=palette[ci%palette.length]; ci++;
-      smVisits.sort((a,b)=>a.timestamp-b.timestamp);
-      legend.push({name:smVisits[0].salesman_name,color});
-      
+      const smVisits=(visitsBySm[uid]||[]).sort((a,b)=>a.timestamp-b.timestamp);
+      const att=attBySm[uid]||null;
+      const smName=(APP.salesmen[uid]||{}).name||'Unknown';
+      legend.push({name:smName,color});
+
+      // Draw visit path
       const latlngs=smVisits.filter(v=>v.lat&&v.lng).map(v=>[v.lat,v.lng]);
       if(latlngs.length>1) addArrowLine(APP.mapInstance,latlngs,color);
-      
+
+      // Visit markers
       smVisits.forEach((v,i)=>{
         if(!v.lat||!v.lng) return;
         bounds.push([v.lat,v.lng]);
-        const isFirst=i===0, isLast=i===smVisits.length-1;
-        // Different shape for first/last/middle
-        const size=isFirst||isLast?40:34;
-        const emoji=isFirst?'🟢':isLast?'🔴':'';
+        const size=34;
         const icon=L.divIcon({
-          html:`<div style="
-            background:${color};
-            width:${size}px;height:${size}px;
-            border-radius:50% 50% 50% 0;
-            transform:rotate(-45deg);
-            border:3px solid #fff;
-            box-shadow:0 2px 8px rgba(0,0,0,0.3);
-            display:flex;align-items:center;justify-content:center;
-          "><div style="transform:rotate(45deg);font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);">${i+1}</div></div>`,
+          html:`<div style="background:${color};width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><div style="transform:rotate(45deg);font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);">${i+1}</div></div>`,
           iconSize:[size,size],iconAnchor:[size/2,size],popupAnchor:[0,-size]
         });
         L.marker([v.lat,v.lng],{icon}).addTo(APP.mapInstance)
-          .bindPopup(`
-            <div style="font-family:sans-serif;min-width:180px;">
-              <div style="font-weight:800;font-size:14px;margin-bottom:6px;color:${color}">Stop #${i+1} — ${v.salesman_name}</div>
-              <div style="margin-bottom:4px;">🏪 <b>${v.outlet}</b></div>
-              <div style="margin-bottom:4px;">🕐 ${v.time}</div>
-              ${v.remarks?`<div style="margin-top:6px;padding:6px 8px;background:#f5f5f5;border-radius:4px;font-size:12px;">💬 ${v.remarks}</div>`:''}
-            </div>
-          `);
+          .bindPopup(`<div style="font-family:sans-serif;min-width:180px;"><div style="font-weight:800;font-size:14px;margin-bottom:6px;color:${color}">Visit #${i+1} — ${v.salesman_name||smName}</div><div style="margin-bottom:4px;">🏪 <b>${v.outlet}</b></div><div style="margin-bottom:4px;">🕐 ${v.time}</div>${v.remarks?`<div style="margin-top:6px;padding:6px 8px;background:#f5f5f5;border-radius:4px;font-size:12px;">💬 ${v.remarks}</div>`:''}</div>`);
       });
+
+      // Check-In marker
+      if(att&&att.start_lat&&att.start_lng){
+        bounds.push([att.start_lat,att.start_lng]);
+        const inIcon=L.divIcon({
+          html:`<div style="background:#1FD17A;width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:16px;">🟢</div>`,
+          iconSize:[38,38],iconAnchor:[19,19],popupAnchor:[0,-22]
+        });
+        L.marker([att.start_lat,att.start_lng],{icon:inIcon}).addTo(APP.mapInstance)
+          .bindPopup(`<div style="font-family:sans-serif;min-width:160px;"><div style="font-weight:800;font-size:14px;color:#1FD17A;margin-bottom:6px;">✅ Check-In — ${smName}</div><div>🕐 ${att.start_time||'—'}</div><div style="font-size:12px;color:#666;margin-top:4px;">📍 ${att.start_location||'—'}</div></div>`);
+      }
+
+      // Check-Out marker
+      if(att&&att.end_lat&&att.end_lng){
+        bounds.push([att.end_lat,att.end_lng]);
+        const outIcon=L.divIcon({
+          html:`<div style="background:#FF4466;width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:16px;">🔴</div>`,
+          iconSize:[38,38],iconAnchor:[19,19],popupAnchor:[0,-22]
+        });
+        L.marker([att.end_lat,att.end_lng],{icon:outIcon}).addTo(APP.mapInstance)
+          .bindPopup(`<div style="font-family:sans-serif;min-width:160px;"><div style="font-weight:800;font-size:14px;color:#FF4466;margin-bottom:6px;">🚪 Check-Out — ${smName}</div><div>🕐 ${att.end_time||'—'}</div><div style="font-size:12px;color:#666;margin-top:4px;">📍 ${att.end_location||'—'}</div></div>`);
+      }
     }
-    
+
     if(bounds.length) APP.mapInstance.fitBounds(bounds,{padding:[50,50]});
-    doneLoading(); toast(`${visits.length} visits shown on map`);
+    const totalVisits=Object.values(visitsBySm).reduce((s,a)=>s+a.length,0);
+    const totalAtt=Object.keys(attBySm).length;
+    doneLoading(); toast(`${totalVisits} visits + ${totalAtt} check-in/out shown`);
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
@@ -3074,17 +3113,24 @@ async function initSalesman(){
   const nmEl=document.getElementById('smNm');
   if(nmEl) nmEl.innerHTML=APP.userData.name+` <span style="font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;background:${isBo?'rgba(31,209,122,0.1)':'rgba(75,159,255,0.1)'};color:${isBo?'var(--ok)':'var(--info)'};">${isBo?'Back Office':'Sales'}</span>`;
   
-  // Hide visit section for Back Office employees
+  // Hide visit sections for Back Office employees
   const visitCard=document.getElementById('visitFormCard');
-  const visitListHd=document.querySelector('.card-hd .card-icon');
-  const visitList=document.getElementById('smVisitList');
+  const visitHeading=document.getElementById('smVisitHeading');
+  const visitListWrap=document.getElementById('smVisitListWrap');
+  const statToday=document.getElementById('smStatToday');
+  const statMonth=document.getElementById('smStatMonth');
   if(isBo){
     if(visitCard) visitCard.style.display='none';
-    // Hide today's visits section
-    document.querySelectorAll('#salesmanScreen .card-hd').forEach(el=>{
-      if(el.textContent.includes("Today's Visits")) el.parentElement && (el.style.display='none');
-    });
-    if(visitList) visitList.closest('div') && (visitList.style.display='none');
+    if(visitHeading) visitHeading.style.display='none';
+    if(visitListWrap) visitListWrap.style.display='none';
+    if(statToday) statToday.style.display='none';
+    if(statMonth) statMonth.style.display='none';
+  } else {
+    if(visitCard) visitCard.style.display='';
+    if(visitHeading) visitHeading.style.display='';
+    if(visitListWrap) visitListWrap.style.display='';
+    if(statToday) statToday.style.display='';
+    if(statMonth) statMonth.style.display='';
   }
   
   checkGPS();
@@ -3157,7 +3203,9 @@ function showDayState(state, att=null){
   document.getElementById('dayNotStarted').style.display=state==='not_started'?'block':'none';
   document.getElementById('dayInProgress').style.display=state==='in_progress'?'block':'none';
   document.getElementById('dayEnded').style.display=state==='ended'?'block':'none';
-  document.getElementById('visitFormCard').style.display=state==='in_progress'?'block':'none';
+  if(!APP.isBackOffice){
+    document.getElementById('visitFormCard').style.display=state==='in_progress'?'block':'none';
+  }
 
   if(state==='in_progress' && att){
     document.getElementById('dayStartTime').textContent=att.start_time||'—';
@@ -3330,16 +3378,23 @@ async function loadSalesmanStats(){
   const todayCount=tSnap.exists()?Object.keys(tSnap.val()).length:0;
   document.getElementById('smTodayCount').textContent=todayCount;
 
-  // Load whole month visits at once (one query per day is too slow)
-  // Use attendance node as proxy for present days
+  // Load month visits + present days from attendance (not visit days)
   const monthPrefix=`${yr}-${mo}`;
   let monthCount=0, presentDays=0;
+  // Count present days from attendance records (accurate)
+  const attAllSnap=await db.ref(`attendance/${APP.companyId}`).get();
+  if(attAllSnap.exists()){
+    Object.entries(attAllSnap.val()).forEach(([date,dayAtt])=>{
+      if(date.startsWith(monthPrefix) && dayAtt[APP.user.uid]) presentDays++;
+    });
+  }
+  // Count month visits
   const allVisitsSnap=await db.ref(`visits/${APP.companyId}`).get();
   if(allVisitsSnap.exists()){
     Object.entries(allVisitsSnap.val()).forEach(([date,dayVisits])=>{
       if(!date.startsWith(monthPrefix)) return;
       const myVisits=Object.values(dayVisits).filter(v=>v.salesman_uid===APP.user.uid);
-      if(myVisits.length>0){ monthCount+=myVisits.length; presentDays++; }
+      monthCount+=myVisits.length;
     });
   }
   document.getElementById('smMonthCount').textContent=monthCount;
@@ -3451,8 +3506,8 @@ async function loadSAReport(){
 
   // Build date list
   const dateList=[];
-  let cur=new Date(fromDate);
-  const end=new Date(toDate);
+  let cur=new Date(fromDate+'T00:00:00');
+  const end=new Date(toDate+'T00:00:00');
   while(cur<=end){ dateList.push(cur.toISOString().split('T')[0]); cur.setDate(cur.getDate()+1); }
 
   try{
@@ -3680,7 +3735,7 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
         if(!empUidSet.has(v.salesman_uid)) return;
         const u=APP.salesmen[v.salesman_uid]||{emp_type:'sales'};
         const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-        rows.push({date,status:'Visit',name:v.salesman_name||'—',location:v.location||'—',time:v.time||'—',remarks:v.outlet+(v.remarks?` — ${v.remarks}`:''),type,sort_ts:v.timestamp||0});
+        rows.push({date,status:'Visit',name:v.salesman_name||'—',location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',remarks:v.outlet+(v.remarks?` — ${v.remarks}`:''),type,sort_ts:v.timestamp||0});
       });
     }
   }
@@ -3771,8 +3826,8 @@ async function buildAttRawRows(startDate,endDate,typeFilter){
   });
   // Build all dates in range
   const allDates=[];
-  let cur=new Date(startDate);
-  const end=new Date(endDate);
+  let cur=new Date(startDate+'T00:00:00');
+  const end=new Date(endDate+'T00:00:00');
   while(cur<=end){
     const ds=cur.toISOString().split('T')[0];
     if(new Date(ds)<=today) allDates.push(ds);
@@ -3819,17 +3874,17 @@ async function exportRptSumExcel(){
     xlsTitle(ws,`${co} — Attendance Summary`,`${dateLabel}`,headerRow.length);
     const STARTROW=5;
     headerRow.forEach((h,ci)=>{
-      const addr=String.fromCharCode(65+ci)+STARTROW;
+      const addr=numToCol(ci)+STARTROW;
       ws[addr]={t:'s',v:h,s:{font:{bold:true,color:{rgb:'000000'}},fill:{fgColor:{rgb:'EFA800'}},alignment:{horizontal:'center'}}};
     });
-    ws['!ref']=`A1:${String.fromCharCode(65+headerRow.length-1)}${STARTROW+empList.length}`;
+    ws['!ref']=`A1:${numToCol(headerRow.length-1)}${STARTROW+empList.length}`;
     empList.forEach(([uid,u],ri)=>{
       const type=u.emp_type==='backoffice'?'Back Office':'Sales';
       const rowNum=STARTROW+1+ri;
       ws['A'+rowNum]={t:'s',v:type,s:{font:{bold:false},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'left'}}};
       ws['B'+rowNum]={t:'s',v:u.name,s:{font:{bold:true},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'left'}}};
       allDates.forEach((ds,di)=>{
-        const addr=String.fromCharCode(67+di)+rowNum;
+        const addr=numToCol(di+2)+rowNum;
         const val=matrix[uid]?matrix[uid][ds]||'—':'—';
         const color=val==='Present'?'1FD17A':val==='Absent'?'FF4466':val==='Holiday'?'EFA800':'3E4E78';
         ws[addr]={t:'s',v:val,s:{font:{color:{rgb:color},bold:true},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'center'}}};
@@ -3903,8 +3958,8 @@ async function buildAttSummaryMatrix(startDate,endDate,typeFilter){
   });
   // Build date list
   const allDates=[];
-  let cur=new Date(startDate);
-  const end=new Date(endDate);
+  let cur=new Date(startDate+'T00:00:00');
+  const end=new Date(endDate+'T00:00:00');
   while(cur<=end){
     const ds=cur.toISOString().split('T')[0];
     if(new Date(ds)<=today) allDates.push(ds);
