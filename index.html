@@ -1193,12 +1193,13 @@ button{font-family:'DM Sans',sans-serif;}
       <div id="eaErr2" class="err-box"></div>
       <input type="hidden" id="eaUid2">
       <input type="hidden" id="eaCoId2">
+      <input type="hidden" id="eaOldPass2">
       <div class="fg"><label class="fl">Admin Name *</label><input class="fi" id="eaName2" placeholder="Full name"></div>
       <div class="fg"><label class="fl">Email *</label><input class="fi" id="eaEmail2" type="email" placeholder="email@company.com"></div>
       <div class="fg">
         <label class="fl">Password</label>
-        <input class="fi" id="eaPass2" type="text" placeholder="Current password">
-        <div style="font-size:11px;color:var(--txt-3);margin-top:5px;">You can change the password here</div>
+        <input class="fi" id="eaPass2" type="text" placeholder="নতুন পাসওয়ার্ড লিখুন (পরিবর্তন করতে চাইলে)" autocomplete="new-password">
+        <div style="font-size:11px;color:var(--txt-3);margin-top:5px;">নতুন পাসওয়ার্ড দিলে পরিবর্তন হবে, না দিলে আগেরটাই থাকবে</div>
       </div>
       <button class="btn" onclick="saveAdminEdit2()" style="margin-top:4px;">💾 Save Admin Changes</button>
     </div>
@@ -1277,7 +1278,7 @@ button{font-family:'DM Sans',sans-serif;}
     <input type="hidden" id="asCoIdSA">
     <div class="fg"><label class="fl">Employee Name *</label><input class="fi" id="asNameSA" placeholder="Full name"></div>
     <div class="fg"><label class="fl">Email *</label><input class="fi" id="asEmailSA" type="email" placeholder="employee@email.com"></div>
-    <div class="fg"><label class="fl">Password *</label><input class="fi" id="asPassSA" type="text" placeholder="Minimum 6 characters"></div>
+    <div class="fg"><label class="fl">Password *</label><input class="fi" id="asPassSA" type="text" placeholder="Minimum 6 characters" autocomplete="new-password"></div>
     <div class="fg" id="asEmpTypeSAWrap">
       <label class="fl">Employee Type *</label>
       <select class="fsel" id="asEmpTypeSA">
@@ -1351,7 +1352,7 @@ button{font-family:'DM Sans',sans-serif;}
     <div id="asErr" class="err-box"></div>
     <div class="fg"><label class="fl">Employee Name *</label><input class="fi" id="asName" placeholder="Employee's full name"></div>
     <div class="fg"><label class="fl">Email *</label><input class="fi" id="asEmail" type="email" placeholder="employee@email.com"></div>
-    <div class="fg"><label class="fl">Password *</label><input class="fi" id="asPass" type="password" placeholder="Minimum 6 characters"></div>
+    <div class="fg"><label class="fl">Password *</label><input class="fi" id="asPass" type="password" placeholder="Minimum 6 characters" autocomplete="new-password"></div>
     <div class="fg" id="asEmpTypeWrap">
       <label class="fl">Employee Type *</label>
       <select class="fsel" id="asEmpType">
@@ -1377,7 +1378,7 @@ button{font-family:'DM Sans',sans-serif;}
     <div class="fg"><label class="fl">Email *</label><input class="fi" id="esEmail" type="email" placeholder="email@domain.com"></div>
     <div class="fg">
       <label class="fl">Password</label>
-      <input class="fi" id="esPass" type="text" placeholder="Current password">
+      <input class="fi" id="esPass" type="text" placeholder="Current password" autocomplete="new-password">
       <div style="font-size:11px;color:var(--txt-3);margin-top:5px;">Change password or keep current</div>
     </div>
     <div class="fg" id="esEmpTypeWrap">
@@ -1660,9 +1661,12 @@ async function authAction(uid, action){
   const cfg=JSON.parse(localStorage.getItem('ss_config'));
   const apiKey=cfg.apiKey;
   if(action==='delete'){
-    // Firebase REST API requires idToken (not localId) for client-side deletion
-    // So we sign in as the user first, then delete with their idToken
-    await deleteAuthUserByUid(uid);
+    const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({localId:uid})
+    });
+    const d=await res.json();
+    if(d.error) throw new Error(d.error.message);
   } else {
     const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
@@ -1671,51 +1675,6 @@ async function authAction(uid, action){
     const d=await res.json();
     if(d.error) throw new Error(d.error.message);
   }
-}
-
-/* ════════════════════════════════════════════════
-   DELETE FIREBASE AUTH USER (client-side safe)
-   Must be called BEFORE removing from DB
-   so credentials are still available
-════════════════════════════════════════════════ */
-async function deleteAuthUserByUid(uid){
-  const cfg=JSON.parse(localStorage.getItem('ss_config'));
-  const apiKey=cfg.apiKey;
-
-  // Step 1: Get user credentials from DB (must do BEFORE deleting DB record)
-  const snap=await db.ref(`users/${uid}`).get();
-  if(!snap.exists()) return; // Already gone, skip
-  const u=snap.val();
-  const email=u.email;
-  const password=u.password;
-
-  if(!email||!password){
-    console.warn(`No credentials in DB for uid=${uid}, skipping Auth delete`);
-    return;
-  }
-
-  // Step 2: Sign in as the user to get their idToken
-  const signInRes=await fetch(
-    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
-    {method:'POST',headers:{'Content-Type':'application/json'},
-     body:JSON.stringify({email, password, returnSecureToken:true})}
-  );
-  const signInData=await signInRes.json();
-  if(signInData.error){
-    // If sign-in fails (e.g. password mismatch), we cannot delete Auth user
-    // Log warning but continue — DB will still be cleaned up
-    console.warn(`Auth sign-in failed for ${email}: ${signInData.error.message}. Auth user may remain.`);
-    return;
-  }
-
-  // Step 3: Delete the Firebase Auth account using idToken
-  const deleteRes=await fetch(
-    `https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`,
-    {method:'POST',headers:{'Content-Type':'application/json'},
-     body:JSON.stringify({idToken:signInData.idToken})}
-  );
-  const deleteData=await deleteRes.json();
-  if(deleteData.error) throw new Error('Firebase Auth delete failed: '+deleteData.error.message);
 }
 
 /* ════════════════════════════════════════════════
@@ -1887,25 +1846,20 @@ function deleteCompanyConfirm(id,name){
 
 async function deleteCompany(id){
   closeModal('deleteModal');
-  loading('Deleting company...');
+  loading('Deleting...');
   try{
-    // Step 1: Get all users under this company
+    // Delete all salesmen from Auth first
     const usersSnap=await db.ref('users').orderByChild('company_id').equalTo(id).get();
     if(usersSnap.exists()){
-      const users=Object.entries(usersSnap.val());
-      for(const [uid] of users){
-        // Delete from Firebase Auth FIRST (while DB credentials still exist)
-        try{ await deleteAuthUserByUid(uid); }
-        catch(e){ console.warn(`Auth delete failed for uid=${uid}:`,e.message); }
-        // Then delete from DB
+      for(const [uid] of Object.entries(usersSnap.val())){
         await db.ref(`users/${uid}`).remove();
+        try{ await authAction(uid,'delete'); }catch(e){}
       }
     }
-    // Step 2: Delete all company data from DB
     await db.ref(`companies/${id}`).remove();
     await db.ref(`visits/${id}`).remove();
     await db.ref(`attendance/${id}`).remove();
-    doneLoading(); toast('Company permanently deleted ✅');
+    doneLoading(); toast('Company permanently deleted');
     await loadSuperDashboard();
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -2068,7 +2022,8 @@ async function openCoMgmt(coId,adminUid,coName){
       document.getElementById('eaCoId2').value=coId;
       document.getElementById('eaName2').value=u.name||'';
       document.getElementById('eaEmail2').value=u.email||'';
-      document.getElementById('eaPass2').value=u.password||'';
+      document.getElementById('eaOldPass2').value=u.password||'';
+      document.getElementById('eaPass2').value=''; // blank — user types new password here
     }
     document.getElementById('eaErr2').style.display='none';
     doneLoading(); openModal('coMgmtModal');
@@ -2094,8 +2049,8 @@ async function loadCoMgmtSalesmen(){
     if(snap.exists()) Object.entries(snap.val()).forEach(([uid,u])=>{ if(u.role==='salesman') salesmen.push({uid,...u}); });
     if(salesmen.length===0){ list.innerHTML='<div class="empty"><div class="empty-icon">👤</div>No employees found.</div>'; doneLoading(); return; }
 
-    const active=salesmen.filter(u=>u.status!=='deleted_by_admin');
-    const deleted=salesmen.filter(u=>u.status==='deleted_by_admin');
+    const active=salesmen.filter(u=>u.status!=='deleted_by_admin').sort((a,b)=>a.name.localeCompare(b.name));
+    const deleted=salesmen.filter(u=>u.status==='deleted_by_admin').sort((a,b)=>a.name.localeCompare(b.name));
 
     let html=active.map(u=>{
       const isInactive=u.status==='inactive';
@@ -2149,56 +2104,58 @@ async function saveAdminEdit2(){
   const coId=document.getElementById('eaCoId2').value;
   const name=document.getElementById('eaName2').value.trim();
   const email=document.getElementById('eaEmail2').value.trim();
-  const pass=document.getElementById('eaPass2').value.trim();
+  const newPass=document.getElementById('eaPass2').value.trim();
+  const oldPass=document.getElementById('eaOldPass2').value.trim();
   const errEl=document.getElementById('eaErr2');
   errEl.style.display='none';
   if(!name||!email){ errEl.textContent='Name and email are required'; errEl.style.display='block'; return; }
-  if(pass&&pass.length<6){ errEl.textContent='Password must be at least 6 characters'; errEl.style.display='block'; return; }
+  if(newPass&&newPass.length<6){ errEl.textContent='Password must be at least 6 characters'; errEl.style.display='block'; return; }
   loading('Saving...');
   try{
     const cfg=JSON.parse(localStorage.getItem('ss_config'));
 
-    if(pass){
-      // Step 1: Get the user's current stored password from DB (before we update it)
-      const curSnap=await db.ref(`users/${uid}`).get();
-      const curData=curSnap.val()||{};
-      const oldPass=curData.password||'';
-
-      if(!oldPass){
+    if(newPass){
+      // Use stored old password for re-auth
+      const authOldPass=oldPass||'';
+      if(!authOldPass){
         doneLoading();
         errEl.textContent='Cannot change password: current password not found in database.';
         errEl.style.display='block';
         return;
       }
 
-      // Step 2: Sign in as the target user to get their idToken
+      // Step 1: Sign in as target user with OLD password
       const signInRes=await fetch(
         `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,
         {method:'POST',headers:{'Content-Type':'application/json'},
-         body:JSON.stringify({email:curData.email||email, password:oldPass, returnSecureToken:true})}
+         body:JSON.stringify({email:email, password:authOldPass, returnSecureToken:true})}
       );
       const signInData=await signInRes.json();
       if(signInData.error) throw new Error('Auth sign-in failed: '+signInData.error.message+'. Please check the current password in the database.');
 
-      // Step 3: Change Firebase Auth password using the user's idToken
+      // Step 2: Update Firebase Auth password using the user idToken
       const updateRes=await fetch(
         `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,
         {method:'POST',headers:{'Content-Type':'application/json'},
-         body:JSON.stringify({idToken:signInData.idToken, password:pass, returnSecureToken:false})}
+         body:JSON.stringify({idToken:signInData.idToken, password:newPass, returnSecureToken:false})}
       );
       const updateData=await updateRes.json();
       if(updateData.error) throw new Error('Password update failed: '+updateData.error.message);
     }
 
-    // Step 4: Update name, email, and new password in DB
+    // Step 3: Update name, email, and new password in DB
     const updates={name,email};
-    if(pass) updates.password=pass;
+    if(newPass){
+      updates.password=newPass;
+      document.getElementById('eaOldPass2').value=newPass; // update hidden field
+    }
     await db.ref(`users/${uid}`).update(updates);
     await db.ref(`companies/${coId}`).update({admin_name:name});
 
     doneLoading(); toast('Admin updated successfully! ✅');
+    document.getElementById('eaPass2').value=''; // clear after save
     await loadSuperDashboard();
-  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+  }catch(e){ doneLoading(); errEl.textContent='Error: '+e.message; errEl.style.display='block'; }
 }
 
 async function openAddSalesmanFromSA(){
@@ -2267,16 +2224,13 @@ async function editSalesmanSA(uid){
 }
 
 async function deleteSalesmanSA(uid,name){
-  document.getElementById('deleteModalMsg').textContent=`Permanently delete "${name}"? This will remove them from Firebase Auth and all data!`;
+  document.getElementById('deleteModalMsg').textContent=`Permanently delete "${name}"? All data will be lost!`;
   document.getElementById('deleteConfirmBtn').onclick=async()=>{
     closeModal('deleteModal'); loading('Deleting...');
     try{
-      // Delete from Firebase Auth FIRST (while DB credentials still exist)
-      try{ await deleteAuthUserByUid(uid); }
-      catch(e){ console.warn('Auth delete failed:',e.message); }
-      // Then remove from DB
       await db.ref(`users/${uid}`).remove();
-      doneLoading(); toast(`"${name}" permanently deleted ✅`);
+      try{ await authAction(uid,'delete'); }catch(e){ console.warn('Auth delete:',e.message); }
+      doneLoading(); toast(`"${name}" permanently deleted`);
       await loadCoMgmtSalesmen(); await loadSuperDashboard();
     }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
   };
@@ -2335,8 +2289,8 @@ function renderSalesmanList(){
   const body=document.getElementById('smListBody');
   if(allEntries.length===0){ body.innerHTML='<div class="empty"><div class="empty-icon">👤</div>No salesman found. Add a new one.</div>'; return; }
 
-  const active=allEntries.filter(([,u])=>u.status!=='deleted_by_admin');
-  const deleted=allEntries.filter(([,u])=>u.status==='deleted_by_admin');
+  const active=allEntries.filter(([,u])=>u.status!=='deleted_by_admin').sort(([,a],[,b])=>a.name.localeCompare(b.name));
+  const deleted=allEntries.filter(([,u])=>u.status==='deleted_by_admin').sort(([,a],[,b])=>a.name.localeCompare(b.name));
 
   let html=active.map(([uid,u])=>{
     const isInactive=u.status==='inactive';
