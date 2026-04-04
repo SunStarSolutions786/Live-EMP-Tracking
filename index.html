@@ -2114,11 +2114,10 @@ async function saveAdminEdit2(){
   try{
     const cfg=JSON.parse(localStorage.getItem('ss_config'));
 
-    // Check if password actually changed
     const passChanged = pass && pass !== oldPass;
 
     if(passChanged){
-      if(!oldPass) throw new Error('Current password not found in database.');
+      if(!oldPass && !pass) throw new Error('Current password not found in database.');
 
       // Save super admin credentials before signing in as target user
       const saUser=auth.currentUser;
@@ -2126,20 +2125,25 @@ async function saveAdminEdit2(){
       const saPassSnap=saUser?await db.ref(`users/${saUser.uid}`).get():null;
       const saPass=saPassSnap&&saPassSnap.exists()?saPassSnap.val().password||'':'';
 
-      // Sign in as the target company admin using their current (old) password
-      const signInRes=await fetch(
-        `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,
-        {method:'POST',headers:{'Content-Type':'application/json'},
-         body:JSON.stringify({email:email, password:oldPass, returnSecureToken:true})}
-      );
-      const signInData=await signInRes.json();
-      if(signInData.error) throw new Error('Auth sign-in failed: '+signInData.error.message);
+      // Try re-auth with DB stored password first, then fallback to field value
+      let idToken=null;
+      const tryPasswords=[oldPass, pass].filter(Boolean);
+      for(const tryPass of tryPasswords){
+        const signInRes=await fetch(
+          `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,
+          {method:'POST',headers:{'Content-Type':'application/json'},
+           body:JSON.stringify({email:email, password:tryPass, returnSecureToken:true})}
+        );
+        const signInData=await signInRes.json();
+        if(!signInData.error){ idToken=signInData.idToken; break; }
+      }
+      if(!idToken) throw new Error('Auth sign-in failed: INVALID_LOGIN_CREDENTIALS — Firebase Console থেকে এই user-এর password manually update করুন।');
 
       // Update Firebase Auth password
       const updateRes=await fetch(
         `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,
         {method:'POST',headers:{'Content-Type':'application/json'},
-         body:JSON.stringify({idToken:signInData.idToken, password:pass, returnSecureToken:false})}
+         body:JSON.stringify({idToken:idToken, password:pass, returnSecureToken:false})}
       );
       const updateData=await updateRes.json();
       if(updateData.error) throw new Error('Password update failed: '+updateData.error.message);
