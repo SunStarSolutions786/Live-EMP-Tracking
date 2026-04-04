@@ -982,6 +982,16 @@ button{font-family:'DM Sans',sans-serif;}
           <button class="btn-go" onclick="loadMap()">🗺️ Show Map</button>
         </div>
         <div id="visitMap"></div>
+        <!-- Legend -->
+        <div id="mapLegend" style="display:none;flex-wrap:wrap;gap:8px;margin-top:12px;"></div>
+        <!-- Icon guide -->
+        <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);">
+          <span style="font-size:12px;color:var(--txt-2);">Map Icons:</span>
+          <span style="font-size:12px;color:var(--txt-2);">🔵 <b style="color:var(--txt);">Colored circle (IN)</b> — green border = Check-In</span>
+          <span style="font-size:12px;color:var(--txt-2);">🔴 <b style="color:var(--txt);">Colored circle (OUT)</b> — red border = Check-Out</span>
+          <span style="font-size:12px;color:var(--txt-2);">📍 <b style="color:var(--txt);">Teardrop #N</b> — Visit stop</span>
+          <span style="font-size:12px;color:var(--txt-2);">Each employee gets a unique color. Overlapping markers are spread apart.</span>
+        </div>
       </div>
 
       <!-- PERFORMANCE PAGE -->
@@ -2761,11 +2771,21 @@ async function loadMap(){
     const smUids=new Set([...Object.keys(visitsBySm),...Object.keys(attBySm)]);
     if(smUids.size===0){ doneLoading(); toast('No data found for this date','err'); return; }
 
+    // Helper: small spiral offset so overlapping markers spread out
+    function spiralOffset(idx, baseLat, baseLng){
+      if(idx===0) return [baseLat, baseLng];
+      const r=0.00015*Math.ceil(idx/8); // ~16m radius per ring
+      const angle=(idx*(Math.PI*2/8));
+      return [baseLat + r*Math.cos(angle), baseLng + r*Math.sin(angle)];
+    }
+
     for(const uid of smUids){
-      const color=palette[ci%palette.length]; ci++;
+      const color=palette[ci%palette.length];
+      const empIdx=ci; ci++;
       const smVisits=(visitsBySm[uid]||[]).sort((a,b)=>a.timestamp-b.timestamp);
       const att=attBySm[uid]||null;
       const smName=(APP.salesmen[uid]||{}).name||'Unknown';
+      const initial=smName[0].toUpperCase();
       legend.push({name:smName,color});
 
       // Draw visit path
@@ -2775,42 +2795,79 @@ async function loadMap(){
       // Visit markers
       smVisits.forEach((v,i)=>{
         if(!v.lat||!v.lng) return;
-        bounds.push([v.lat,v.lng]);
+        // Apply offset if multiple employees have visits near same spot
+        const [lat,lng]=spiralOffset(empIdx, v.lat, v.lng);
+        bounds.push([lat,lng]);
         const size=34;
         const icon=L.divIcon({
           html:`<div style="background:${color};width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><div style="transform:rotate(45deg);font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);">${i+1}</div></div>`,
           iconSize:[size,size],iconAnchor:[size/2,size],popupAnchor:[0,-size]
         });
-        L.marker([v.lat,v.lng],{icon}).addTo(APP.mapInstance)
-          .bindPopup(`<div style="font-family:sans-serif;min-width:180px;"><div style="font-weight:800;font-size:14px;margin-bottom:6px;color:${color}">Visit #${i+1} — ${v.salesman_name||smName}</div><div style="margin-bottom:4px;">🏪 <b>${v.outlet}</b></div><div style="margin-bottom:4px;">🕐 ${v.time}</div>${v.remarks?`<div style="margin-top:6px;padding:6px 8px;background:#f5f5f5;border-radius:4px;font-size:12px;">💬 ${v.remarks}</div>`:''}</div>`);
+        L.marker([lat,lng],{icon}).addTo(APP.mapInstance)
+          .bindPopup(`<div style="font-family:sans-serif;min-width:190px;"><div style="font-weight:800;font-size:14px;margin-bottom:6px;color:${color}">Visit #${i+1} — ${v.salesman_name||smName}</div><div style="margin-bottom:4px;">🏪 <b>${v.outlet}</b></div><div style="margin-bottom:4px;">🕐 ${v.time}</div>${v.remarks?`<div style="margin-top:6px;padding:6px 8px;background:#f5f5f5;border-radius:4px;font-size:12px;">💬 ${v.remarks}</div>`:''}</div>`);
       });
 
-      // Check-In marker
+      // Check-In marker — colored with employee initial so easy to identify
       if(att&&att.start_lat&&att.start_lng){
-        bounds.push([att.start_lat,att.start_lng]);
+        const [lat,lng]=spiralOffset(empIdx, att.start_lat, att.start_lng);
+        bounds.push([lat,lng]);
         const inIcon=L.divIcon({
-          html:`<div style="background:#1FD17A;width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:16px;">🟢</div>`,
-          iconSize:[38,38],iconAnchor:[19,19],popupAnchor:[0,-22]
+          html:`<div style="background:${color};width:40px;height:40px;border-radius:50%;border:3px solid #1FD17A;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
+            <div style="font-size:9px;font-weight:900;color:#fff;line-height:1;">IN</div>
+            <div style="font-size:13px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
+          </div>`,
+          iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]
         });
-        L.marker([att.start_lat,att.start_lng],{icon:inIcon}).addTo(APP.mapInstance)
-          .bindPopup(`<div style="font-family:sans-serif;min-width:160px;"><div style="font-weight:800;font-size:14px;color:#1FD17A;margin-bottom:6px;">✅ Check-In — ${smName}</div><div>🕐 ${att.start_time||'—'}</div><div style="font-size:12px;color:#666;margin-top:4px;">📍 ${att.start_location||'—'}</div></div>`);
+        L.marker([lat,lng],{icon:inIcon}).addTo(APP.mapInstance)
+          .bindPopup(`<div style="font-family:sans-serif;min-width:180px;">
+            <div style="font-weight:800;font-size:14px;color:${color};margin-bottom:8px;border-bottom:2px solid ${color};padding-bottom:6px;">✅ Check-In</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">👤 ${smName}</div>
+            <div style="margin-bottom:4px;">🕐 ${att.start_time||'—'}</div>
+            <div style="font-size:12px;color:#666;margin-top:4px;">📍 ${att.start_address||'—'}</div>
+          </div>`);
       }
 
-      // Check-Out marker
+      // Check-Out marker — colored with employee initial
       if(att&&att.end_lat&&att.end_lng){
-        bounds.push([att.end_lat,att.end_lng]);
+        const [lat,lng]=spiralOffset(empIdx, att.end_lat, att.end_lng);
+        bounds.push([lat,lng]);
         const outIcon=L.divIcon({
-          html:`<div style="background:#FF4466;width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;align-items:center;justify-content:center;font-size:16px;">🔴</div>`,
-          iconSize:[38,38],iconAnchor:[19,19],popupAnchor:[0,-22]
+          html:`<div style="background:${color};width:40px;height:40px;border-radius:50%;border:3px solid #FF4466;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
+            <div style="font-size:9px;font-weight:900;color:#fff;line-height:1;">OUT</div>
+            <div style="font-size:13px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
+          </div>`,
+          iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]
         });
-        L.marker([att.end_lat,att.end_lng],{icon:outIcon}).addTo(APP.mapInstance)
-          .bindPopup(`<div style="font-family:sans-serif;min-width:160px;"><div style="font-weight:800;font-size:14px;color:#FF4466;margin-bottom:6px;">🚪 Check-Out — ${smName}</div><div>🕐 ${att.end_time||'—'}</div><div style="font-size:12px;color:#666;margin-top:4px;">📍 ${att.end_location||'—'}</div></div>`);
+        L.marker([lat,lng],{icon:outIcon}).addTo(APP.mapInstance)
+          .bindPopup(`<div style="font-family:sans-serif;min-width:180px;">
+            <div style="font-weight:800;font-size:14px;color:${color};margin-bottom:8px;border-bottom:2px solid ${color};padding-bottom:6px;">🚪 Check-Out</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">👤 ${smName}</div>
+            <div style="margin-bottom:4px;">🕐 ${att.end_time||'—'}</div>
+            <div style="font-size:12px;color:#666;margin-top:4px;">📍 ${att.end_address||'—'}</div>
+          </div>`);
       }
     }
 
     if(bounds.length) APP.mapInstance.fitBounds(bounds,{padding:[50,50]});
     const totalVisits=Object.values(visitsBySm).reduce((s,a)=>s+a.length,0);
     const totalAtt=Object.keys(attBySm).length;
+
+    // Render legend below map
+    const legendEl=document.getElementById('mapLegend');
+    if(legendEl){
+      if(legend.length>0){
+        legendEl.style.display='flex';
+        legendEl.innerHTML=legend.map(l=>`
+          <div style="display:flex;align-items:center;gap:7px;background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:5px 13px;">
+            <div style="width:13px;height:13px;border-radius:50%;background:${l.color};flex-shrink:0;border:2px solid rgba(255,255,255,0.25);"></div>
+            <span style="font-size:12px;font-weight:600;color:var(--txt);">${l.name}</span>
+          </div>`).join('');
+      } else {
+        legendEl.style.display='none';
+        legendEl.innerHTML='';
+      }
+    }
+
     doneLoading(); toast(`${totalVisits} visits + ${totalAtt} check-in/out shown`);
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
