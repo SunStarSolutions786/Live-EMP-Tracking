@@ -1420,7 +1420,7 @@ button{font-family:'DM Sans',sans-serif;}
      SCRIPTS
 ══════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
@@ -2634,16 +2634,13 @@ function exportHistoryExcel(){
   if(lastHistoryData.length===0){ toast('Load history data first','err'); return; }
   loading('Generating Excel...');
   const co=getCompanyName();
-  const ws={};
   const headers=['#','Type','Date','Status','Name','Location','Time','Remarks'];
   const data=lastHistoryData.map((r,i)=>[i+1,r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,r.location,r.time,r.remarks]);
-  xlsTitle(ws,`${co} — History Report`,`Records: ${data.length}`,headers.length);
-  xlsData(ws,5,headers,data);
-  ws['!cols']=[{wch:5},{wch:13},{wch:13},{wch:8},{wch:22},{wch:25},{wch:10},{wch:35}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'History');
-  XLSX.writeFile(wb,`${co}_History_Report.xlsx`);
-  doneLoading(); toast('Excel downloading!');
+  const wb=new ExcelJS.Workbook();
+  xlsBuildSheet(wb,'History',`${co} — History Report`,`Records: ${data.length}`,headers,data,[5,13,13,10,22,28,10,35])
+    .then(()=>xlsDownload(wb,`${co}_History_Report`))
+    .then(()=>{ doneLoading(); toast('Excel downloading!'); })
+    .catch(e=>{ doneLoading(); toast('Error: '+e.message,'err'); });
 }
 
 function exportHistoryPDF(){
@@ -3061,9 +3058,9 @@ async function exportPerfExcel(){
   loading('Generating Excel...');
   const month=parseInt(document.getElementById('perfMonth').value);
   const year=parseInt(document.getElementById('perfYear').value);
+  const MONTHS_A=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const co=getCompanyName();
-  const ws={};
-  const headers=['Rank','Salesman','Total Score','Grade','Present Days','Working Days','Att%','Total Visits','Visits/Day','Avg Hours','Att Score (40)','Visit Score (35)','Duration Score (25)'];
+  const headers=['Rank','Employee','Score','Grade','Present','Working Days','Att%','Total Visits','Visits/Day','Avg Hours','Att(40)','Visit(35)','Dur(25)'];
   const data=lastPerfData.map((r,i)=>([
     i+1, r.name, r.total, gradeInfo(r.total).label,
     r.presentDays, r.workingDays,
@@ -3072,13 +3069,12 @@ async function exportPerfExcel(){
     Math.round(r.avgHours*10)/10,
     r.attScore, r.visitScore, r.durScore
   ]));
-  xlsTitle(ws,`${co} — Performance Report`,`${['January','February','March','April','May','June','July','August','September','October','November','December'][month]} ${year}`,headers.length);
-  xlsData(ws,5,headers,data);
-  ws['!cols']=[{wch:6},{wch:22},{wch:13},{wch:18},{wch:13},{wch:13},{wch:8},{wch:13},{wch:12},{wch:11},{wch:14},{wch:14},{wch:16}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'Performance Report');
-  XLSX.writeFile(wb,`${co}_Performance_${['January','February','March','April','May','June','July','August','September','October','November','December'][month]}_${year}.xlsx`);
-  doneLoading(); toast('Excel downloading!');
+  try{
+    const wb=new ExcelJS.Workbook();
+    await xlsBuildSheet(wb,'Performance',`${co} — Performance Report`,`${MONTHS_A[month]} ${year}`,headers,data,[6,22,8,16,10,13,8,13,12,11,10,10,10]);
+    await xlsDownload(wb,`${co}_Performance_${MONTHS_A[month]}_${year}`);
+    doneLoading(); toast('Excel downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
 async function exportPerfPDF(){
@@ -3120,63 +3116,99 @@ async function exportPerfPDF(){
 }
 
 /* ════ EXPORT ════ */
-/* ════ XLS REPORT HELPERS ════ */
+/* ════ EXCELJS HELPERS ════ */
 
-/* ── Column letter helper ── */
 function numToCol(n){
   let s=''; n++;
   while(n>0){ s=String.fromCharCode(65+(n-1)%26)+s; n=Math.floor((n-1)/26); }
   return s;
 }
 
-/* ── Base cell style ── */
-/* ── Write header block (rows 1-4) ── */
-function xlsTitle(ws, title, subtitle, totalCols){
-  const span=totalCols-1;
-  ws['A1']={v:'SunStar Solutions',t:'s',s:{font:{name:'Calibri',sz:18,bold:true,color:{rgb:'EFA800'}},fill:{fgColor:{rgb:'06091A'},patternType:'solid'},alignment:{horizontal:'left',vertical:'center'}}};
-  ws['A2']={v:title,t:'s',s:{font:{name:'Calibri',sz:12,bold:true,color:{rgb:'F0F4FF'}},fill:{fgColor:{rgb:'0C1229'},patternType:'solid'},alignment:{horizontal:'left',vertical:'center'}}};
-  ws['A3']={v:subtitle,t:'s',s:{font:{name:'Calibri',sz:10,color:{rgb:'7A8DB8'}},fill:{fgColor:{rgb:'0C1229'},patternType:'solid'},alignment:{horizontal:'left',vertical:'center'}}};
-  ws['A4']={v:`Generated: ${new Date().toLocaleString('en-US')}`,t:'s',s:{font:{name:'Calibri',sz:9,color:{rgb:'3E4E78'}},fill:{fgColor:{rgb:'0C1229'},patternType:'solid'},alignment:{horizontal:'left',vertical:'center'}}};
-  if(!ws['!merges']) ws['!merges']=[];
-  [0,1,2,3].forEach(r=>ws['!merges'].push({s:{r,c:0},e:{r,c:span}}));
-  ws['!rows']=[{hpt:30},{hpt:22},{hpt:18},{hpt:14}];
+/* Download ExcelJS workbook as xlsx */
+async function xlsDownload(wb, filename){
+  const buf=await wb.xlsx.writeBuffer();
+  const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename+'.xlsx'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
-/* ── Write header row + data rows ── */
-function xlsData(ws, startRow, headers, rows){
-  // header row
-  headers.forEach((h,ci)=>{
-    ws[`${numToCol(ci)}${startRow}`]={v:h,t:'s',s:{
-      font:{name:'Calibri',sz:10,bold:true,color:{rgb:'000000'}},
-      fill:{fgColor:{rgb:'EFA800'},patternType:'solid'},
-      alignment:{horizontal:'center',vertical:'center'},
-      border:{top:{style:'medium',color:{rgb:'C88A00'}},bottom:{style:'medium',color:{rgb:'C88A00'}},left:{style:'thin',color:{rgb:'C88A00'}},right:{style:'thin',color:{rgb:'C88A00'}}}
-    }};
+/* Apply cell style helper */
+function xlsStyle(cell, {bg='FFFFFFFF',fg='FF1A2850',bold=false,sz=10,align='left',border=true}={}){
+  cell.font={name:'Calibri',size:sz,bold,color:{argb:fg}};
+  cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+  cell.alignment={horizontal:align,vertical:'middle',wrapText:false};
+  if(border) cell.border={
+    top:{style:'thin',color:{argb:'FFCBD5E1'}},
+    bottom:{style:'thin',color:{argb:'FFCBD5E1'}},
+    left:{style:'thin',color:{argb:'FFCBD5E1'}},
+    right:{style:'thin',color:{argb:'FFCBD5E1'}}
+  };
+}
+
+/* Build a fully-formatted sheet: title block + header row + data rows */
+async function xlsBuildSheet(wb, sheetName, title, subtitle, headers, rows, colWidths){
+  const ws=wb.addWorksheet(sheetName);
+  const nc=headers.length;
+
+  // ── Title block (rows 1-4) ──
+  const titleDefs=[
+    {v:'SunStar Solutions', sz:18, bold:true, fg:'FFEFA800', bg:'FF06091A', h:30},
+    {v:title,              sz:12, bold:true,  fg:'FFF0F4FF', bg:'FF0C1229', h:22},
+    {v:subtitle,           sz:10, bold:false, fg:'FF7A8DB8', bg:'FF0C1229', h:18},
+    {v:`Generated: ${new Date().toLocaleString('en-IN')}`, sz:9, bold:false, fg:'FF3E4E78', bg:'FF0C1229', h:14},
+  ];
+  titleDefs.forEach((td,ri)=>{
+    ws.getRow(ri+1).height=td.h;
+    const cell=ws.getCell(ri+1,1);
+    cell.value=td.v;
+    xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+    if(nc>1) ws.mergeCells(ri+1,1,ri+1,nc);
   });
-  // data rows
+
+  // ── Header row (row 5) ──
+  ws.getRow(5).height=22;
+  headers.forEach((h,ci)=>{
+    const cell=ws.getCell(5,ci+1);
+    cell.value=h;
+    cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};
+    cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+    cell.alignment={horizontal:'center',vertical:'middle'};
+    cell.border={
+      top:{style:'medium',color:{argb:'FFC88A00'}},
+      bottom:{style:'medium',color:{argb:'FFC88A00'}},
+      left:{style:'thin',color:{argb:'FFC88A00'}},
+      right:{style:'thin',color:{argb:'FFC88A00'}}
+    };
+  });
+
+  // ── Data rows (from row 6) ──
   rows.forEach((row,ri)=>{
-    const bg=ri%2===0?'FFFFFF':'EEF2FF';
+    const rowIdx=6+ri;
+    const altBg=ri%2===0?'FFFFFFFF':'FFEEF2FF';
+    ws.getRow(rowIdx).height=20;
     row.forEach((val,ci)=>{
-      const addr=`${numToCol(ci)}${startRow+1+ri}`;
-      const isNum=typeof val==='number';
-      let cellBg=bg, fontColor='1A2850', bold=false, align=ci===0?'left':'center';
-      if(val==='P'){cellBg='D1FAE5';fontColor='065F46';bold=true;}
-      else if(val==='A'){cellBg='FEE2E2';fontColor='991B1B';bold=true;}
-      else if(val==='—'){fontColor='94A3B8';}
-      ws[addr]={v:val,t:isNum?'n':'s',s:{
-        font:{name:'Calibri',sz:10,bold,color:{rgb:fontColor}},
-        fill:{fgColor:{rgb:cellBg},patternType:'solid'},
-        alignment:{horizontal:align,vertical:'center'},
-        border:{top:{style:'thin',color:{rgb:'CBD5E1'}},bottom:{style:'thin',color:{rgb:'CBD5E1'}},left:{style:'thin',color:{rgb:'CBD5E1'}},right:{style:'thin',color:{rgb:'CBD5E1'}}}
-      }};
+      const cell=ws.getCell(rowIdx,ci+1);
+      cell.value=val;
+      // Determine style by value
+      let bg=altBg, fg='FF1A2850', bold=false;
+      const v=String(val??'');
+      if(v==='Present'||v==='P'){  bg='FFD1FAE5'; fg='FF065F46'; bold=true; }
+      else if(v==='Absent'||v==='A'){  bg='FFFEE2E2'; fg='FF991B1B'; bold=true; }
+      else if(v==='Holiday'){ bg='FFFFF3CD'; fg='FF7A4F00'; bold=true; }
+      else if(v==='In'){ fg='FF065F46'; bold=true; }
+      else if(v==='Out'){ fg='FF991B1B'; bold=true; }
+      else if(v==='Visit'){ fg='FF1A5FA8'; bold=true; }
+      else if(v==='Pending'||v.includes('Not Checked')){ fg='FFCC6600'; bold=true; }
+      else if(v==='—'||v===''){ fg='FF94A3B8'; }
+      xlsStyle(cell,{bg,fg,bold,sz:10,align:ci<2?'left':'center'});
     });
   });
-  ws['!ref']=`A1:${numToCol(headers.length-1)}${startRow+rows.length}`;
-  // Add row heights for data rows
-  if(!ws['!rows']) ws['!rows']=[];
-  while(ws['!rows'].length<startRow) ws['!rows'].push({hpt:20});
-  ws['!rows'].push({hpt:22}); // header row
-  rows.forEach(()=>ws['!rows'].push({hpt:20}));
+
+  // ── Column widths ──
+  if(colWidths) colWidths.forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
+
+  return ws;
 }
 
 /* ════ SALESMAN SCREEN ════ */
@@ -3679,16 +3711,14 @@ async function exportSAReportExcel(){
   loading('Generating Excel...');
   const fromDate=document.getElementById('saReportFrom').value;
   const toDate=document.getElementById('saReportTo').value;
-  const ws={};
   const headers=['#','Date','Company','Employee','Status','Visits','Start Time','End Time','Duration'];
   const data=SA_reportData.map((r,i)=>[i+1,r.date,r.company,r.salesman,r.status,r.visits,r.start,r.end,r.duration]);
-  xlsTitle(ws,`SunStar Solutions — All Companies Report`,`${fromDate} to ${toDate}  |  Total Records: ${data.length}`,headers.length);
-  xlsData(ws,5,headers,data);
-  ws['!cols']=[{wch:5},{wch:13},{wch:22},{wch:22},{wch:12},{wch:8},{wch:12},{wch:12},{wch:12}];
-  const wb=XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb,ws,'All Companies Report');
-  XLSX.writeFile(wb,`SunStar_AllCompanies_${fromDate}_to_${toDate}.xlsx`);
-  doneLoading(); toast('Excel downloading!');
+  try{
+    const wb=new ExcelJS.Workbook();
+    await xlsBuildSheet(wb,'All Companies','SunStar Solutions — All Companies Report',`${fromDate} to ${toDate}  |  Total Records: ${data.length}`,headers,data,[5,13,22,22,12,8,12,12,12]);
+    await xlsDownload(wb,`SunStar_AllCompanies_${fromDate}_to_${toDate}`);
+    doneLoading(); toast('Excel downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
 async function exportSAReportPDF(){
@@ -3738,14 +3768,11 @@ async function exportRptHistExcel(){
     const rows=await buildHistoryRows(startDate, endDate, typeFilter);
     if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
     const co=getCompanyName();
-    const ws={};
     const headers=['#','Type','Date','Status','Name','Location','Time','Remarks'];
-    xlsTitle(ws,`${co} — History Report`,`${startDate} to ${endDate}  |  Records: ${rows.length}`,headers.length);
-    xlsData(ws,5,headers,rows.map((r,i)=>[i+1,r.type,r.date,r.status,r.name,r.location,r.time,r.remarks]));
-    ws['!cols']=[{wch:5},{wch:13},{wch:13},{wch:8},{wch:22},{wch:25},{wch:10},{wch:35}];
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,'History');
-    XLSX.writeFile(wb,`${co}_History_${startDate}_${endDate}.xlsx`);
+    const data=rows.map((r,i)=>[i+1,r.type,r.date,r.status,r.name,r.location,r.time,r.remarks]);
+    const wb=new ExcelJS.Workbook();
+    await xlsBuildSheet(wb,'History',`${co} — History Report`,`${startDate} to ${endDate}  |  Records: ${rows.length}`,headers,data,[5,13,13,10,22,28,10,35]);
+    await xlsDownload(wb,`${co}_History_${startDate}_${endDate}`);
     doneLoading(); toast('History Excel downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -3839,32 +3866,15 @@ async function exportRptSumExcel(){
   try{
     const {matrix,co,dateLabel,empList,allDates}=await buildAttSummaryMatrix(month,year,typeFilter);
     if(!empList.length){ doneLoading(); toast('No employees found','err'); return; }
-    const ws={};
-    const headerRow=['Type','Name',...allDates.map(d=>d.split('-')[2]+'/'+d.split('-')[1])];
-    xlsTitle(ws,`${co} — Attendance Summary`,dateLabel,headerRow.length);
-    const STARTROW=5;
-    headerRow.forEach((h,ci)=>{
-      const addr=numToCol(ci)+STARTROW;
-      ws[addr]={t:'s',v:h,s:{font:{bold:true,color:{rgb:'000000'}},fill:{fgColor:{rgb:'EFA800'}},alignment:{horizontal:'center'}}};
-    });
-    ws['!ref']=`A1:${numToCol(headerRow.length-1)}${STARTROW+empList.length}`;
-    empList.forEach(([uid,u],ri)=>{
-      const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-      const rowNum=STARTROW+1+ri;
-      ws['A'+rowNum]={t:'s',v:type,s:{font:{bold:false},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'left'}}};
-      ws['B'+rowNum]={t:'s',v:u.name,s:{font:{bold:true},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'left'}}};
-      allDates.forEach((ds,di)=>{
-        const addr=numToCol(di+2)+rowNum;
-        const val=matrix[uid]?matrix[uid][ds]||'—':'—';
-        const color=val==='Present'?'1FD17A':val==='Absent'?'FF4466':val==='Holiday'?'EFA800':val==='Pending'?'4B9FFF':'3E4E78';
-        ws[addr]={t:'s',v:val,s:{font:{color:{rgb:color},bold:true},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'center'}}};
-      });
-    });
-    ws['!cols']=[{wch:14},{wch:22},...allDates.map(()=>({wch:10}))];
-    const wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb,ws,'Attendance Summary');
     const MONTHS_N=['January','February','March','April','May','June','July','August','September','October','November','December'];
-    XLSX.writeFile(wb,`${co}_AttSummary_${MONTHS_N[month-1]}_${year}.xlsx`);
+    const headers=['Type','Name',...allDates.map(d=>d.split('-')[2]+'/'+d.split('-')[1])];
+    const data=empList.map(([uid,u])=>{
+      const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+      return [type,u.name,...allDates.map(ds=>(matrix[uid]&&matrix[uid][ds])||'—')];
+    });
+    const wb=new ExcelJS.Workbook();
+    await xlsBuildSheet(wb,'Attendance Summary',`${co} — Attendance Summary`,dateLabel,headers,data,[14,22,...allDates.map(()=>10)]);
+    await xlsDownload(wb,`${co}_AttSummary_${MONTHS_N[month-1]}_${year}`);
     doneLoading(); toast('Attendance Summary Excel downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -3905,7 +3915,6 @@ async function exportRptSumPDF(){
             if(v==='Present') d.cell.styles.textColor=[31,209,122];
             else if(v==='Absent') d.cell.styles.textColor=[255,68,102];
             else if(v==='Holiday') d.cell.styles.textColor=[239,168,0];
-            else if(v==='Pending') d.cell.styles.textColor=[75,159,255];
             d.cell.styles.fontStyle='bold';
           }
         }
@@ -3949,7 +3958,7 @@ async function buildAttSummaryMatrix(month,year,typeFilter){
       const att=attByDate[ds]?attByDate[ds][uid]:null;
       if(isHol) matrix[uid][ds]='Holiday';
       else if(att&&att.end_time) matrix[uid][ds]='Present';
-      else if(att&&!att.end_time) matrix[uid][ds]='Pending'; // checked-in, not checked-out
+      else if(att&&!att.end_time) matrix[uid][ds]='Present'; // checked-in but not out = still Present
       else matrix[uid][ds]='Absent';
     });
   });
