@@ -1070,32 +1070,10 @@ button{font-family:'DM Sans',sans-serif;}
             </div>
           </div>
 
-          <!-- B) Attendance Raw -->
-          <div class="ov-card" style="cursor:default;">
-            <div class="ov-icon">🕐</div>
-            <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">B — Attendance Raw</div>
-            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Daily In/Out times for every employee (date range)</div>
-            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
-                <select class="fsel-sm" id="rptRawType" style="width:100%;min-width:unset;">
-                  <option value="all">All Employees</option>
-                  <option value="sales">Sales Only</option>
-                  <option value="backoffice">Back Office Only</option>
-                </select>
-              </div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">From Date</label><input class="fi-sm" type="date" id="rptRawStart" style="width:100%;min-width:unset;"></div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">To Date</label><input class="fi-sm" type="date" id="rptRawEnd" style="width:100%;min-width:unset;"></div>
-            </div>
-            <div style="display:flex;gap:10px;">
-              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptRawExcel()">📊 Excel</button>
-              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptRawPDF()">📄 PDF</button>
-            </div>
-          </div>
-
-          <!-- C) Attendance Summary -->
+          <!-- B) Attendance Summary -->
           <div class="ov-card" style="cursor:default;">
             <div class="ov-icon">📆</div>
-            <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">C — Attendance Summary</div>
+            <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">B — Attendance Summary</div>
             <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Monthly Present/Absent/Holiday matrix per employee</div>
             <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
               <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
@@ -1105,14 +1083,26 @@ button{font-family:'DM Sans',sans-serif;}
                   <option value="backoffice">Back Office Only</option>
                 </select>
               </div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">From Date</label><input class="fi-sm" type="date" id="rptSumStart" style="width:100%;min-width:unset;"></div>
-              <div class="fg-sm" style="width:100%;"><label class="fl-sm">To Date</label><input class="fi-sm" type="date" id="rptSumEnd" style="width:100%;min-width:unset;"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Month</label>
+                <select class="fsel-sm" id="rptSumMonth" style="width:100%;min-width:unset;">
+                  <option value="1">January</option><option value="2">February</option>
+                  <option value="3">March</option><option value="4">April</option>
+                  <option value="5">May</option><option value="6">June</option>
+                  <option value="7">July</option><option value="8">August</option>
+                  <option value="9">September</option><option value="10">October</option>
+                  <option value="11">November</option><option value="12">December</option>
+                </select>
+              </div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Year</label>
+                <input class="fi-sm" type="number" id="rptSumYear" min="2020" max="2035" style="width:100%;min-width:unset;">
+              </div>
             </div>
             <div style="display:flex;gap:10px;">
               <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptSumExcel()">📊 Excel</button>
               <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptSumPDF()">📄 PDF</button>
             </div>
-          </div><!-- end rptSumCard -->
+          </div>
+
         </div><!-- end grid -->
       </div><!-- end page-export -->
 
@@ -1592,11 +1582,16 @@ async function initApp(){
 
   // Set default dates
   const today=todayStr();
-  ['vStartDate','vEndDate','mapDate','rptHistStart','rptHistEnd','saReportFrom','saReportTo','rptRawStart','rptRawEnd','rptSumStart','rptSumEnd'].forEach(id=>{
+  ['vStartDate','vEndDate','mapDate','rptHistStart','rptHistEnd','saReportFrom','saReportTo'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value=today;
   });
   const now=new Date();
+  // Set rptSumMonth and rptSumYear defaults
+  const sumMonthEl=document.getElementById('rptSumMonth');
+  const sumYearEl=document.getElementById('rptSumYear');
+  if(sumMonthEl) sumMonthEl.value=String(now.getMonth()+1);
+  if(sumYearEl) sumYearEl.value=String(now.getFullYear());
   ['perfYear'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=now.getFullYear(); });
 
   loading('Please wait...');
@@ -2571,10 +2566,12 @@ async function loadHistory(){
         Object.entries(attSnap.val()).forEach(([uid,att])=>{
           if(!empUidSet.has(uid)) return;
           const u=APP.salesmen[uid]||{name:'Unknown',emp_type:'sales'};
+          const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}`:'—');
+          const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}`:'—');
           if(att.start_time){
             lastHistoryData.push({
               date, status:'In', name:u.name,
-              location:att.start_location||'—', time:att.start_time,
+              location:inLoc, time:att.start_time,
               remarks:'Day Started', emp_type:u.emp_type||'sales',
               sort_ts: att.start_timestamp||0
             });
@@ -2582,9 +2579,16 @@ async function loadHistory(){
           if(att.end_time){
             lastHistoryData.push({
               date, status:'Out', name:u.name,
-              location:att.end_location||'—', time:att.end_time,
+              location:outLoc, time:att.end_time,
               remarks:'Day Ended', emp_type:u.emp_type||'sales',
               sort_ts: att.end_timestamp||0
+            });
+          } else if(att.start_time){
+            lastHistoryData.push({
+              date, status:'Pending', name:u.name,
+              location:'—', time:'—',
+              remarks:'⚠️ Not Checked Out', emp_type:u.emp_type||'sales',
+              sort_ts: (att.start_timestamp||0)+1
             });
           }
         });
@@ -2609,8 +2613,8 @@ async function loadHistory(){
       tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--txt-3);">No records found for this period</td></tr>';
     } else {
       tbody.innerHTML=lastHistoryData.map(r=>{
-        const statusColor=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':'var(--info)';
-        const statusIcon=r.status==='In'?'🟢':r.status==='Out'?'🔴':'📍';
+        const statusColor=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
+        const statusIcon=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
         return `<tr>
           <td>${r.date}</td>
           <td><span style="color:${statusColor};font-weight:700;">${statusIcon} ${r.status}</span></td>
@@ -2661,7 +2665,7 @@ function exportHistoryPDF(){
     alternateRowStyles:{fillColor:[17,26,56]},
     didParseCell:(d)=>{
       if(d.section==='body'&&d.column.index===3){
-        const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:[75,159,255];
+        const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:d.cell.raw==='Pending'?[255,153,0]:[75,159,255];
         d.cell.styles.textColor=c; d.cell.styles.fontStyle='bold';
       }
     }
@@ -2774,7 +2778,7 @@ async function loadMap(){
     // Helper: small spiral offset so overlapping markers spread out
     function spiralOffset(idx, baseLat, baseLng){
       if(idx===0) return [baseLat, baseLng];
-      const r=0.00015*Math.ceil(idx/8); // ~16m radius per ring
+      const r=0.00015*Math.ceil(idx/8);
       const angle=(idx*(Math.PI*2/8));
       return [baseLat + r*Math.cos(angle), baseLng + r*Math.sin(angle)];
     }
@@ -2788,14 +2792,16 @@ async function loadMap(){
       const initial=smName[0].toUpperCase();
       legend.push({name:smName,color});
 
-      // Draw visit path
-      const latlngs=smVisits.filter(v=>v.lat&&v.lng).map(v=>[v.lat,v.lng]);
-      if(latlngs.length>1) addArrowLine(APP.mapInstance,latlngs,color);
+      // ── Full path: Check-In → Visit1 → Visit2 → ... → Check-Out ──
+      const fullPath=[];
+      if(att&&att.start_lat&&att.start_lng) fullPath.push([att.start_lat,att.start_lng]);
+      smVisits.filter(v=>v.lat&&v.lng).forEach(v=>fullPath.push([v.lat,v.lng]));
+      if(att&&att.end_lat&&att.end_lng) fullPath.push([att.end_lat,att.end_lng]);
+      if(fullPath.length>1) addArrowLine(APP.mapInstance,fullPath,color);
 
       // Visit markers
       smVisits.forEach((v,i)=>{
         if(!v.lat||!v.lng) return;
-        // Apply offset if multiple employees have visits near same spot
         const [lat,lng]=spiralOffset(empIdx, v.lat, v.lng);
         bounds.push([lat,lng]);
         const size=34;
@@ -2807,10 +2813,11 @@ async function loadMap(){
           .bindPopup(`<div style="font-family:sans-serif;min-width:190px;"><div style="font-weight:800;font-size:14px;margin-bottom:6px;color:${color}">Visit #${i+1} — ${v.salesman_name||smName}</div><div style="margin-bottom:4px;">🏪 <b>${v.outlet}</b></div><div style="margin-bottom:4px;">🕐 ${v.time}</div>${v.remarks?`<div style="margin-top:6px;padding:6px 8px;background:#f5f5f5;border-radius:4px;font-size:12px;">💬 ${v.remarks}</div>`:''}</div>`);
       });
 
-      // Check-In marker — colored with employee initial so easy to identify
+      // Check-In marker
       if(att&&att.start_lat&&att.start_lng){
         const [lat,lng]=spiralOffset(empIdx, att.start_lat, att.start_lng);
         bounds.push([lat,lng]);
+        const inAddr=att.start_address||(att.start_lat?`${att.start_lat.toFixed(5)}, ${att.start_lng.toFixed(5)}`:'—');
         const inIcon=L.divIcon({
           html:`<div style="background:${color};width:40px;height:40px;border-radius:50%;border:3px solid #1FD17A;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
             <div style="font-size:9px;font-weight:900;color:#fff;line-height:1;">IN</div>
@@ -2823,14 +2830,15 @@ async function loadMap(){
             <div style="font-weight:800;font-size:14px;color:${color};margin-bottom:8px;border-bottom:2px solid ${color};padding-bottom:6px;">✅ Check-In</div>
             <div style="font-size:13px;font-weight:700;margin-bottom:4px;">👤 ${smName}</div>
             <div style="margin-bottom:4px;">🕐 ${att.start_time||'—'}</div>
-            <div style="font-size:12px;color:#666;margin-top:4px;">📍 ${att.start_address||'—'}</div>
+            <div style="font-size:12px;color:#666;margin-top:4px;">📍 ${inAddr}</div>
           </div>`);
       }
 
-      // Check-Out marker — colored with employee initial
+      // Check-Out marker
       if(att&&att.end_lat&&att.end_lng){
         const [lat,lng]=spiralOffset(empIdx, att.end_lat, att.end_lng);
         bounds.push([lat,lng]);
+        const outAddr=att.end_address||(att.end_lat?`${att.end_lat.toFixed(5)}, ${att.end_lng.toFixed(5)}`:'—');
         const outIcon=L.divIcon({
           html:`<div style="background:${color};width:40px;height:40px;border-radius:50%;border:3px solid #FF4466;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
             <div style="font-size:9px;font-weight:900;color:#fff;line-height:1;">OUT</div>
@@ -2843,7 +2851,23 @@ async function loadMap(){
             <div style="font-weight:800;font-size:14px;color:${color};margin-bottom:8px;border-bottom:2px solid ${color};padding-bottom:6px;">🚪 Check-Out</div>
             <div style="font-size:13px;font-weight:700;margin-bottom:4px;">👤 ${smName}</div>
             <div style="margin-bottom:4px;">🕐 ${att.end_time||'—'}</div>
-            <div style="font-size:12px;color:#666;margin-top:4px;">📍 ${att.end_address||'—'}</div>
+            <div style="font-size:12px;color:#666;margin-top:4px;">📍 ${outAddr}</div>
+          </div>`);
+      } else if(att&&att.start_lat){
+        // Check-in but no check-out yet — show pending marker
+        const [lat,lng]=spiralOffset(empIdx, att.start_lat+0.0001, att.start_lng+0.0001);
+        const pendIcon=L.divIcon({
+          html:`<div style="background:#888;width:40px;height:40px;border-radius:50%;border:3px dashed #FF4466;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0.8;">
+            <div style="font-size:8px;font-weight:900;color:#fff;line-height:1;">OUT?</div>
+            <div style="font-size:13px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
+          </div>`,
+          iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]
+        });
+        L.marker([lat,lng],{icon:pendIcon}).addTo(APP.mapInstance)
+          .bindPopup(`<div style="font-family:sans-serif;min-width:180px;">
+            <div style="font-weight:800;font-size:14px;color:#FF4466;margin-bottom:8px;border-bottom:2px dashed #FF4466;padding-bottom:6px;">⚠️ Check-Out Pending</div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">👤 ${smName}</div>
+            <div style="font-size:12px;color:#888;">Employee has not checked out yet</div>
           </div>`);
       }
     }
@@ -3347,11 +3371,13 @@ async function endDay(auto=false){
   navigator.geolocation.getCurrentPosition(async pos=>{
     loading(auto?'Auto ending day...':'Ending your day...');
     const time=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
+    const acc=Math.round(pos.coords.accuracy);
     const updates={
       end_time: auto?'11:59 PM (Auto)':time,
       end_timestamp: endTs,
       end_lat: pos.coords.latitude,
       end_lng: pos.coords.longitude,
+      end_address:`📍 ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)} (±${acc}m)`,
     };
     try{
       await db.ref(`attendance/${APP.companyId}/${today}/${APP.user.uid}`).update(updates);
@@ -3750,7 +3776,7 @@ async function exportRptHistPDF(){
       columnStyles:{3:{fontStyle:'bold'}},
       didParseCell:(d)=>{
         if(d.section==='body'&&d.column.index===3){
-          const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:[75,159,255];
+          const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:d.cell.raw==='Pending'?[255,153,0]:[75,159,255];
           d.cell.styles.textColor=c;
         }
       }
@@ -3783,8 +3809,11 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
         if(!empUidSet.has(uid)) return;
         const u=APP.salesmen[uid]||{name:'Unknown',emp_type:'sales'};
         const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-        if(att.start_time) rows.push({date,status:'In',name:u.name,location:att.start_location||'—',time:att.start_time,remarks:'Day Started',type,sort_ts:att.start_timestamp||0});
-        if(att.end_time) rows.push({date,status:'Out',name:u.name,location:att.end_location||'—',time:att.end_time,remarks:'Day Ended',type,sort_ts:att.end_timestamp||0});
+        const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}`:'—');
+        const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}`:'—');
+        if(att.start_time) rows.push({date,status:'In',name:u.name,location:inLoc,time:att.start_time,remarks:'Day Started',type,sort_ts:att.start_timestamp||0});
+        if(att.end_time) rows.push({date,status:'Out',name:u.name,location:outLoc,time:att.end_time,remarks:'Day Ended',type,sort_ts:att.end_timestamp||0});
+        else if(att.start_time) rows.push({date,status:'Pending',name:u.name,location:'—',time:'—',remarks:'⚠️ Not Checked Out',type,sort_ts:(att.start_timestamp||0)+1});
       });
     }
     if(vSnap.exists()){
@@ -3800,135 +3829,19 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
   return rows;
 }
 
-/* ════ REPORTS B — ATTENDANCE RAW ════ */
-async function exportRptRawExcel(){
-  const startDate=document.getElementById('rptRawStart').value;
-  const endDate=document.getElementById('rptRawEnd').value;
-  const typeFilter=document.getElementById('rptRawType').value;
-  if(!startDate||!endDate){ toast('Please select from and to date','err'); return; }
-  loading('Building Attendance Raw report...');
-  try{
-    const {rows,co,dateLabel}=await buildAttRawRows(startDate,endDate,typeFilter);
-    if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
-    const ws={};
-    const headers=['#','Type','Date','Name','In Time','Out Time','Duration'];
-    xlsTitle(ws,`${co} — Attendance Raw`,`${dateLabel} | Records: ${rows.length}`,headers.length);
-    xlsData(ws,5,headers,rows.map((r,i)=>[i+1,r.type,r.date,r.name,r.inTime,r.outTime,r.duration]));
-    ws['!cols']=[{wch:5},{wch:13},{wch:13},{wch:22},{wch:12},{wch:12},{wch:14}];
-    const XLSX2=XLSX;
-    const startRow=6;
-    for(let i=0;i<rows.length;i++){
-      const ri=startRow+i;
-      const r=rows[i];
-      const isAbsent=r.inTime==='Absent';
-      ['A','B','C','D','E','F','G'].forEach(col=>{
-        const addr=col+ri;
-        if(!ws[addr]) ws[addr]={t:'s',v:''};
-        ws[addr].s={font:{bold:col==='D'},fill:{fgColor:{rgb:isAbsent?'2A0A0F':'0C1229'}},alignment:{horizontal:'left'}};
-      });
-    }
-    const wb=XLSX2.utils.book_new();
-    XLSX2.utils.book_append_sheet(wb,ws,'Attendance Raw');
-    XLSX2.writeFile(wb,`${co}_AttRaw_${startDate}_to_${endDate}.xlsx`);
-    doneLoading(); toast('Attendance Raw Excel downloading!');
-  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
-}
-
-async function exportRptRawPDF(){
-  const startDate=document.getElementById('rptRawStart').value;
-  const endDate=document.getElementById('rptRawEnd').value;
-  const typeFilter=document.getElementById('rptRawType').value;
-  if(!startDate||!endDate){ toast('Please select from and to date','err'); return; }
-  loading('Building Attendance Raw PDF...');
-  try{
-    const {rows,co,dateLabel}=await buildAttRawRows(startDate,endDate,typeFilter);
-    if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
-    const {jsPDF}=window.jspdf;
-    const doc=new jsPDF('l','pt','a4');
-    doc.setFontSize(16); doc.setTextColor(239,168,0);
-    doc.text(`${co} — Attendance Raw`,40,40);
-    doc.setFontSize(10); doc.setTextColor(120,130,180);
-    doc.text(`${dateLabel}  |  Records: ${rows.length}`,40,58);
-    doc.autoTable({
-      startY:72,
-      head:[['#','Type','Date','Name','In Time','Out Time','Duration']],
-      body:rows.map((r,i)=>[i+1,r.type,r.date,r.name,r.inTime,r.outTime,r.duration]),
-      styles:{fontSize:8,textColor:[200,210,240],fillColor:[12,18,41]},
-      headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[17,26,56]},
-      didParseCell:(d)=>{
-        if(d.section==='body'){
-          if(d.column.index===4&&d.cell.raw!=='Absent') d.cell.styles.textColor=[31,209,122];
-          if(d.column.index===5&&d.cell.raw!=='—') d.cell.styles.textColor=[255,68,102];
-          if(d.cell.raw==='Absent'||d.cell.raw==='Holiday') d.cell.styles.textColor=[255,68,102];
-        }
-      }
-    });
-    doc.save(`${co}_AttRaw_${startDate}_to_${endDate}.pdf`);
-    doneLoading(); toast('Attendance Raw PDF downloading!');
-  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
-}
-
-async function buildAttRawRows(startDate,endDate,typeFilter){
-  const co=getCompanyName();
-  const dateLabel=`${startDate} to ${endDate}`;
-  const today=new Date();
-  const coSnap=await db.ref(`companies/${APP.companyId}`).get();
-  const holidays=(coSnap.exists()&&coSnap.val().holidays)||[0];
-  const empList=Object.entries(APP.salesmen).filter(([,u])=>{
-    if(u.status==='deleted_by_admin') return false;
-    if(typeFilter==='sales') return u.emp_type!=='backoffice';
-    if(typeFilter==='backoffice') return u.emp_type==='backoffice';
-    return true;
-  });
-  // Build all dates in range
-  const allDates=[];
-  let cur=new Date(startDate+'T00:00:00');
-  const end=new Date(endDate+'T00:00:00');
-  while(cur<=end){
-    const ds=cur.toISOString().split('T')[0];
-    if(new Date(ds)<=today) allDates.push(ds);
-    cur.setDate(cur.getDate()+1);
-  }
-  const attSnaps=await Promise.all(allDates.map(ds=>db.ref(`attendance/${APP.companyId}/${ds}`).get()));
-  const attByDate={};
-  allDates.forEach((ds,i)=>{ if(attSnaps[i].exists()) attByDate[ds]=attSnaps[i].val(); });
-  const rows=[];
-  for(const [uid,u] of empList){
-    const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-    for(const ds of allDates){
-      const dt=new Date(ds+'T00:00:00');
-      const dayOfWeek=dt.getDay();
-      const isHol=holidays.includes(dayOfWeek);
-      const att=attByDate[ds]?attByDate[ds][uid]:null;
-      let inTime='Absent', outTime='—', duration='—';
-      if(isHol){ inTime='Holiday'; outTime='—'; duration='Holiday'; }
-      else if(att){
-        inTime=att.start_time||'—';
-        outTime=att.end_time||'In Progress';
-        if(att.start_timestamp&&att.end_timestamp){
-          const diff=att.end_timestamp-att.start_timestamp;
-          duration=`${Math.floor(diff/3600000)}h ${Math.floor((diff%3600000)/60000)}m`;
-        }
-      }
-      rows.push({type,date:ds,name:u.name,inTime,outTime,duration});
-    }
-  }
-  return {rows,co,dateLabel};
-}
-
-/* ════ REPORTS C — ATTENDANCE SUMMARY ════ */
+/* ════ REPORTS B — ATTENDANCE SUMMARY (month/year) ════ */
 async function exportRptSumExcel(){
-  const startDate=document.getElementById('rptSumStart').value;
-  const endDate=document.getElementById('rptSumEnd').value;
+  const month=parseInt(document.getElementById('rptSumMonth').value);
+  const year=parseInt(document.getElementById('rptSumYear').value);
   const typeFilter=document.getElementById('rptSumType').value;
-  if(!startDate||!endDate){ toast('Please select from and to date','err'); return; }
+  if(!month||!year){ toast('Please select month and year','err'); return; }
   loading('Building Attendance Summary...');
   try{
-    const {matrix,co,dateLabel,empList,allDates}=await buildAttSummaryMatrix(startDate,endDate,typeFilter);
+    const {matrix,co,dateLabel,empList,allDates}=await buildAttSummaryMatrix(month,year,typeFilter);
+    if(!empList.length){ doneLoading(); toast('No employees found','err'); return; }
     const ws={};
     const headerRow=['Type','Name',...allDates.map(d=>d.split('-')[2]+'/'+d.split('-')[1])];
-    xlsTitle(ws,`${co} — Attendance Summary`,`${dateLabel}`,headerRow.length);
+    xlsTitle(ws,`${co} — Attendance Summary`,dateLabel,headerRow.length);
     const STARTROW=5;
     headerRow.forEach((h,ci)=>{
       const addr=numToCol(ci)+STARTROW;
@@ -3943,26 +3856,27 @@ async function exportRptSumExcel(){
       allDates.forEach((ds,di)=>{
         const addr=numToCol(di+2)+rowNum;
         const val=matrix[uid]?matrix[uid][ds]||'—':'—';
-        const color=val==='Present'?'1FD17A':val==='Absent'?'FF4466':val==='Holiday'?'EFA800':'3E4E78';
+        const color=val==='Present'?'1FD17A':val==='Absent'?'FF4466':val==='Holiday'?'EFA800':val==='Pending'?'4B9FFF':'3E4E78';
         ws[addr]={t:'s',v:val,s:{font:{color:{rgb:color},bold:true},fill:{fgColor:{rgb:ri%2?'111A38':'0C1229'}},alignment:{horizontal:'center'}}};
       });
     });
     ws['!cols']=[{wch:14},{wch:22},...allDates.map(()=>({wch:10}))];
     const wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Attendance Summary');
-    XLSX.writeFile(wb,`${co}_AttSummary_${startDate}_to_${endDate}.xlsx`);
+    const MONTHS_N=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    XLSX.writeFile(wb,`${co}_AttSummary_${MONTHS_N[month-1]}_${year}.xlsx`);
     doneLoading(); toast('Attendance Summary Excel downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
 async function exportRptSumPDF(){
-  const startDate=document.getElementById('rptSumStart').value;
-  const endDate=document.getElementById('rptSumEnd').value;
+  const month=parseInt(document.getElementById('rptSumMonth').value);
+  const year=parseInt(document.getElementById('rptSumYear').value);
   const typeFilter=document.getElementById('rptSumType').value;
-  if(!startDate||!endDate){ toast('Please select from and to date','err'); return; }
+  if(!month||!year){ toast('Please select month and year','err'); return; }
   loading('Building Attendance Summary PDF...');
   try{
-    const {matrix,co,dateLabel,empList,allDates}=await buildAttSummaryMatrix(startDate,endDate,typeFilter);
+    const {matrix,co,dateLabel,empList,allDates}=await buildAttSummaryMatrix(month,year,typeFilter);
     if(!empList.length){ doneLoading(); toast('No employees found','err'); return; }
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF('l','pt','a4');
@@ -3991,19 +3905,22 @@ async function exportRptSumPDF(){
             if(v==='Present') d.cell.styles.textColor=[31,209,122];
             else if(v==='Absent') d.cell.styles.textColor=[255,68,102];
             else if(v==='Holiday') d.cell.styles.textColor=[239,168,0];
+            else if(v==='Pending') d.cell.styles.textColor=[75,159,255];
             d.cell.styles.fontStyle='bold';
           }
         }
       });
     }
-    doc.save(`${co}_AttSummary_${startDate}_to_${endDate}.pdf`);
+    const MONTHS_N=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    doc.save(`${co}_AttSummary_${MONTHS_N[month-1]}_${year}.pdf`);
     doneLoading(); toast('Attendance Summary PDF downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-async function buildAttSummaryMatrix(startDate,endDate,typeFilter){
+async function buildAttSummaryMatrix(month,year,typeFilter){
+  const MONTHS_N=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const co=getCompanyName();
-  const dateLabel=`${startDate} to ${endDate}`;
+  const dateLabel=`${MONTHS_N[month-1]} ${year}`;
   const today=new Date();
   const coSnap=await db.ref(`companies/${APP.companyId}`).get();
   const holidays=(coSnap.exists()&&coSnap.val().holidays)||[0];
@@ -4013,14 +3930,12 @@ async function buildAttSummaryMatrix(startDate,endDate,typeFilter){
     if(typeFilter==='backoffice') return u.emp_type==='backoffice';
     return true;
   });
-  // Build date list
+  // Build all dates in the selected month
+  const daysInMonth=new Date(year,month,0).getDate();
   const allDates=[];
-  let cur=new Date(startDate+'T00:00:00');
-  const end=new Date(endDate+'T00:00:00');
-  while(cur<=end){
-    const ds=cur.toISOString().split('T')[0];
-    if(new Date(ds)<=today) allDates.push(ds);
-    cur.setDate(cur.getDate()+1);
+  for(let d=1;d<=daysInMonth;d++){
+    const ds=`${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if(new Date(ds+'T00:00:00')<=today) allDates.push(ds);
   }
   const attSnaps=await Promise.all(allDates.map(ds=>db.ref(`attendance/${APP.companyId}/${ds}`).get()));
   const attByDate={};
@@ -4033,7 +3948,8 @@ async function buildAttSummaryMatrix(startDate,endDate,typeFilter){
       const isHol=holidays.includes(dayOfWeek);
       const att=attByDate[ds]?attByDate[ds][uid]:null;
       if(isHol) matrix[uid][ds]='Holiday';
-      else if(att) matrix[uid][ds]='Present';
+      else if(att&&att.end_time) matrix[uid][ds]='Present';
+      else if(att&&!att.end_time) matrix[uid][ds]='Pending'; // checked-in, not checked-out
       else matrix[uid][ds]='Absent';
     });
   });
