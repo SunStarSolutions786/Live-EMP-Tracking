@@ -907,12 +907,12 @@ button{font-family:'DM Sans',sans-serif;}
           <div class="ov-card"><div class="ov-icon">✅</div><div class="ov-val" id="ov-present">0</div><div class="ov-lbl">Present Today</div></div>
           <div class="ov-card"><div class="ov-icon">📆</div><div class="ov-val" id="ov-month">0</div><div class="ov-lbl">This Month Visits</div></div>
         </div>
-        <!-- Recent activity -->
+        <!-- Recent History -->
         <div class="tc">
-          <div class="tc-hd"><div class="tc-title">⚡ Recent Visits Today</div></div>
+          <div class="tc-hd"><div class="tc-title">⚡ Today's Activity</div></div>
           <table class="tbl">
-            <thead><tr><th>Employee</th><th>Outlet</th><th>Time</th><th>Remarks</th></tr></thead>
-            <tbody id="recentTbody"><tr><td colspan="4" style="text-align:center;padding:30px;color:var(--txt-3);">No visits today yet</td></tr></tbody>
+            <thead><tr><th>Status</th><th>Employee</th><th>Details</th><th>Time</th></tr></thead>
+            <tbody id="recentTbody"><tr><td colspan="4" style="text-align:center;padding:30px;color:var(--txt-3);">No activity today yet</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -1456,7 +1456,7 @@ function toast(msg,type='ok'){
 function openModal(id){ document.getElementById(id).classList.add('on'); }
 function closeModal(id){ document.getElementById(id).classList.remove('on'); }
 
-function todayStr(){ return new Date().toISOString().split('T')[0]; }
+function todayStr(){ const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
 
 /* ════════════════════════════════════════════════
    FIREBASE INIT
@@ -1593,6 +1593,9 @@ async function initApp(){
   if(sumMonthEl) sumMonthEl.value=String(now.getMonth()+1);
   if(sumYearEl) sumYearEl.value=String(now.getFullYear());
   ['perfYear'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=now.getFullYear(); });
+  // Set perfMonth default to current month
+  const perfMonthEl=document.getElementById('perfMonth');
+  if(perfMonthEl) perfMonthEl.value=String(now.getMonth());
 
   loading('Please wait...');
   // Timeout fallback — show login if Firebase takes too long
@@ -2303,9 +2306,10 @@ async function loadSalesmen(){
       if(u.role==='salesman') APP.salesmen[uid]=u;
     });
   }
-  // Only non-deleted salesmen in dropdowns/reports
+  // Only non-deleted salesmen in dropdowns/reports — sorted A-Z
   const activeOpts='<option value="">All</option>'+Object.entries(APP.salesmen)
     .filter(([,u])=>u.status!=='deleted_by_admin')
+    .sort(([,a],[,b])=>a.name.localeCompare(b.name))
     .map(([uid,u])=>`<option value="${uid}">${u.name}${u.status==='inactive'?' (Inactive)':''}</option>`).join('');
   ['vSalesmanFilter','mapSalesmanFilter'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.innerHTML=activeOpts;
@@ -2469,15 +2473,22 @@ async function loadOverview(){
   document.getElementById('ov-salesmen').textContent=smCount;
   document.getElementById('ov-salesmen').title=`Sales: ${salesCount} | Back Office: ${boCount}`;
   const today=todayStr();
-  const vSnap=await db.ref(`visits/${APP.companyId}/${today}`).get();
-  let todayTotal=0, presentSet=new Set();
-  if(vSnap.exists()) Object.values(vSnap.val()).forEach(v=>{ todayTotal++; presentSet.add(v.salesman_uid); });
-  // Also count from attendance (day started = present)
-  const attSnap=await db.ref(`attendance/${APP.companyId}/${today}`).get();
+
+  // Load visits + attendance in parallel
+  const [vSnap,attSnap]=await Promise.all([
+    db.ref(`visits/${APP.companyId}/${today}`).get(),
+    db.ref(`attendance/${APP.companyId}/${today}`).get()
+  ]);
+
+  let todayTotal=0;
+  const presentSet=new Set();
   if(attSnap.exists()) Object.keys(attSnap.val()).forEach(uid=>presentSet.add(uid));
+  if(vSnap.exists()) Object.values(vSnap.val()).forEach(v=>{ todayTotal++; presentSet.add(v.salesman_uid); });
+
   document.getElementById('ov-today').textContent=todayTotal;
   document.getElementById('ov-present').textContent=presentSet.size;
-  // Month count - load all at once
+
+  // Month count
   const now=new Date();
   const monthPrefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   let monthTotal=0;
@@ -2488,11 +2499,52 @@ async function loadOverview(){
     });
   }
   document.getElementById('ov-month').textContent=monthTotal;
-  // Recent table
+
+  // Build combined Today Activity list
   const tbody=document.getElementById('recentTbody');
-  if(todayTotal===0){ tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--txt-3);">No visits today yet</td></tr>'; return; }
-  const visits=Object.values(vSnap.val()).sort((a,b)=>b.timestamp-a.timestamp).slice(0,10);
-  tbody.innerHTML=visits.map(v=>`<tr><td>${v.salesman_name}</td><td class="tbl-name">${v.outlet}</td><td>${v.time}</td><td>${v.remarks||'—'}</td></tr>`).join('');
+  const events=[];
+
+  // Attendance events
+  if(attSnap.exists()){
+    Object.entries(attSnap.val()).forEach(([uid,att])=>{
+      const u=APP.salesmen[uid]||{name:'Unknown',emp_type:'sales'};
+      const isBo=u.emp_type==='backoffice';
+      const typeTag=isBo?'<span style="font-size:10px;color:var(--ok);background:rgba(31,209,122,0.1);padding:1px 6px;border-radius:8px;margin-left:5px;">BO</span>':'';
+      if(att.start_time) events.push({ts:att.start_timestamp||0, status:'In', name:u.name+typeTag, details:'Day Started', time:att.start_time});
+      if(att.end_time) events.push({ts:att.end_timestamp||0, status:'Out', name:u.name+typeTag, details:'Day Ended', time:att.end_time});
+      else if(att.start_time) events.push({ts:(att.start_timestamp||0)+1, status:'Pending', name:u.name+typeTag, details:'Not Checked Out', time:'—'});
+    });
+  }
+  // Visit events
+  if(vSnap.exists()){
+    Object.values(vSnap.val()).forEach(v=>{
+      const u=APP.salesmen[v.salesman_uid]||{};
+      events.push({
+        ts:v.timestamp||0, status:'Visit',
+        name:v.salesman_name||'—',
+        details:`🏪 ${v.outlet}${v.remarks?' — '+v.remarks:''}`,
+        time:v.time||'—'
+      });
+    });
+  }
+
+  if(events.length===0){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--txt-3);">No activity today yet</td></tr>';
+    return;
+  }
+
+  // Sort latest first
+  events.sort((a,b)=>b.ts-a.ts);
+  tbody.innerHTML=events.slice(0,20).map(e=>{
+    const sc=e.status==='In'?'var(--ok)':e.status==='Out'?'var(--err)':e.status==='Pending'?'#FF9900':'var(--info)';
+    const si=e.status==='In'?'🟢':e.status==='Out'?'🔴':e.status==='Pending'?'⚠️':'📍';
+    return `<tr>
+      <td><span style="color:${sc};font-weight:700;">${si} ${e.status}</span></td>
+      <td class="tbl-name">${e.name}</td>
+      <td style="font-size:12px;">${e.details}</td>
+      <td>${e.time}</td>
+    </tr>`;
+  }).join('');
 }
 
 /* ════ HISTORY DEPT FILTER ════ */
@@ -2542,7 +2594,7 @@ async function loadHistory(){
     const dates=[];
     let cur=new Date(startDate+'T00:00:00');
     const end=new Date(endDate+'T00:00:00');
-    while(cur<=end){ dates.push(cur.toISOString().split('T')[0]); cur.setDate(cur.getDate()+1); }
+    while(cur<=end){ const _y=cur.getFullYear(),_m=String(cur.getMonth()+1).padStart(2,'0'),_d=String(cur.getDate()).padStart(2,'0'); dates.push(`${_y}-${_m}-${_d}`); cur.setDate(cur.getDate()+1); }
     // Filter active employees by dept and optional specific employee
     const dept=currentHistDept;
     const activeEmp=Object.entries(APP.salesmen).filter(([uid,u])=>{
@@ -2566,8 +2618,8 @@ async function loadHistory(){
         Object.entries(attSnap.val()).forEach(([uid,att])=>{
           if(!empUidSet.has(uid)) return;
           const u=APP.salesmen[uid]||{name:'Unknown',emp_type:'sales'};
-          const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}`:'—');
-          const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}`:'—');
+          const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}${att.start_accuracy?` (±${att.start_accuracy}m)`:''}`:' —');
+          const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}${att.end_accuracy?` (±${att.end_accuracy}m)`:''}`:' —');
           if(att.start_time){
             lastHistoryData.push({
               date, status:'In', name:u.name,
@@ -2683,7 +2735,7 @@ async function loadVisits(){
     const dates=[];
     let cur=new Date(startDate+'T00:00:00');
     const end=new Date(endDate+'T00:00:00');
-    while(cur<=end){ dates.push(cur.toISOString().split('T')[0]); cur.setDate(cur.getDate()+1); }
+    while(cur<=end){ const _y=cur.getFullYear(),_m=String(cur.getMonth()+1).padStart(2,'0'),_d=String(cur.getDate()).padStart(2,'0'); dates.push(`${_y}-${_m}-${_d}`); cur.setDate(cur.getDate()+1); }
     for(const date of dates){
       const snap=await db.ref(`visits/${APP.companyId}/${date}`).get();
       if(snap.exists()){
@@ -3214,6 +3266,9 @@ async function xlsBuildSheet(wb, sheetName, title, subtitle, headers, rows, colW
 /* ════ SALESMAN SCREEN ════ */
 async function initSalesman(){
   show('salesmanScreen');
+  // If beforeinstallprompt already fired before screen loaded, show button now
+  const pwaBtn=document.getElementById('pwaInstallBtn');
+  if(pwaBtn) pwaBtn.style.display=deferredPrompt?'block':'none';
   document.getElementById('smAv').textContent=APP.userData.name[0].toUpperCase();
   document.getElementById('smNm').textContent=APP.userData.name;
   document.getElementById('smGreet').textContent=APP.userData.name.split(' ')[0];
@@ -3409,6 +3464,7 @@ async function endDay(auto=false){
       end_timestamp: endTs,
       end_lat: pos.coords.latitude,
       end_lng: pos.coords.longitude,
+      end_accuracy: acc,
       end_address:`📍 ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)} (±${acc}m)`,
     };
     try{
@@ -3619,20 +3675,24 @@ async function loadSAReport(){
   loading('Loading all companies report...');
   SA_reportData=[];
 
-  // Build date list
+  // Build date list — local date to avoid timezone shift
   const dateList=[];
   let cur=new Date(fromDate+'T00:00:00');
   const end=new Date(toDate+'T00:00:00');
-  while(cur<=end){ dateList.push(cur.toISOString().split('T')[0]); cur.setDate(cur.getDate()+1); }
+  while(cur<=end){
+    const y=cur.getFullYear(), m=String(cur.getMonth()+1).padStart(2,'0'), d=String(cur.getDate()).padStart(2,'0');
+    dateList.push(`${y}-${m}-${d}`);
+    cur.setDate(cur.getDate()+1);
+  }
 
   try{
-    const companies=coFilter?{[coFilter]:SA_companies_cache[coFilter]}:SA_companies_cache;
+    const companies=coFilter?{[coFilter]:SA_companies_cache[coFilter]}:{...SA_companies_cache};
     if(!Object.keys(companies).length){
       const snap=await db.ref('companies').get();
-      if(snap.exists()) Object.entries(snap.val()).forEach(([id,co])=>companies[id]=co);
+      if(snap.exists()) Object.entries(snap.val()).forEach(([id,co])=>{ companies[id]=co; });
     }
 
-    let totalVisits=0, totalPresent=0, totalAbsent=0;
+    let totalVisits=0, totalIn=0, totalPending=0;
     let html='';
 
     for(const [coId,co] of Object.entries(companies)){
@@ -3643,52 +3703,57 @@ async function loadSAReport(){
         if(u.role==='salesman'&&u.status!=='deleted_by_admin') salesmen[uid]=u;
       });
 
-      // For each date, accumulate data per employee
-      const empData={}; // uid -> {visits, presentDays, lastStart, lastEnd, lastDur}
+      const coRows=[];
       for(const date of dateList){
-        const vSnap=await db.ref(`visits/${coId}/${date}`).get();
+        const [vSnap,attSnap]=await Promise.all([
+          db.ref(`visits/${coId}/${date}`).get(),
+          db.ref(`attendance/${coId}/${date}`).get()
+        ]);
         const visits=vSnap.exists()?vSnap.val():{};
-        const attSnap=await db.ref(`attendance/${coId}/${date}`).get();
         const att=attSnap.exists()?attSnap.val():{};
-        for(const [uid] of Object.entries(salesmen)){
-          if(!empData[uid]) empData[uid]={visits:0,presentDays:0,absentDays:0};
-          const smVisits=Object.values(visits).filter(v=>v.salesman_uid===uid);
-          const smAtt=att[uid]||null;
-          empData[uid].visits+=smVisits.length;
-          if(smAtt){ empData[uid].presentDays++; empData[uid].lastStart=smAtt.start_time; empData[uid].lastEnd=smAtt.end_time; }
-          else empData[uid].absentDays++;
-          SA_reportData.push({company:co.name,coId,salesman:salesmen[uid].name,status:smAtt?'Present':'Absent',visits:smVisits.length,start:smAtt?smAtt.start_time:'—',end:smAtt?smAtt.end_time:'—',duration:'—',date});
-        }
-        totalVisits+=Object.values(visits).length;
+
+        // Attendance rows
+        Object.entries(att).forEach(([uid,a])=>{
+          if(!salesmen[uid]) return;
+          const u=salesmen[uid];
+          const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+          const inLoc=a.start_address||(a.start_lat?`${a.start_lat.toFixed(4)}, ${a.start_lng.toFixed(4)}${a.start_accuracy?` (±${a.start_accuracy}m)`:''}`:'—');
+          const outLoc=a.end_address||(a.end_lat?`${a.end_lat.toFixed(4)}, ${a.end_lng.toFixed(4)}${a.end_accuracy?` (±${a.end_accuracy}m)`:''}`:'—');
+          if(a.start_time){ coRows.push({co:co.name,date,type,status:'In',name:u.name,location:inLoc,time:a.start_time,remarks:'Day Started',sort_ts:a.start_timestamp||0}); totalIn++; }
+          if(a.end_time){ coRows.push({co:co.name,date,type,status:'Out',name:u.name,location:outLoc,time:a.end_time,remarks:'Day Ended',sort_ts:a.end_timestamp||0}); }
+          else if(a.start_time){ coRows.push({co:co.name,date,type,status:'Pending',name:u.name,location:'—',time:'—',remarks:'⚠️ Not Checked Out',sort_ts:(a.start_timestamp||0)+1}); totalPending++; }
+        });
+        // Visit rows
+        Object.values(visits).forEach(v=>{
+          if(!salesmen[v.salesman_uid]) return;
+          const u=salesmen[v.salesman_uid];
+          const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+          const loc=v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—';
+          coRows.push({co:co.name,date,type,status:'Visit',name:v.salesman_name||u.name,location:loc,time:v.time||'—',remarks:v.outlet+(v.remarks?` — ${v.remarks}`:''),sort_ts:v.timestamp||0});
+          totalVisits++;
+        });
       }
 
-      const smRows=Object.entries(salesmen).map(([uid,sm])=>{
-        const d=empData[uid]||{visits:0,presentDays:0,absentDays:0};
-        totalPresent+=d.presentDays; totalAbsent+=d.absentDays;
-        return {name:sm.name,visits:d.visits,presentDays:d.presentDays,absentDays:d.absentDays};
-      });
+      coRows.sort((a,b)=>a.sort_ts-b.sort_ts);
+      SA_reportData.push(...coRows);
 
-      const coVisits=smRows.reduce((s,r)=>s+r.visits,0);
-      const coPresent=smRows.reduce((s,r)=>s+r.presentDays,0);
-
+      if(coRows.length===0) continue;
       html+=`<div class="tc" style="margin-bottom:18px;">
         <div class="tc-hd">
           <div style="display:flex;align-items:center;gap:10px;">
             <div class="tc-title">🏢 ${co.name}</div>
-            <span style="font-size:12px;color:var(--txt-2);">${coVisits} Visits &nbsp;|&nbsp; ${coPresent} Present-days</span>
+            <span style="font-size:12px;color:var(--txt-2);">${coRows.filter(r=>r.status==='Visit').length} Visits &nbsp;|&nbsp; ${coRows.filter(r=>r.status==='In').length} Check-Ins</span>
           </div>
         </div>
         <div style="overflow-x:auto;">
           <table class="tbl">
-            <thead><tr><th>Employee</th><th>Present Days</th><th>Absent Days</th><th>Total Visits</th></tr></thead>
+            <thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Name</th><th>Location</th><th>Time</th><th>Remarks</th></tr></thead>
             <tbody>
-              ${smRows.length===0?'<tr><td colspan="4" style="text-align:center;color:var(--txt-3);padding:20px;">No employees</td></tr>':
-              smRows.map(r=>`<tr>
-                <td class="tbl-name">${r.name}</td>
-                <td style="color:var(--ok);text-align:center;">${r.presentDays}</td>
-                <td style="color:var(--err);text-align:center;">${r.absentDays}</td>
-                <td style="text-align:center;">${r.visits}</td>
-              </tr>`).join('')}
+              ${coRows.map(r=>{
+                const sc=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
+                const si=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
+                return `<tr><td>${r.date}</td><td style="font-size:11px;color:var(--txt-2);">${r.type}</td><td><span style="color:${sc};font-weight:700;">${si} ${r.status}</span></td><td class="tbl-name">${r.name}</td><td style="font-size:11px;color:var(--txt-2);">${r.location}</td><td>${r.time}</td><td style="font-size:12px;">${r.remarks}</td></tr>`;
+              }).join('')}
             </tbody>
           </table>
         </div>
@@ -3696,12 +3761,12 @@ async function loadSAReport(){
     }
 
     const summaryHtml=`<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px;">
-      <div class="ov-card" style="flex:1;min-width:140px;"><div class="ov-icon">📍</div><div class="ov-val">${totalVisits}</div><div class="ov-lbl">Total Visits</div></div>
-      <div class="ov-card" style="flex:1;min-width:140px;"><div class="ov-icon">✅</div><div class="ov-val" style="color:var(--ok);">${totalPresent}</div><div class="ov-lbl">Present Days</div></div>
-      <div class="ov-card" style="flex:1;min-width:140px;"><div class="ov-icon">❌</div><div class="ov-val" style="color:var(--err);">${totalAbsent}</div><div class="ov-lbl">Absent Days</div></div>
+      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">📍</div><div class="ov-val">${totalVisits}</div><div class="ov-lbl">Total Visits</div></div>
+      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">✅</div><div class="ov-val" style="color:var(--ok);">${totalIn}</div><div class="ov-lbl">Check-Ins</div></div>
+      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">⚠️</div><div class="ov-val" style="color:#FF9900;">${totalPending}</div><div class="ov-lbl">Pending Checkout</div></div>
+      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">📋</div><div class="ov-val">${SA_reportData.length}</div><div class="ov-lbl">Total Records</div></div>
     </div>`;
-
-    document.getElementById('saReportContent').innerHTML=summaryHtml+html;
+    document.getElementById('saReportContent').innerHTML=summaryHtml+(html||'<div class="empty"><div class="empty-icon">📭</div>No data found for selected range</div>');
     doneLoading();
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -3711,11 +3776,11 @@ async function exportSAReportExcel(){
   loading('Generating Excel...');
   const fromDate=document.getElementById('saReportFrom').value;
   const toDate=document.getElementById('saReportTo').value;
-  const headers=['#','Date','Company','Employee','Status','Visits','Start Time','End Time','Duration'];
-  const data=SA_reportData.map((r,i)=>[i+1,r.date,r.company,r.salesman,r.status,r.visits,r.start,r.end,r.duration]);
+  const headers=['#','Company','Type','Date','Status','Name','Location','Time','Remarks'];
+  const data=SA_reportData.map((r,i)=>[i+1,r.co,r.type,r.date,r.status,r.name,r.location,r.time,r.remarks]);
   try{
     const wb=new ExcelJS.Workbook();
-    await xlsBuildSheet(wb,'All Companies','SunStar Solutions — All Companies Report',`${fromDate} to ${toDate}  |  Total Records: ${data.length}`,headers,data,[5,13,22,22,12,8,12,12,12]);
+    await xlsBuildSheet(wb,'All Companies','SunStar Solutions — All Companies Report',`${fromDate} to ${toDate}  |  Total Records: ${data.length}`,headers,data,[5,22,13,13,10,22,28,10,35]);
     await xlsDownload(wb,`SunStar_AllCompanies_${fromDate}_to_${toDate}`);
     doneLoading(); toast('Excel downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
@@ -3728,22 +3793,22 @@ async function exportSAReportPDF(){
   const toDate=document.getElementById('saReportTo').value;
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF('l','pt','a4');
-  doc.setFontSize(18); doc.setTextColor(239,168,0);
+  doc.setFontSize(16); doc.setTextColor(239,168,0);
   doc.text('SunStar Solutions — All Companies Report',40,40);
-  doc.setFontSize(11); doc.setTextColor(120,130,180);
-  doc.text(`${fromDate} to ${toDate}`,40,60);
+  doc.setFontSize(10); doc.setTextColor(120,130,180);
+  doc.text(`${fromDate} to ${toDate}  |  Records: ${SA_reportData.length}`,40,58);
   doc.autoTable({
-    startY:76,
-    head:[['#','Date','Company','Employee','Status','Visits','Start','End','Duration']],
-    body:SA_reportData.map((r,i)=>[i+1,r.date,r.company,r.salesman,r.status,r.visits,r.start,r.end,r.duration]),
-    styles:{fontSize:8,textColor:[200,210,240],fillColor:[12,18,41]},
+    startY:72,
+    head:[['#','Company','Type','Date','Status','Name','Location','Time','Remarks']],
+    body:SA_reportData.map((r,i)=>[i+1,r.co,r.type,r.date,r.status,r.name,r.location,r.time,r.remarks]),
+    styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41]},
     headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
     alternateRowStyles:{fillColor:[17,26,56]},
-    columnStyles:{0:{halign:'center'},2:{fontStyle:'bold'},5:{halign:'center'}},
+    columnStyles:{4:{fontStyle:'bold'}},
     didParseCell:(d)=>{
       if(d.section==='body'&&d.column.index===4){
-        d.cell.styles.textColor=d.cell.raw==='Present'?[31,209,122]:[255,68,102];
-        d.cell.styles.fontStyle='bold';
+        const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:d.cell.raw==='Pending'?[255,153,0]:[75,159,255];
+        d.cell.styles.textColor=c; d.cell.styles.fontStyle='bold';
       }
     }
   });
@@ -3818,7 +3883,7 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
   const dates=[];
   let cur=new Date(startDate+'T00:00:00');
   const end=new Date(endDate+'T00:00:00');
-  while(cur<=end){ dates.push(cur.toISOString().split('T')[0]); cur.setDate(cur.getDate()+1); }
+  while(cur<=end){ const _y=cur.getFullYear(),_m=String(cur.getMonth()+1).padStart(2,'0'),_d=String(cur.getDate()).padStart(2,'0'); dates.push(`${_y}-${_m}-${_d}`); cur.setDate(cur.getDate()+1); }
   const empList=Object.entries(APP.salesmen).filter(([,u])=>{
     if(u.status==='deleted_by_admin') return false;
     if(typeFilter==='sales') return u.emp_type!=='backoffice';
@@ -3836,8 +3901,8 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
         if(!empUidSet.has(uid)) return;
         const u=APP.salesmen[uid]||{name:'Unknown',emp_type:'sales'};
         const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-        const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}`:'—');
-        const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}`:'—');
+        const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}${att.start_accuracy?` (±${att.start_accuracy}m)`:''}`:' —');
+        const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}${att.end_accuracy?` (±${att.end_accuracy}m)`:''}`:' —');
         if(att.start_time) rows.push({date,status:'In',name:u.name,location:inLoc,time:att.start_time,remarks:'Day Started',type,sort_ts:att.start_timestamp||0});
         if(att.end_time) rows.push({date,status:'Out',name:u.name,location:outLoc,time:att.end_time,remarks:'Day Ended',type,sort_ts:att.end_timestamp||0});
         else if(att.start_time) rows.push({date,status:'Pending',name:u.name,location:'—',time:'—',remarks:'⚠️ Not Checked Out',type,sort_ts:(att.start_timestamp||0)+1});
