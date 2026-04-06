@@ -959,8 +959,8 @@ button{font-family:'DM Sans',sans-serif;}
           </div>
           <div style="overflow-x:auto;">
             <table class="tbl" id="visitTable">
-              <thead><tr><th>Date</th><th>Status</th><th>Name</th><th>Location</th><th>Time</th><th>Remarks</th></tr></thead>
-              <tbody id="visitTbody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--txt-3);">Apply filter and search</td></tr></tbody>
+              <thead><tr><th>Date</th><th>Status</th><th>Name</th><th>Location</th><th>Time</th><th>Outlet</th><th style="min-width:200px;max-width:320px;">Remarks</th></tr></thead>
+              <tbody id="visitTbody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--txt-3);">Apply filter and search</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -2624,7 +2624,7 @@ async function loadHistory(){
             lastHistoryData.push({
               date, status:'In', name:u.name,
               location:inLoc, time:att.start_time,
-              remarks:'Day Started', emp_type:u.emp_type||'sales',
+              outlet:'—', remarks:'Day Started', emp_type:u.emp_type||'sales',
               sort_ts: att.start_timestamp||0
             });
           }
@@ -2632,14 +2632,14 @@ async function loadHistory(){
             lastHistoryData.push({
               date, status:'Out', name:u.name,
               location:outLoc, time:att.end_time,
-              remarks:'Day Ended', emp_type:u.emp_type||'sales',
+              outlet:'—', remarks:'Day Ended', emp_type:u.emp_type||'sales',
               sort_ts: att.end_timestamp||0
             });
           } else if(att.start_time){
             lastHistoryData.push({
               date, status:'Pending', name:u.name,
               location:'—', time:'—',
-              remarks:'⚠️ Not Checked Out', emp_type:u.emp_type||'sales',
+              outlet:'—', remarks:'⚠️ Not Checked Out', emp_type:u.emp_type||'sales',
               sort_ts: (att.start_timestamp||0)+1
             });
           }
@@ -2653,7 +2653,8 @@ async function loadHistory(){
           lastHistoryData.push({
             date, status:'Visit', name:v.salesman_name||'—',
             location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—', time:v.time||'—',
-            remarks:v.outlet+(v.remarks?` — ${v.remarks}`:''),
+            outlet:v.outlet||'—',
+            remarks:v.remarks||'—',
             emp_type:u.emp_type||'sales', sort_ts:v.timestamp||0
           });
         });
@@ -2662,7 +2663,7 @@ async function loadHistory(){
     lastHistoryData.sort((a,b)=>a.sort_ts-b.sort_ts);
     const tbody=document.getElementById('visitTbody');
     if(lastHistoryData.length===0){
-      tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--txt-3);">No records found for this period</td></tr>';
+      tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--txt-3);">No records found for this period</td></tr>';
     } else {
       tbody.innerHTML=lastHistoryData.map(r=>{
         const statusColor=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
@@ -2673,7 +2674,8 @@ async function loadHistory(){
           <td class="tbl-name">${r.name}</td>
           <td style="font-size:12px;color:var(--txt-2);">${r.location}</td>
           <td>${r.time}</td>
-          <td style="font-size:12px;">${r.remarks}</td>
+          <td style="font-size:12px;font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};">${r.outlet}</td>
+          <td style="font-size:12px;max-width:280px;white-space:normal;word-wrap:break-word;line-height:1.5;">${r.remarks}</td>
         </tr>`;
       }).join('');
     }
@@ -2686,11 +2688,16 @@ function exportHistoryExcel(){
   if(lastHistoryData.length===0){ toast('Load history data first','err'); return; }
   loading('Generating Excel...');
   const co=getCompanyName();
-  const headers=['#','Type','Date','Status','Name','Location','Time','Remarks'];
-  const data=lastHistoryData.map((r,i)=>[i+1,r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,r.location,r.time,r.remarks]);
+  const headers=['#','Type','Date','Status','Name','Location','Time','Outlet','Remarks'];
+  const data=lastHistoryData.map((r,i)=>[i+1,r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]);
   const wb=new ExcelJS.Workbook();
-  xlsBuildSheet(wb,'History',`${co} — History Report`,`Records: ${data.length}`,headers,data,[5,13,13,10,22,28,10,35])
-    .then(()=>xlsDownload(wb,`${co}_History_Report`))
+  xlsBuildSheet(wb,'History',`${co} — History Report`,`Records: ${data.length}`,headers,data,[5,13,13,10,22,28,10,22,40])
+    .then(ws=>{
+      // Wrap Remarks column (col 9)
+      ws.getColumn(9).alignment={wrapText:true,vertical:'top'};
+      ws.getColumn(8).alignment={wrapText:false,vertical:'middle'};
+      return xlsDownload(wb,`${co}_History_Report`);
+    })
     .then(()=>{ doneLoading(); toast('Excel downloading!'); })
     .catch(e=>{ doneLoading(); toast('Error: '+e.message,'err'); });
 }
@@ -2707,11 +2714,16 @@ function exportHistoryPDF(){
   doc.text(`Records: ${lastHistoryData.length}`,40,58);
   doc.autoTable({
     startY:72,
-    head:[['#','Type','Date','Status','Name','Location','Time','Remarks']],
-    body:lastHistoryData.map((r,i)=>[i+1,r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,r.location,r.time,r.remarks]),
-    styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41]},
+    head:[['#','Type','Date','Status','Name','Location','Time','Outlet','Remarks']],
+    body:lastHistoryData.map((r,i)=>[i+1,r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]),
+    styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41],overflow:'linebreak',cellPadding:3},
     headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
     alternateRowStyles:{fillColor:[17,26,56]},
+    columnStyles:{
+      3:{fontStyle:'bold'},
+      7:{cellWidth:45},
+      8:{cellWidth:90,overflow:'linebreak'}
+    },
     didParseCell:(d)=>{
       if(d.section==='body'&&d.column.index===3){
         const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:d.cell.raw==='Pending'?[255,153,0]:[75,159,255];
@@ -3259,6 +3271,8 @@ async function xlsBuildSheet(wb, sheetName, title, subtitle, headers, rows, colW
 
   // ── Column widths ──
   if(colWidths) colWidths.forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
+  // Wrap last column (Remarks) by default
+  ws.getColumn(headers.length).alignment={wrapText:true,vertical:'top'};
 
   return ws;
 }
@@ -3719,9 +3733,9 @@ async function loadSAReport(){
           const type=u.emp_type==='backoffice'?'Back Office':'Sales';
           const inLoc=a.start_address||(a.start_lat?`${a.start_lat.toFixed(4)}, ${a.start_lng.toFixed(4)}${a.start_accuracy?` (±${a.start_accuracy}m)`:''}`:'—');
           const outLoc=a.end_address||(a.end_lat?`${a.end_lat.toFixed(4)}, ${a.end_lng.toFixed(4)}${a.end_accuracy?` (±${a.end_accuracy}m)`:''}`:'—');
-          if(a.start_time){ coRows.push({co:co.name,date,type,status:'In',name:u.name,location:inLoc,time:a.start_time,remarks:'Day Started',sort_ts:a.start_timestamp||0}); totalIn++; }
-          if(a.end_time){ coRows.push({co:co.name,date,type,status:'Out',name:u.name,location:outLoc,time:a.end_time,remarks:'Day Ended',sort_ts:a.end_timestamp||0}); }
-          else if(a.start_time){ coRows.push({co:co.name,date,type,status:'Pending',name:u.name,location:'—',time:'—',remarks:'⚠️ Not Checked Out',sort_ts:(a.start_timestamp||0)+1}); totalPending++; }
+          if(a.start_time){ coRows.push({co:co.name,date,type,status:'In',name:u.name,location:inLoc,time:a.start_time,outlet:'—',remarks:'Day Started',sort_ts:a.start_timestamp||0}); totalIn++; }
+          if(a.end_time){ coRows.push({co:co.name,date,type,status:'Out',name:u.name,location:outLoc,time:a.end_time,outlet:'—',remarks:'Day Ended',sort_ts:a.end_timestamp||0}); }
+          else if(a.start_time){ coRows.push({co:co.name,date,type,status:'Pending',name:u.name,location:'—',time:'—',outlet:'—',remarks:'⚠️ Not Checked Out',sort_ts:(a.start_timestamp||0)+1}); totalPending++; }
         });
         // Visit rows
         Object.values(visits).forEach(v=>{
@@ -3729,7 +3743,7 @@ async function loadSAReport(){
           const u=salesmen[v.salesman_uid];
           const type=u.emp_type==='backoffice'?'Back Office':'Sales';
           const loc=v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—';
-          coRows.push({co:co.name,date,type,status:'Visit',name:v.salesman_name||u.name,location:loc,time:v.time||'—',remarks:v.outlet+(v.remarks?` — ${v.remarks}`:''),sort_ts:v.timestamp||0});
+          coRows.push({co:co.name,date,type,status:'Visit',name:v.salesman_name||u.name,location:loc,time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',sort_ts:v.timestamp||0});
           totalVisits++;
         });
       }
@@ -3747,12 +3761,12 @@ async function loadSAReport(){
         </div>
         <div style="overflow-x:auto;">
           <table class="tbl">
-            <thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Name</th><th>Location</th><th>Time</th><th>Remarks</th></tr></thead>
+            <thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Name</th><th>Location</th><th>Time</th><th>Outlet</th><th style="min-width:180px;max-width:280px;">Remarks</th></tr></thead>
             <tbody>
               ${coRows.map(r=>{
                 const sc=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
                 const si=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
-                return `<tr><td>${r.date}</td><td style="font-size:11px;color:var(--txt-2);">${r.type}</td><td><span style="color:${sc};font-weight:700;">${si} ${r.status}</span></td><td class="tbl-name">${r.name}</td><td style="font-size:11px;color:var(--txt-2);">${r.location}</td><td>${r.time}</td><td style="font-size:12px;">${r.remarks}</td></tr>`;
+                return `<tr><td>${r.date}</td><td style="font-size:11px;color:var(--txt-2);">${r.type}</td><td><span style="color:${sc};font-weight:700;">${si} ${r.status}</span></td><td class="tbl-name">${r.name}</td><td style="font-size:11px;color:var(--txt-2);">${r.location}</td><td>${r.time}</td><td style="font-size:12px;font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};">${r.outlet}</td><td style="font-size:12px;max-width:280px;white-space:normal;word-wrap:break-word;line-height:1.5;">${r.remarks}</td></tr>`;
               }).join('')}
             </tbody>
           </table>
@@ -3776,11 +3790,13 @@ async function exportSAReportExcel(){
   loading('Generating Excel...');
   const fromDate=document.getElementById('saReportFrom').value;
   const toDate=document.getElementById('saReportTo').value;
-  const headers=['#','Company','Type','Date','Status','Name','Location','Time','Remarks'];
-  const data=SA_reportData.map((r,i)=>[i+1,r.co,r.type,r.date,r.status,r.name,r.location,r.time,r.remarks]);
+  const headers=['#','Company','Type','Date','Status','Name','Location','Time','Outlet','Remarks'];
+  const data=SA_reportData.map((r,i)=>[i+1,r.co,r.type,r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]);
   try{
     const wb=new ExcelJS.Workbook();
-    await xlsBuildSheet(wb,'All Companies','SunStar Solutions — All Companies Report',`${fromDate} to ${toDate}  |  Total Records: ${data.length}`,headers,data,[5,22,13,13,10,22,28,10,35]);
+    await xlsBuildSheet(wb,'All Companies','SunStar Solutions — All Companies Report',`${fromDate} to ${toDate}  |  Total Records: ${data.length}`,headers,data,[5,22,13,13,10,22,28,10,22,40]);
+    const ws=wb.getWorksheet('All Companies');
+    ws.getColumn(10).alignment={wrapText:true,vertical:'top'};
     await xlsDownload(wb,`SunStar_AllCompanies_${fromDate}_to_${toDate}`);
     doneLoading(); toast('Excel downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
@@ -3799,12 +3815,16 @@ async function exportSAReportPDF(){
   doc.text(`${fromDate} to ${toDate}  |  Records: ${SA_reportData.length}`,40,58);
   doc.autoTable({
     startY:72,
-    head:[['#','Company','Type','Date','Status','Name','Location','Time','Remarks']],
-    body:SA_reportData.map((r,i)=>[i+1,r.co,r.type,r.date,r.status,r.name,r.location,r.time,r.remarks]),
-    styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41]},
+    head:[['#','Company','Type','Date','Status','Name','Location','Time','Outlet','Remarks']],
+    body:SA_reportData.map((r,i)=>[i+1,r.co,r.type,r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]),
+    styles:{fontSize:6.5,textColor:[200,210,240],fillColor:[12,18,41],overflow:'linebreak',cellPadding:3},
     headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
     alternateRowStyles:{fillColor:[17,26,56]},
-    columnStyles:{4:{fontStyle:'bold'}},
+    columnStyles:{
+      4:{fontStyle:'bold'},
+      8:{cellWidth:40},
+      9:{cellWidth:80,overflow:'linebreak'}
+    },
     didParseCell:(d)=>{
       if(d.section==='body'&&d.column.index===4){
         const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:d.cell.raw==='Pending'?[255,153,0]:[75,159,255];
@@ -3833,10 +3853,12 @@ async function exportRptHistExcel(){
     const rows=await buildHistoryRows(startDate, endDate, typeFilter);
     if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
     const co=getCompanyName();
-    const headers=['#','Type','Date','Status','Name','Location','Time','Remarks'];
-    const data=rows.map((r,i)=>[i+1,r.type,r.date,r.status,r.name,r.location,r.time,r.remarks]);
+    const headers=['#','Type','Date','Status','Name','Location','Time','Outlet','Remarks'];
+    const data=rows.map((r,i)=>[i+1,r.type,r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]);
     const wb=new ExcelJS.Workbook();
-    await xlsBuildSheet(wb,'History',`${co} — History Report`,`${startDate} to ${endDate}  |  Records: ${rows.length}`,headers,data,[5,13,13,10,22,28,10,35]);
+    await xlsBuildSheet(wb,'History',`${co} — History Report`,`${startDate} to ${endDate}  |  Records: ${rows.length}`,headers,data,[5,13,13,10,22,28,10,22,40]);
+    const ws=wb.getWorksheet('History');
+    ws.getColumn(9).alignment={wrapText:true,vertical:'top'};
     await xlsDownload(wb,`${co}_History_${startDate}_${endDate}`);
     doneLoading(); toast('History Excel downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
@@ -3860,12 +3882,16 @@ async function exportRptHistPDF(){
     doc.text(`${startDate} to ${endDate}  |  Records: ${rows.length}`,40,58);
     doc.autoTable({
       startY:72,
-      head:[['#','Type','Date','Status','Name','Location','Time','Remarks']],
-      body:rows.map((r,i)=>[i+1,r.type,r.date,r.status,r.name,r.location,r.time,r.remarks]),
-      styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41]},
+      head:[['#','Type','Date','Status','Name','Location','Time','Outlet','Remarks']],
+      body:rows.map((r,i)=>[i+1,r.type,r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]),
+      styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41],overflow:'linebreak',cellPadding:3},
       headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
       alternateRowStyles:{fillColor:[17,26,56]},
-      columnStyles:{3:{fontStyle:'bold'}},
+      columnStyles:{
+        3:{fontStyle:'bold'},
+        7:{cellWidth:45},
+        8:{cellWidth:90,overflow:'linebreak'}
+      },
       didParseCell:(d)=>{
         if(d.section==='body'&&d.column.index===3){
           const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:d.cell.raw==='Pending'?[255,153,0]:[75,159,255];
@@ -3903,9 +3929,9 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
         const type=u.emp_type==='backoffice'?'Back Office':'Sales';
         const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}${att.start_accuracy?` (±${att.start_accuracy}m)`:''}`:' —');
         const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}${att.end_accuracy?` (±${att.end_accuracy}m)`:''}`:' —');
-        if(att.start_time) rows.push({date,status:'In',name:u.name,location:inLoc,time:att.start_time,remarks:'Day Started',type,sort_ts:att.start_timestamp||0});
-        if(att.end_time) rows.push({date,status:'Out',name:u.name,location:outLoc,time:att.end_time,remarks:'Day Ended',type,sort_ts:att.end_timestamp||0});
-        else if(att.start_time) rows.push({date,status:'Pending',name:u.name,location:'—',time:'—',remarks:'⚠️ Not Checked Out',type,sort_ts:(att.start_timestamp||0)+1});
+        if(att.start_time) rows.push({date,status:'In',name:u.name,location:inLoc,time:att.start_time,outlet:'—',remarks:'Day Started',type,sort_ts:att.start_timestamp||0});
+        if(att.end_time) rows.push({date,status:'Out',name:u.name,location:outLoc,time:att.end_time,outlet:'—',remarks:'Day Ended',type,sort_ts:att.end_timestamp||0});
+        else if(att.start_time) rows.push({date,status:'Pending',name:u.name,location:'—',time:'—',outlet:'—',remarks:'⚠️ Not Checked Out',type,sort_ts:(att.start_timestamp||0)+1});
       });
     }
     if(vSnap.exists()){
@@ -3913,7 +3939,7 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
         if(!empUidSet.has(v.salesman_uid)) return;
         const u=APP.salesmen[v.salesman_uid]||{emp_type:'sales'};
         const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-        rows.push({date,status:'Visit',name:v.salesman_name||'—',location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',remarks:v.outlet+(v.remarks?` — ${v.remarks}`:''),type,sort_ts:v.timestamp||0});
+        rows.push({date,status:'Visit',name:v.salesman_name||'—',location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',type,sort_ts:v.timestamp||0});
       });
     }
   }
