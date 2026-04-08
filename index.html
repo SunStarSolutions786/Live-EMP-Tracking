@@ -348,29 +348,25 @@ button{font-family:'DM Sans',sans-serif;}
 .btn-exp:hover{color:var(--gold);border-color:rgba(239,168,0,0.35);background:var(--gold-dim);}
 .tbl{width:100%;border-collapse:collapse;}
 .tbl th{
-  padding:11px 14px;text-align:left;font-size:10px;font-weight:700;
+  padding:10px 14px;text-align:left;font-size:10px;font-weight:700;
   color:var(--txt-3);text-transform:uppercase;letter-spacing:1px;
   border-bottom:1px solid var(--border);white-space:nowrap;
 }
 .tbl td{
-  padding:11px 14px;font-size:13px;color:var(--txt-2);
+  padding:10px 14px;font-size:13px;color:var(--txt-2);
   border-bottom:1px solid rgba(26,40,80,0.5);
-  white-space:nowrap;max-width:0;
+  white-space:nowrap;
 }
 .tbl tr:last-child td{border-bottom:none;}
 .tbl tr:hover td{background:rgba(255,255,255,0.02);color:var(--txt);}
 .tbl td[title]{cursor:default;}
-/* Short fixed cols — never truncate */
-.tbl td.c-date {width:90px;min-width:90px;max-width:90px;}
-.tbl td.c-stat {width:88px;min-width:88px;max-width:92px;}
-.tbl td.c-time {width:80px;min-width:80px;max-width:80px;}
-.tbl td.c-type {width:82px;min-width:82px;max-width:90px;font-size:11px;color:var(--txt-2);}
-/* Long cols — allow truncation with ellipsis */
-.tbl td.c-name {width:100px;min-width:80px;overflow:hidden;text-overflow:ellipsis;}
-.tbl td.c-outlet{width:110px;min-width:80px;overflow:hidden;text-overflow:ellipsis;}
-.tbl td.c-rmk  {min-width:100px;overflow:hidden;text-overflow:ellipsis;}
+/* Remarks col only — fixed max width, truncate with ellipsis */
+.tbl td.c-rmk{
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  max-width:260px;min-width:80px;
+}
 .tbl-name{font-weight:700;color:var(--txt)!important;}
-/* col-width classes defined in .tbl td.c-* above */
+/* pill styles below */
 .pill-ok{
   display:inline-flex;align-items:center;gap:4px;
   background:rgba(31,209,122,0.1);border:1px solid rgba(31,209,122,0.2);
@@ -1642,6 +1638,15 @@ async function initApp(){
       const snap=await db.ref(`users/${user.uid}`).get();
       if(!snap.exists()){ await auth.signOut(); doneLoading(); hideAll(); show('loginScreen'); return; }
       APP.user=user; APP.userData=snap.val();
+      // Block inactive or deleted employees from logging in
+      const st=APP.userData.status;
+      if(APP.userData.role==='salesman' && (st==='inactive'||st==='deleted_by_admin')){
+        await auth.signOut();
+        doneLoading(); hideAll(); show('loginScreen');
+        const errEl=document.getElementById('loginErr');
+        if(errEl){ errEl.textContent='This account has been deactivated. Please contact your admin.'; errEl.style.display='block'; }
+        return;
+      }
       APP.companyId=APP.userData.company_id||null;
       hideAll();
       if(APP.userData.role==='super_admin') await initSuperAdmin();
@@ -1699,6 +1704,8 @@ async function doLogout(){
 /* ════ FIREBASE AUTH MANAGEMENT ════ */
 async function authAction(uid, action){
   // action: 'disable' | 'enable' | 'delete'
+  // NOTE: disable/enable via Firebase REST API requires OAuth admin token — not supported here.
+  // Instead we rely on DB status field checked at login time.
   const cfg=JSON.parse(localStorage.getItem('ss_config'));
   const apiKey=cfg.apiKey;
   if(action==='delete'){
@@ -1708,14 +1715,8 @@ async function authAction(uid, action){
     });
     const d=await res.json();
     if(d.error) throw new Error(d.error.message);
-  } else {
-    const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:update?key=${apiKey}`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({localId:uid, disableUser: action==='disable'})
-    });
-    const d=await res.json();
-    if(d.error) throw new Error(d.error.message);
   }
+  // disable/enable: no-op here — DB status field is the source of truth
 }
 
 /* ════════════════════════════════════════════════
@@ -2572,10 +2573,10 @@ async function loadOverview(){
     const si=e.status==='In'?'🟢':e.status==='Out'?'🔴':e.status==='Pending'?'⚠️':'📍';
     const plainDetails=e.details.replace(/🏪\s*/,'');
     return `<tr>
-      <td class="c-stat"><span style="color:${sc};font-weight:700;">${si} ${e.status}</span></td>
-      <td class="tbl-name c-name" title="${e.rawName||''}">${e.name}</td>
+      <td><span style="color:${sc};font-weight:700;">${si} ${e.status}</span></td>
+      <td class="tbl-name" title="${e.rawName||''}">${e.name}</td>
       <td class="c-rmk" style="font-size:12px;" title="${plainDetails}">${e.details}</td>
-      <td class="c-time">${e.time}</td>
+      <td>${e.time}</td>
     </tr>`;
   }).join('');
 }
@@ -2703,11 +2704,11 @@ async function loadHistory(){
         const statusIcon=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
         const fullTip=`${r.name} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
         return `<tr title="${fullTip}">
-          <td class="c-date">${r.date}</td>
-          <td class="c-stat"><span style="color:${statusColor};font-weight:700;">${statusIcon} ${r.status}</span></td>
-          <td class="tbl-name c-name" title="${r.name}">${r.name}</td>
-          <td class="c-time">${r.time}</td>
-          <td class="c-outlet" style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
+          <td>${r.date}</td>
+          <td><span style="color:${statusColor};font-weight:700;">${statusIcon} ${r.status}</span></td>
+          <td class="tbl-name" title="${r.name}">${r.name}</td>
+          <td>${r.time}</td>
+          <td style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
           <td class="c-rmk" title="${r.remarks}">${r.remarks}</td>
         </tr>`;
       }).join('');
@@ -3838,12 +3839,12 @@ async function loadSAReport(){
                 const si=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
                 const tip=`${r.name} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
                 return `<tr title="${tip}">
-                  <td class="c-date">${r.date}</td>
-                  <td class="c-type" title="${r.type}">${r.type}</td>
-                  <td class="c-stat"><span style="color:${sc};font-weight:700;">${si} ${r.status}</span></td>
-                  <td class="tbl-name c-name" title="${r.name}">${r.name}</td>
-                  <td class="c-time">${r.time}</td>
-                  <td class="c-outlet" style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
+                  <td>${r.date}</td>
+                  <td style="font-size:11px;color:var(--txt-2);">${r.type}</td>
+                  <td><span style="color:${sc};font-weight:700;">${si} ${r.status}</span></td>
+                  <td class="tbl-name" title="${r.name}">${r.name}</td>
+                  <td>${r.time}</td>
+                  <td style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
                   <td class="c-rmk" title="${r.remarks}">${r.remarks}</td>
                 </tr>`;
               }).join('')}
