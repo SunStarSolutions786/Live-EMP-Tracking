@@ -346,31 +346,31 @@ button{font-family:'DM Sans',sans-serif;}
   font-weight:600;cursor:pointer;transition:all .25s;
 }
 .btn-exp:hover{color:var(--gold);border-color:rgba(239,168,0,0.35);background:var(--gold-dim);}
-.tbl{width:100%;border-collapse:collapse;table-layout:fixed;}
+.tbl{width:100%;border-collapse:collapse;}
 .tbl th{
   padding:11px 14px;text-align:left;font-size:10px;font-weight:700;
   color:var(--txt-3);text-transform:uppercase;letter-spacing:1px;
-  border-bottom:1px solid var(--border);white-space:nowrap;overflow:hidden;
+  border-bottom:1px solid var(--border);white-space:nowrap;
 }
 .tbl td{
   padding:11px 14px;font-size:13px;color:var(--txt-2);
   border-bottom:1px solid rgba(26,40,80,0.5);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:0;
+  white-space:nowrap;max-width:0;
 }
 .tbl tr:last-child td{border-bottom:none;}
 .tbl tr:hover td{background:rgba(255,255,255,0.02);color:var(--txt);}
-.tbl td[title]:hover{cursor:default;}
+.tbl td[title]{cursor:default;}
+/* Short fixed cols — never truncate */
+.tbl td.c-date {width:90px;min-width:90px;max-width:90px;}
+.tbl td.c-stat {width:88px;min-width:88px;max-width:92px;}
+.tbl td.c-time {width:80px;min-width:80px;max-width:80px;}
+.tbl td.c-type {width:82px;min-width:82px;max-width:90px;font-size:11px;color:var(--txt-2);}
+/* Long cols — allow truncation with ellipsis */
+.tbl td.c-name {width:100px;min-width:80px;overflow:hidden;text-overflow:ellipsis;}
+.tbl td.c-outlet{width:110px;min-width:80px;overflow:hidden;text-overflow:ellipsis;}
+.tbl td.c-rmk  {min-width:100px;overflow:hidden;text-overflow:ellipsis;}
 .tbl-name{font-weight:700;color:var(--txt)!important;}
-/* Fixed column widths for history/SA tables */
-.col-num   {width:32px;}
-.col-date  {width:90px;}
-.col-type  {width:85px;}
-.col-status{width:90px;}   /* In / Out / Visit / Pending */
-.col-name  {width:100px;}
-.col-loc   {width:155px;}
-.col-time  {width:82px;}
-.col-outlet{width:120px;}
-.col-remarks{width:auto;min-width:100px;}
+/* col-width classes defined in .tbl td.c-* above */
 .pill-ok{
   display:inline-flex;align-items:center;gap:4px;
   background:rgba(31,209,122,0.1);border:1px solid rgba(31,209,122,0.2);
@@ -923,10 +923,12 @@ button{font-family:'DM Sans',sans-serif;}
         <div class="tc">
           <div class="tc-hd"><div class="tc-title">⚡ Today's Activity</div></div>
           <table class="tbl">
-            <colgroup>
-              <col style="width:90px"><col style="width:120px"><col><col style="width:75px">
-            </colgroup>
-            <thead><tr><th>Status</th><th>Employee</th><th>Details</th><th>Time</th></tr></thead>
+            <thead><tr>
+              <th style="width:88px;">Status</th>
+              <th style="width:110px;">Employee</th>
+              <th>Details</th>
+              <th style="width:80px;">Time</th>
+            </tr></thead>
             <tbody id="recentTbody"><tr><td colspan="4" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">No activity today yet</td></tr></tbody>
           </table>
         </div>
@@ -974,11 +976,14 @@ button{font-family:'DM Sans',sans-serif;}
           </div>
           <div style="overflow-x:auto;">
             <table class="tbl" id="visitTable">
-              <colgroup>
-                <col class="col-date"><col class="col-status"><col class="col-name">
-                <col class="col-time"><col class="col-outlet"><col class="col-remarks">
-              </colgroup>
-              <thead><tr><th>Date</th><th>Status</th><th>Name</th><th>Time</th><th>Outlet</th><th>Remarks</th></tr></thead>
+              <thead><tr>
+                <th style="width:90px;">Date</th>
+                <th style="width:88px;">Status</th>
+                <th style="width:100px;">Name</th>
+                <th style="width:80px;">Time</th>
+                <th style="width:110px;">Outlet</th>
+                <th>Remarks</th>
+              </tr></thead>
               <tbody id="visitTbody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">Apply filter and search</td></tr></tbody>
             </table>
           </div>
@@ -2567,10 +2572,10 @@ async function loadOverview(){
     const si=e.status==='In'?'🟢':e.status==='Out'?'🔴':e.status==='Pending'?'⚠️':'📍';
     const plainDetails=e.details.replace(/🏪\s*/,'');
     return `<tr>
-      <td><span style="color:${sc};font-weight:700;" title="${e.status}">${si} ${e.status}</span></td>
-      <td class="tbl-name" title="${e.rawName||''}">${e.name}</td>
-      <td style="font-size:12px;" title="${plainDetails}">${e.details}</td>
-      <td style="white-space:nowrap;" title="${e.time}">${e.time}</td>
+      <td class="c-stat"><span style="color:${sc};font-weight:700;">${si} ${e.status}</span></td>
+      <td class="tbl-name c-name" title="${e.rawName||''}">${e.name}</td>
+      <td class="c-rmk" style="font-size:12px;" title="${plainDetails}">${e.details}</td>
+      <td class="c-time">${e.time}</td>
     </tr>`;
   }).join('');
 }
@@ -2696,14 +2701,14 @@ async function loadHistory(){
       tbody.innerHTML=lastHistoryData.map(r=>{
         const statusColor=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
         const statusIcon=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
-        const fullTooltip=`${r.name} | ${r.status} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
-        return `<tr title="${fullTooltip}">
-          <td title="${r.date}">${r.date}</td>
-          <td><span style="color:${statusColor};font-weight:700;" title="${r.status}">${statusIcon} ${r.status}</span></td>
-          <td class="tbl-name" title="${r.name}">${r.name}</td>
-          <td title="${r.time}">${r.time}</td>
-          <td style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
-          <td style="color:var(--txt-2);" title="${r.remarks}">${r.remarks}</td>
+        const fullTip=`${r.name} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
+        return `<tr title="${fullTip}">
+          <td class="c-date">${r.date}</td>
+          <td class="c-stat"><span style="color:${statusColor};font-weight:700;">${statusIcon} ${r.status}</span></td>
+          <td class="tbl-name c-name" title="${r.name}">${r.name}</td>
+          <td class="c-time">${r.time}</td>
+          <td class="c-outlet" style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
+          <td class="c-rmk" title="${r.remarks}">${r.remarks}</td>
         </tr>`;
       }).join('');
     }
@@ -2719,7 +2724,7 @@ function exportHistoryExcel(){
   const headers=['#','Type','Date','Status','Name','Location','Time','Outlet','Remarks'];
   const data=lastHistoryData.map((r,i)=>[i+1,r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]);
   const wb=new ExcelJS.Workbook();
-  xlsBuildSheet(wb,'History',`${co} — History Report`,`Records: ${data.length}`,headers,data,[5,13,13,10,22,28,10,22,40])
+  xlsBuildSheet(wb,'History',`${co} — History Report`,`Records: ${data.length}`,headers,data,[4,12,12,12,20,26,10,20,45])
     .then(ws=>{
       // Wrap Remarks column (col 9)
       ws.getColumn(9).alignment={wrapText:true,vertical:'top'};
@@ -3326,6 +3331,10 @@ async function xlsBuildSheet(wb, sheetName, title, subtitle, headers, rows, colW
   if(colWidths) colWidths.forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
   // Wrap last column (Remarks) by default
   ws.getColumn(headers.length).alignment={wrapText:true,vertical:'top'};
+  // Freeze header rows (rows 1-5)
+  ws.views=[{state:'frozen',xSplit:0,ySplit:5,topLeftCell:'A6',activeCell:'A6'}];
+  // Auto-filter on header row
+  ws.autoFilter={from:{row:5,column:1},to:{row:5,column:headers.length}};
 
   return ws;
 }
@@ -3814,24 +3823,28 @@ async function loadSAReport(){
         </div>
         <div style="overflow-x:auto;">
           <table class="tbl">
-            <colgroup>
-              <col class="col-date"><col class="col-type"><col class="col-status"><col class="col-name">
-              <col class="col-time"><col class="col-outlet"><col class="col-remarks">
-            </colgroup>
-            <thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Name</th><th>Time</th><th>Outlet</th><th>Remarks</th></tr></thead>
+            <thead><tr>
+              <th style="width:90px;">Date</th>
+              <th style="width:82px;">Type</th>
+              <th style="width:88px;">Status</th>
+              <th style="width:100px;">Name</th>
+              <th style="width:80px;">Time</th>
+              <th style="width:110px;">Outlet</th>
+              <th>Remarks</th>
+            </tr></thead>
             <tbody>
               ${coRows.map(r=>{
                 const sc=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
                 const si=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
-                const tip=`${r.name} | ${r.status} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
+                const tip=`${r.name} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
                 return `<tr title="${tip}">
-                  <td title="${r.date}">${r.date}</td>
-                  <td style="font-size:11px;color:var(--txt-2);" title="${r.type}">${r.type}</td>
-                  <td><span style="color:${sc};font-weight:700;" title="${r.status}">${si} ${r.status}</span></td>
-                  <td class="tbl-name" title="${r.name}">${r.name}</td>
-                  <td title="${r.time}">${r.time}</td>
-                  <td style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
-                  <td style="color:var(--txt-2);" title="${r.remarks}">${r.remarks}</td>
+                  <td class="c-date">${r.date}</td>
+                  <td class="c-type" title="${r.type}">${r.type}</td>
+                  <td class="c-stat"><span style="color:${sc};font-weight:700;">${si} ${r.status}</span></td>
+                  <td class="tbl-name c-name" title="${r.name}">${r.name}</td>
+                  <td class="c-time">${r.time}</td>
+                  <td class="c-outlet" style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
+                  <td class="c-rmk" title="${r.remarks}">${r.remarks}</td>
                 </tr>`;
               }).join('')}
             </tbody>
@@ -3860,7 +3873,7 @@ async function exportSAReportExcel(){
   const data=SA_reportData.map((r,i)=>[i+1,r.co,r.type,r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]);
   try{
     const wb=new ExcelJS.Workbook();
-    await xlsBuildSheet(wb,'All Companies','SunStar Solutions — All Companies Report',`${fromDate} to ${toDate}  |  Total Records: ${data.length}`,headers,data,[5,22,13,13,10,22,28,10,22,40]);
+    await xlsBuildSheet(wb,'All Companies','SunStar Solutions — All Companies Report',`${fromDate} to ${toDate}  |  Total Records: ${data.length}`,headers,data,[4,22,12,12,12,20,26,10,20,45]);
     const ws=wb.getWorksheet('All Companies');
     ws.getColumn(10).alignment={wrapText:true,vertical:'top'};
     await xlsDownload(wb,`SunStar_AllCompanies_${fromDate}_to_${toDate}`);
@@ -3922,7 +3935,7 @@ async function exportRptHistExcel(){
     const headers=['#','Type','Date','Status','Name','Location','Time','Outlet','Remarks'];
     const data=rows.map((r,i)=>[i+1,r.type,r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]);
     const wb=new ExcelJS.Workbook();
-    await xlsBuildSheet(wb,'History',`${co} — History Report`,`${startDate} to ${endDate}  |  Records: ${rows.length}`,headers,data,[5,13,13,10,22,28,10,22,40]);
+    await xlsBuildSheet(wb,'History',`${co} — History Report`,`${startDate} to ${endDate}  |  Records: ${rows.length}`,headers,data,[4,12,12,12,20,26,10,20,45]);
     const ws=wb.getWorksheet('History');
     ws.getColumn(9).alignment={wrapText:true,vertical:'top'};
     await xlsDownload(wb,`${co}_History_${startDate}_${endDate}`);
