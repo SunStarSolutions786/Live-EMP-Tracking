@@ -362,17 +362,15 @@ button{font-family:'DM Sans',sans-serif;}
 .tbl td[title]:hover{cursor:default;}
 .tbl-name{font-weight:700;color:var(--txt)!important;}
 /* Fixed column widths for history/SA tables */
-.col-date{width:96px;}
-.col-type{width:88px;}
-.col-status{width:82px;}
-.col-name{width:110px;}
-.col-loc{width:160px;}
-.col-time{width:80px;}
-.col-outlet{width:130px;}
-.col-remarks{width:auto;min-width:120px;}
-.col-num{width:36px;text-align:center;}
-/* Overview card label always visible */
-/* col-width classes defined above */
+.col-num   {width:32px;}
+.col-date  {width:90px;}
+.col-type  {width:85px;}
+.col-status{width:90px;}   /* In / Out / Visit / Pending */
+.col-name  {width:100px;}
+.col-loc   {width:155px;}
+.col-time  {width:82px;}
+.col-outlet{width:120px;}
+.col-remarks{width:auto;min-width:100px;}
 .pill-ok{
   display:inline-flex;align-items:center;gap:4px;
   background:rgba(31,209,122,0.1);border:1px solid rgba(31,209,122,0.2);
@@ -926,7 +924,7 @@ button{font-family:'DM Sans',sans-serif;}
           <div class="tc-hd"><div class="tc-title">⚡ Today's Activity</div></div>
           <table class="tbl">
             <colgroup>
-              <col style="width:88px"><col style="width:130px"><col><col style="width:80px">
+              <col style="width:90px"><col style="width:120px"><col><col style="width:75px">
             </colgroup>
             <thead><tr><th>Status</th><th>Employee</th><th>Details</th><th>Time</th></tr></thead>
             <tbody id="recentTbody"><tr><td colspan="4" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">No activity today yet</td></tr></tbody>
@@ -978,10 +976,10 @@ button{font-family:'DM Sans',sans-serif;}
             <table class="tbl" id="visitTable">
               <colgroup>
                 <col class="col-date"><col class="col-status"><col class="col-name">
-                <col class="col-loc"><col class="col-time"><col class="col-outlet"><col class="col-remarks">
+                <col class="col-time"><col class="col-outlet"><col class="col-remarks">
               </colgroup>
-              <thead><tr><th>Date</th><th>Status</th><th>Name</th><th>Location</th><th>Time</th><th>Outlet</th><th>Remarks</th></tr></thead>
-              <tbody id="visitTbody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">Apply filter and search</td></tr></tbody>
+              <thead><tr><th>Date</th><th>Status</th><th>Name</th><th>Time</th><th>Outlet</th><th>Remarks</th></tr></thead>
+              <tbody id="visitTbody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">Apply filter and search</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1046,7 +1044,7 @@ button{font-family:'DM Sans',sans-serif;}
         </div>
 
         <!-- Score Legend -->
-        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
           <div style="display:flex;align-items:center;gap:7px;background:rgba(239,168,0,0.1);border:1px solid rgba(239,168,0,0.25);border-radius:20px;padding:5px 14px;">
             <span style="font-size:16px;">🏆</span><span style="font-size:13px;font-weight:600;color:var(--gold);">90-100 Excellent</span>
           </div>
@@ -1058,6 +1056,14 @@ button{font-family:'DM Sans',sans-serif;}
           </div>
           <div style="display:flex;align-items:center;gap:7px;background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.25);border-radius:20px;padding:5px 14px;">
             <span style="font-size:16px;">⚠️</span><span style="font-size:13px;font-weight:600;color:var(--err);">Below 60 Needs Improvement</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:18px;">
+          <div style="font-size:12px;color:var(--txt-2);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 14px;">
+            📊 <b style="color:var(--info);">Sales:</b> Attendance 40 + Visit Activity 35 + Duration 25 = 100
+          </div>
+          <div style="font-size:12px;color:var(--txt-2);background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 14px;">
+            🏢 <b style="color:var(--ok);">Back Office:</b> Attendance 60 + Duration 40 = 100
           </div>
         </div>
 
@@ -2559,11 +2565,12 @@ async function loadOverview(){
   tbody.innerHTML=events.slice(0,20).map(e=>{
     const sc=e.status==='In'?'var(--ok)':e.status==='Out'?'var(--err)':e.status==='Pending'?'#FF9900':'var(--info)';
     const si=e.status==='In'?'🟢':e.status==='Out'?'🔴':e.status==='Pending'?'⚠️':'📍';
+    const plainDetails=e.details.replace(/🏪\s*/,'');
     return `<tr>
-      <td><span style="color:${sc};font-weight:700;">${si} ${e.status}</span></td>
+      <td><span style="color:${sc};font-weight:700;" title="${e.status}">${si} ${e.status}</span></td>
       <td class="tbl-name" title="${e.rawName||''}">${e.name}</td>
-      <td style="font-size:12px;" title="${e.details.replace(/🏪\s*/,'')}">${e.details}</td>
-      <td>${e.time}</td>
+      <td style="font-size:12px;" title="${plainDetails}">${e.details}</td>
+      <td style="white-space:nowrap;" title="${e.time}">${e.time}</td>
     </tr>`;
   }).join('');
 }
@@ -2689,12 +2696,12 @@ async function loadHistory(){
       tbody.innerHTML=lastHistoryData.map(r=>{
         const statusColor=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
         const statusIcon=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
-        return `<tr>
+        const fullTooltip=`${r.name} | ${r.status} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
+        return `<tr title="${fullTooltip}">
           <td title="${r.date}">${r.date}</td>
-          <td><span style="color:${statusColor};font-weight:700;">${statusIcon} ${r.status}</span></td>
+          <td><span style="color:${statusColor};font-weight:700;" title="${r.status}">${statusIcon} ${r.status}</span></td>
           <td class="tbl-name" title="${r.name}">${r.name}</td>
-          <td style="font-size:12px;color:var(--txt-2);" title="${r.location}">${r.location}</td>
-          <td>${r.time}</td>
+          <td title="${r.time}">${r.time}</td>
           <td style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
           <td style="color:var(--txt-2);" title="${r.remarks}">${r.remarks}</td>
         </tr>`;
@@ -3045,25 +3052,35 @@ async function loadPerformance(){
       // Working days so far this month
       const workingDays=Math.min(daysInMonth, today.getMonth()===month&&today.getFullYear()===year ? today.getDate() : daysInMonth);
 
-      // Score calculation (no target)
-      // Attendance: 40pts
-      const attScore=workingDays>0?Math.min(40, Math.round((presentDays/workingDays)*40)):0;
+      const isBO=u.emp_type==='backoffice';
 
-      // Visit activity: 35pts — based on visits per present day (benchmark: 8 visits/day = full score)
-      const visitsPerDay=presentDays>0?(totalVisits/presentDays):0;
-      const visitScore=Math.min(35, Math.round((visitsPerDay/8)*35));
-
-      // Duration: 25pts — average hours per present day (benchmark: 8h = full score)
-      const avgHours=durationDays>0?(totalDurationMs/durationDays/3600000):0;
-      const durScore=Math.min(25, Math.round((avgHours/8)*25));
-
-      const total=attScore+visitScore+durScore;
-
-      return {
-        uid, name:u.name, email:u.email||'',
-        presentDays, workingDays, totalVisits, visitsPerDay,
-        avgHours, attScore, visitScore, durScore, total
-      };
+      if(isBO){
+        // ── Back Office scoring: Attendance 60pts + Duration 40pts (no visits) ──
+        const attScore=workingDays>0?Math.min(60, Math.round((presentDays/workingDays)*60)):0;
+        const avgHours=durationDays>0?(totalDurationMs/durationDays/3600000):0;
+        const durScore=Math.min(40, Math.round((avgHours/8)*40));
+        const total=attScore+durScore;
+        return {
+          uid, name:u.name, email:u.email||'', empType:'backoffice',
+          presentDays, workingDays, totalVisits:0, visitsPerDay:0,
+          avgHours, attScore, visitScore:0, durScore, total,
+          attMax:60, visitMax:0, durMax:40
+        };
+      } else {
+        // ── Sales scoring: Attendance 40pts + Visit 35pts + Duration 25pts ──
+        const attScore=workingDays>0?Math.min(40, Math.round((presentDays/workingDays)*40)):0;
+        const visitsPerDay=presentDays>0?(totalVisits/presentDays):0;
+        const visitScore=Math.min(35, Math.round((visitsPerDay/8)*35));
+        const avgHours=durationDays>0?(totalDurationMs/durationDays/3600000):0;
+        const durScore=Math.min(25, Math.round((avgHours/8)*25));
+        const total=attScore+visitScore+durScore;
+        return {
+          uid, name:u.name, email:u.email||'', empType:'sales',
+          presentDays, workingDays, totalVisits, visitsPerDay,
+          avgHours, attScore, visitScore, durScore, total,
+          attMax:40, visitMax:35, durMax:25
+        };
+      }
     }));
 
     // Sort by score descending
@@ -3079,6 +3096,37 @@ async function loadPerformance(){
       const rankColors=['#EFA800','#A8B0C0','#CD7F32'];
       const rankBg=i<3?rankColors[i]:'var(--border)';
       const avgH=Math.floor(r.avgHours), avgM=Math.round((r.avgHours%1)*60);
+      const isBO=r.empType==='backoffice';
+      const deptBadge=isBO
+        ?`<span style="font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(31,209,122,0.1);color:var(--ok);font-weight:700;margin-left:8px;">Back Office</span>`
+        :`<span style="font-size:10px;padding:2px 8px;border-radius:8px;background:rgba(75,159,255,0.1);color:var(--info);font-weight:700;margin-left:8px;">Sales</span>`;
+
+      const scoreBars=isBO?`
+        <div class="score-bar-row">
+          <div class="score-bar-label">📅 Attendance</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${(r.attScore/r.attMax)*100}%;background:#EFA800;"></div></div>
+          <div class="score-bar-pts">${r.attScore}/${r.attMax}</div>
+        </div>
+        <div class="score-bar-row">
+          <div class="score-bar-label">⏱️ Duration</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${(r.durScore/r.durMax)*100}%;background:#1FD17A;"></div></div>
+          <div class="score-bar-pts">${r.durScore}/${r.durMax}</div>
+        </div>`:`
+        <div class="score-bar-row">
+          <div class="score-bar-label">📅 Attendance</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${(r.attScore/r.attMax)*100}%;background:#EFA800;"></div></div>
+          <div class="score-bar-pts">${r.attScore}/${r.attMax}</div>
+        </div>
+        <div class="score-bar-row">
+          <div class="score-bar-label">📍 Visit Activity</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${(r.visitScore/r.visitMax)*100}%;background:#4B9FFF;"></div></div>
+          <div class="score-bar-pts">${r.visitScore}/${r.visitMax}</div>
+        </div>
+        <div class="score-bar-row">
+          <div class="score-bar-label">⏱️ Duration</div>
+          <div class="score-bar-track"><div class="score-bar-fill" style="width:${(r.durScore/r.durMax)*100}%;background:#1FD17A;"></div></div>
+          <div class="score-bar-pts">${r.durScore}/${r.durMax}</div>
+        </div>`;
 
       return `<div class="perf-card">
         <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;">
@@ -3088,7 +3136,7 @@ async function loadPerformance(){
               ${i<3?['🥇','🥈','🥉'][i]:i+1}
             </div>
             <div>
-              <div style="font-size:16px;font-weight:700;">${r.name}</div>
+              <div style="font-size:16px;font-weight:700;">${r.name}${deptBadge}</div>
               <div class="grade-badge" style="background:${g.bg};color:${g.color};margin-top:5px;">
                 ${g.emoji} ${g.label}
               </div>
@@ -3106,29 +3154,13 @@ async function loadPerformance(){
         </div>
 
         <!-- Score Bars -->
-        <div class="score-bar-wrap" style="margin-top:18px;">
-          <div class="score-bar-row">
-            <div class="score-bar-label">📅 Attendance</div>
-            <div class="score-bar-track"><div class="score-bar-fill" style="width:${(r.attScore/40)*100}%;background:#EFA800;"></div></div>
-            <div class="score-bar-pts">${r.attScore}/40</div>
-          </div>
-          <div class="score-bar-row">
-            <div class="score-bar-label">📍 Visit Activity</div>
-            <div class="score-bar-track"><div class="score-bar-fill" style="width:${(r.visitScore/35)*100}%;background:#4B9FFF;"></div></div>
-            <div class="score-bar-pts">${r.visitScore}/35</div>
-          </div>
-          <div class="score-bar-row">
-            <div class="score-bar-label">⏱️ Duration</div>
-            <div class="score-bar-track"><div class="score-bar-fill" style="width:${(r.durScore/25)*100}%;background:#1FD17A;"></div></div>
-            <div class="score-bar-pts">${r.durScore}/25</div>
-          </div>
-        </div>
+        <div class="score-bar-wrap" style="margin-top:18px;">${scoreBars}</div>
 
         <!-- Stats -->
         <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
           <div style="font-size:12px;color:var(--txt-2);">🗓️ <b style="color:var(--txt)">${r.presentDays}/${r.workingDays}</b> Days Present</div>
-          <div style="font-size:12px;color:var(--txt-2);">📍 <b style="color:var(--txt)">${r.totalVisits}</b> Total Visits</div>
-          <div style="font-size:12px;color:var(--txt-2);">📊 <b style="color:var(--txt)">${r.visitsPerDay.toFixed(1)}</b> Visits/Day</div>
+          ${!isBO?`<div style="font-size:12px;color:var(--txt-2);">📍 <b style="color:var(--txt)">${r.totalVisits}</b> Total Visits</div>
+          <div style="font-size:12px;color:var(--txt-2);">📊 <b style="color:var(--txt)">${r.visitsPerDay.toFixed(1)}</b> Visits/Day</div>`:''}
           <div style="font-size:12px;color:var(--txt-2);">⏱️ Avg <b style="color:var(--txt)">${avgH}h ${avgM}m</b>/Day</div>
         </div>
       </div>`;
@@ -3784,20 +3816,20 @@ async function loadSAReport(){
           <table class="tbl">
             <colgroup>
               <col class="col-date"><col class="col-type"><col class="col-status"><col class="col-name">
-              <col class="col-loc"><col class="col-time"><col class="col-outlet"><col class="col-remarks">
+              <col class="col-time"><col class="col-outlet"><col class="col-remarks">
             </colgroup>
-            <thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Name</th><th>Location</th><th>Time</th><th>Outlet</th><th>Remarks</th></tr></thead>
+            <thead><tr><th>Date</th><th>Type</th><th>Status</th><th>Name</th><th>Time</th><th>Outlet</th><th>Remarks</th></tr></thead>
             <tbody>
               ${coRows.map(r=>{
                 const sc=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
                 const si=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
-                return `<tr>
+                const tip=`${r.name} | ${r.status} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
+                return `<tr title="${tip}">
                   <td title="${r.date}">${r.date}</td>
                   <td style="font-size:11px;color:var(--txt-2);" title="${r.type}">${r.type}</td>
-                  <td><span style="color:${sc};font-weight:700;">${si} ${r.status}</span></td>
+                  <td><span style="color:${sc};font-weight:700;" title="${r.status}">${si} ${r.status}</span></td>
                   <td class="tbl-name" title="${r.name}">${r.name}</td>
-                  <td style="font-size:11px;color:var(--txt-2);" title="${r.location}">${r.location}</td>
-                  <td>${r.time}</td>
+                  <td title="${r.time}">${r.time}</td>
                   <td style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
                   <td style="color:var(--txt-2);" title="${r.remarks}">${r.remarks}</td>
                 </tr>`;
