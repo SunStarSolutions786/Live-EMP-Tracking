@@ -2685,7 +2685,7 @@ async function loadHistory(){
           if(!empUidSet.has(v.salesman_uid)) return;
           const u=APP.salesmen[v.salesman_uid]||{emp_type:'sales'};
           lastHistoryData.push({
-            date, status:'Visit', name:v.salesman_name||'—',
+            date, status:'Visit', name:u.name||v.salesman_name||'—',
             location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—', time:v.time||'—',
             outlet:v.outlet||'—',
             remarks:v.remarks||'—',
@@ -2899,10 +2899,14 @@ async function loadMap(){
         if(!v.lat||!v.lng) return;
         const [lat,lng]=spiralOffset(empIdx, v.lat, v.lng);
         bounds.push([lat,lng]);
-        const size=34;
+        const size=26;
         const icon=L.divIcon({
-          html:`<div style="background:${color};width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><div style="transform:rotate(45deg);font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);">${i+1}</div></div>`,
-          iconSize:[size,size],iconAnchor:[size/2,size],popupAnchor:[0,-size]
+          html:`<div style="position:relative;width:${size}px;height:${size+8}px;">
+            <div style="background:${color};width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid rgba(255,255,255,0.9);box-shadow:0 3px 10px rgba(0,0,0,0.4),0 0 0 1px ${color}44;display:flex;align-items:center;justify-content:center;">
+              <div style="transform:rotate(45deg);font-size:10px;font-weight:900;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);letter-spacing:-0.5px;">${i+1}</div>
+            </div>
+          </div>`,
+          className:'',iconSize:[size,size+8],iconAnchor:[size/2,size+8],popupAnchor:[0,-(size+8)]
         });
         L.marker([lat,lng],{icon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:sans-serif;min-width:190px;"><div style="font-weight:800;font-size:14px;margin-bottom:6px;color:${color}">Visit #${i+1} — ${v.salesman_name||smName}</div><div style="margin-bottom:4px;">🏪 <b>${v.outlet}</b></div><div style="margin-bottom:4px;">🕐 ${v.time}</div>${v.remarks?`<div style="margin-top:6px;padding:6px 8px;background:#f5f5f5;border-radius:4px;font-size:12px;">💬 ${v.remarks}</div>`:''}</div>`);
@@ -2914,11 +2918,13 @@ async function loadMap(){
         bounds.push([lat,lng]);
         const inAddr=att.start_address||(att.start_lat?`${att.start_lat.toFixed(5)}, ${att.start_lng.toFixed(5)}`:'—');
         const inIcon=L.divIcon({
-          html:`<div style="background:${color};width:40px;height:40px;border-radius:50%;border:3px solid #1FD17A;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
-            <div style="font-size:9px;font-weight:900;color:#fff;line-height:1;">IN</div>
-            <div style="font-size:13px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
+          html:`<div style="position:relative;width:30px;height:30px;">
+            <div style="background:${color};width:30px;height:30px;border-radius:50%;border:2.5px solid #1FD17A;box-shadow:0 2px 10px rgba(0,0,0,0.4),0 0 0 3px ${color}33;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
+              <div style="font-size:7px;font-weight:900;color:#1FD17A;line-height:1;letter-spacing:0.3px;">IN</div>
+              <div style="font-size:11px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
+            </div>
           </div>`,
-          iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]
+          className:'',iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-18]
         });
         L.marker([lat,lng],{icon:inIcon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:sans-serif;min-width:180px;">
@@ -2935,11 +2941,13 @@ async function loadMap(){
         bounds.push([lat,lng]);
         const outAddr=att.end_address||(att.end_lat?`${att.end_lat.toFixed(5)}, ${att.end_lng.toFixed(5)}`:'—');
         const outIcon=L.divIcon({
-          html:`<div style="background:${color};width:40px;height:40px;border-radius:50%;border:3px solid #FF4466;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
-            <div style="font-size:9px;font-weight:900;color:#fff;line-height:1;">OUT</div>
-            <div style="font-size:13px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
+          html:`<div style="position:relative;width:30px;height:30px;">
+            <div style="background:${color};width:30px;height:30px;border-radius:50%;border:2.5px solid #FF4466;box-shadow:0 2px 10px rgba(0,0,0,0.4),0 0 0 3px ${color}33;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
+              <div style="font-size:6px;font-weight:900;color:#FF4466;line-height:1;letter-spacing:0.3px;">OUT</div>
+              <div style="font-size:11px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
+            </div>
           </div>`,
-          iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]
+          className:'',iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-18]
         });
         L.marker([lat,lng],{icon:outIcon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:sans-serif;min-width:180px;">
@@ -2952,11 +2960,13 @@ async function loadMap(){
         // Check-in but no check-out yet — show pending marker
         const [lat,lng]=spiralOffset(empIdx, att.start_lat+0.0001, att.start_lng+0.0001);
         const pendIcon=L.divIcon({
-          html:`<div style="background:#888;width:40px;height:40px;border-radius:50%;border:3px dashed #FF4466;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0.8;">
-            <div style="font-size:8px;font-weight:900;color:#fff;line-height:1;">OUT?</div>
-            <div style="font-size:13px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
+          html:`<div style="position:relative;width:30px;height:30px;">
+            <div style="background:#555;width:30px;height:30px;border-radius:50%;border:2px dashed #FF4466;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0.85;">
+              <div style="font-size:6px;font-weight:900;color:#FF4466;line-height:1;">OUT?</div>
+              <div style="font-size:11px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
+            </div>
           </div>`,
-          iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]
+          className:'',iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-18]
         });
         L.marker([lat,lng],{icon:pendIcon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:sans-serif;min-width:180px;">
@@ -3806,7 +3816,7 @@ async function loadSAReport(){
           const u=salesmen[v.salesman_uid];
           const type=u.emp_type==='backoffice'?'Back Office':'Sales';
           const loc=v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—';
-          coRows.push({co:co.name,date,type,status:'Visit',name:v.salesman_name||u.name,location:loc,time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',sort_ts:v.timestamp||0});
+          coRows.push({co:co.name,date,type,status:'Visit',name:u.name||v.salesman_name,location:loc,time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',sort_ts:v.timestamp||0});
           totalVisits++;
         });
       }
@@ -4019,7 +4029,7 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
         if(!empUidSet.has(v.salesman_uid)) return;
         const u=APP.salesmen[v.salesman_uid]||{emp_type:'sales'};
         const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-        rows.push({date,status:'Visit',name:v.salesman_name||'—',location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',type,sort_ts:v.timestamp||0});
+        rows.push({date,status:'Visit',name:u.name||v.salesman_name||'—',location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',type,sort_ts:v.timestamp||0});
       });
     }
   }
