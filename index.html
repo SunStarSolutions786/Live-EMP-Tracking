@@ -2919,22 +2919,38 @@ async function loadMap(){
       if(att&&att.end_lat&&att.end_lng) fullPath.push([att.end_lat,att.end_lng]);
       if(fullPath.length>1) addArrowLine(APP.mapInstance,fullPath,color);
 
-      // Visit markers — small teardrop pin
+      // ── Shared pin SVG builder ──
+      // type: 'visit'|'in'|'out'  label: number or letter
+      function makePinIcon(pinColor, label, borderColor){
+        // Google Maps style: large bulb top, tapers to sharp bottom point
+        // White inner circle with label
+        const w=32, h=42;
+        return L.divIcon({
+          className:'',
+          html:`<div style="filter:drop-shadow(0 3px 6px rgba(0,0,0,0.55));width:${w}px;height:${h}px;">
+            <svg viewBox="0 0 32 42" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+              <!-- outer pin shape -->
+              <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 26 16 26S32 26 32 16C32 7.163 24.837 0 16 0z"
+                fill="${pinColor}" stroke="${borderColor}" stroke-width="1.5"/>
+              <!-- white inner circle -->
+              <circle cx="16" cy="15" r="9" fill="white" opacity="0.92"/>
+              <!-- label -->
+              <text x="16" y="20" text-anchor="middle"
+                font-family="DM Sans,Arial,sans-serif"
+                font-size="10" font-weight="900"
+                fill="${pinColor}">${label}</text>
+            </svg>
+          </div>`,
+          iconSize:[w,h], iconAnchor:[w/2,h], popupAnchor:[0,-(h+4)]
+        });
+      }
+
+      // Visit markers
       smVisits.forEach((v,i)=>{
         if(!v.lat||!v.lng) return;
         const lat=v.lat, lng=v.lng;
         bounds.push([lat,lng]);
-        const icon=L.divIcon({
-          className:'',
-          html:`<div style="position:relative;width:22px;height:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.45));">
-            <svg viewBox="0 0 22 28" width="22" height="28" xmlns="http://www.w3.org/2000/svg">
-              <path d="M11 0C5 0 0 5 0 11c0 8 11 17 11 17S22 19 22 11C22 5 17 0 11 0z" fill="${color}"/>
-              <circle cx="11" cy="11" r="7.5" fill="rgba(0,0,0,0.18)"/>
-              <text x="11" y="15" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" font-weight="900" fill="#fff">${i+1}</text>
-            </svg>
-          </div>`,
-          iconSize:[22,28],iconAnchor:[11,28],popupAnchor:[0,-30]
-        });
+        const icon=makePinIcon(color, i+1, 'rgba(0,0,0,0.25)');
         L.marker([lat,lng],{icon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:200px;padding:2px;">
             <div style="font-weight:800;font-size:13px;margin-bottom:8px;color:${color};display:flex;align-items:center;gap:6px;">
@@ -2949,30 +2965,12 @@ async function loadMap(){
           </div>`);
       });
 
-      // Check-In marker — small pill badge
+      // Check-In marker — pin with "IN" label, green border
       if(att&&att.start_lat&&att.start_lng){
         const lat=att.start_lat, lng=att.start_lng;
         bounds.push([lat,lng]);
         const inAddr=att.start_address||(att.start_lat?`${att.start_lat.toFixed(5)}, ${att.start_lng.toFixed(5)}`:'—');
-        const inIcon=L.divIcon({
-          className:'',
-          html:`<div style="position:relative;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.5));">
-            <div style="
-              background:${color};
-              border:2.5px solid #fff;
-              border-radius:14px;
-              padding:3px 7px 3px 5px;
-              display:inline-flex;align-items:center;gap:4px;
-              white-space:nowrap;
-            ">
-              <div style="width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;">
-                <span style="font-size:9px;font-weight:900;color:#fff;line-height:1;">${initial}</span>
-              </div>
-              <span style="font-size:8px;font-weight:900;color:#1FD17A;line-height:1;letter-spacing:0.5px;">IN</span>
-            </div>
-          </div>`,
-          iconSize:[null,null],iconAnchor:[0,22],popupAnchor:[30,-10]
-        });
+        const inIcon=makePinIcon(color, 'IN', '#1FD17A');
         L.marker([lat,lng],{icon:inIcon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:190px;padding:2px;">
             <div style="font-weight:800;font-size:13px;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color};display:flex;align-items:center;gap:6px;">
@@ -2986,30 +2984,12 @@ async function loadMap(){
           </div>`);
       }
 
-      // Check-Out marker — small pill badge
+      // Check-Out marker — pin with "OUT" label, red border
       if(att&&att.end_lat&&att.end_lng){
         const lat=att.end_lat, lng=att.end_lng;
         bounds.push([lat,lng]);
         const outAddr=att.end_address||(att.end_lat?`${att.end_lat.toFixed(5)}, ${att.end_lng.toFixed(5)}`:'—');
-        const outIcon=L.divIcon({
-          className:'',
-          html:`<div style="position:relative;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.5));">
-            <div style="
-              background:${color};
-              border:2.5px solid #fff;
-              border-radius:14px;
-              padding:3px 7px 3px 5px;
-              display:inline-flex;align-items:center;gap:4px;
-              white-space:nowrap;
-            ">
-              <div style="width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;">
-                <span style="font-size:9px;font-weight:900;color:#fff;line-height:1;">${initial}</span>
-              </div>
-              <span style="font-size:8px;font-weight:900;color:#FF4466;line-height:1;letter-spacing:0.5px;">OUT</span>
-            </div>
-          </div>`,
-          iconSize:[null,null],iconAnchor:[0,22],popupAnchor:[35,-10]
-        });
+        const outIcon=makePinIcon(color, 'OUT', '#FF4466');
         L.marker([lat,lng],{icon:outIcon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:190px;padding:2px;">
             <div style="font-weight:800;font-size:13px;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color};display:flex;align-items:center;gap:6px;">
