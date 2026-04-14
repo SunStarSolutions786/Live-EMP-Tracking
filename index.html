@@ -2919,59 +2919,107 @@ async function loadMap(){
       if(att&&att.end_lat&&att.end_lng) fullPath.push([att.end_lat,att.end_lng]);
       if(fullPath.length>1) addArrowLine(APP.mapInstance,fullPath,color);
 
-      // Visit markers
+      // Visit markers — small teardrop pin
       smVisits.forEach((v,i)=>{
         if(!v.lat||!v.lng) return;
         const lat=v.lat, lng=v.lng;
         bounds.push([lat,lng]);
-        const size=34;
         const icon=L.divIcon({
-          html:`<div style="background:${color};width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><div style="transform:rotate(45deg);font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);">${i+1}</div></div>`,
-          iconSize:[size,size],iconAnchor:[size/2,size],popupAnchor:[0,-size]
+          className:'',
+          html:`<div style="position:relative;width:22px;height:28px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.45));">
+            <svg viewBox="0 0 22 28" width="22" height="28" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11 0C5 0 0 5 0 11c0 8 11 17 11 17S22 19 22 11C22 5 17 0 11 0z" fill="${color}"/>
+              <circle cx="11" cy="11" r="7.5" fill="rgba(0,0,0,0.18)"/>
+              <text x="11" y="15" text-anchor="middle" font-family="DM Sans,sans-serif" font-size="9" font-weight="900" fill="#fff">${i+1}</text>
+            </svg>
+          </div>`,
+          iconSize:[22,28],iconAnchor:[11,28],popupAnchor:[0,-30]
         });
         L.marker([lat,lng],{icon}).addTo(APP.mapInstance)
-          .bindPopup(`<div style="font-family:sans-serif;min-width:190px;"><div style="font-weight:800;font-size:14px;margin-bottom:6px;color:${color}">Visit #${i+1} — ${v.salesman_name||smName}</div><div style="margin-bottom:4px;">🏪 <b>${v.outlet}</b></div><div style="margin-bottom:4px;">🕐 ${v.time}</div>${v.remarks?`<div style="margin-top:6px;padding:6px 8px;background:#f5f5f5;border-radius:4px;font-size:12px;">💬 ${v.remarks}</div>`:''}</div>`);
+          .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:200px;padding:2px;">
+            <div style="font-weight:800;font-size:13px;margin-bottom:8px;color:${color};display:flex;align-items:center;gap:6px;">
+              <span style="background:${color};color:#fff;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;">${i+1}</span>
+              ${v.salesman_name||smName}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#444;">
+              <div>🏪 <b>${v.outlet||'—'}</b></div>
+              <div>🕐 ${v.time||'—'}</div>
+              ${v.remarks?`<div style="margin-top:4px;padding:5px 8px;background:#f5f5f5;border-left:3px solid ${color};border-radius:0 4px 4px 0;font-size:11px;color:#555;">💬 ${v.remarks}</div>`:''}
+            </div>
+          </div>`);
       });
 
-      // Check-In marker
+      // Check-In marker — small pill badge
       if(att&&att.start_lat&&att.start_lng){
         const lat=att.start_lat, lng=att.start_lng;
         bounds.push([lat,lng]);
         const inAddr=att.start_address||(att.start_lat?`${att.start_lat.toFixed(5)}, ${att.start_lng.toFixed(5)}`:'—');
         const inIcon=L.divIcon({
-          html:`<div style="background:${color};width:40px;height:40px;border-radius:50%;border:3px solid #1FD17A;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
-            <div style="font-size:9px;font-weight:900;color:#fff;line-height:1;">IN</div>
-            <div style="font-size:13px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
+          className:'',
+          html:`<div style="position:relative;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.5));">
+            <div style="
+              background:${color};
+              border:2.5px solid #fff;
+              border-radius:14px;
+              padding:3px 7px 3px 5px;
+              display:inline-flex;align-items:center;gap:4px;
+              white-space:nowrap;
+            ">
+              <div style="width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:9px;font-weight:900;color:#fff;line-height:1;">${initial}</span>
+              </div>
+              <span style="font-size:8px;font-weight:900;color:#1FD17A;line-height:1;letter-spacing:0.5px;">IN</span>
+            </div>
           </div>`,
-          iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]
+          iconSize:[null,null],iconAnchor:[0,22],popupAnchor:[30,-10]
         });
         L.marker([lat,lng],{icon:inIcon}).addTo(APP.mapInstance)
-          .bindPopup(`<div style="font-family:sans-serif;min-width:180px;">
-            <div style="font-weight:800;font-size:14px;color:${color};margin-bottom:8px;border-bottom:2px solid ${color};padding-bottom:6px;">✅ Check-In</div>
-            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">👤 ${smName}</div>
-            <div style="margin-bottom:4px;">🕐 ${att.start_time||'—'}</div>
-            <div style="font-size:12px;color:#666;margin-top:4px;">📍 ${inAddr}</div>
+          .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:190px;padding:2px;">
+            <div style="font-weight:800;font-size:13px;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color};display:flex;align-items:center;gap:6px;">
+              <span style="background:#1FD17A22;border:1.5px solid #1FD17A;border-radius:6px;padding:1px 7px;font-size:10px;color:#1FD17A;">✅ IN</span>
+              ${smName}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#444;">
+              <div>🕐 ${att.start_time||'—'}</div>
+              <div style="font-size:11px;color:#777;">📍 ${inAddr}</div>
+            </div>
           </div>`);
       }
 
-      // Check-Out marker
+      // Check-Out marker — small pill badge
       if(att&&att.end_lat&&att.end_lng){
         const lat=att.end_lat, lng=att.end_lng;
         bounds.push([lat,lng]);
         const outAddr=att.end_address||(att.end_lat?`${att.end_lat.toFixed(5)}, ${att.end_lng.toFixed(5)}`:'—');
         const outIcon=L.divIcon({
-          html:`<div style="background:${color};width:40px;height:40px;border-radius:50%;border:3px solid #FF4466;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
-            <div style="font-size:9px;font-weight:900;color:#fff;line-height:1;">OUT</div>
-            <div style="font-size:13px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
+          className:'',
+          html:`<div style="position:relative;filter:drop-shadow(0 2px 5px rgba(0,0,0,0.5));">
+            <div style="
+              background:${color};
+              border:2.5px solid #fff;
+              border-radius:14px;
+              padding:3px 7px 3px 5px;
+              display:inline-flex;align-items:center;gap:4px;
+              white-space:nowrap;
+            ">
+              <div style="width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,0.2);display:flex;align-items:center;justify-content:center;">
+                <span style="font-size:9px;font-weight:900;color:#fff;line-height:1;">${initial}</span>
+              </div>
+              <span style="font-size:8px;font-weight:900;color:#FF4466;line-height:1;letter-spacing:0.5px;">OUT</span>
+            </div>
           </div>`,
-          iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]
+          iconSize:[null,null],iconAnchor:[0,22],popupAnchor:[35,-10]
         });
         L.marker([lat,lng],{icon:outIcon}).addTo(APP.mapInstance)
-          .bindPopup(`<div style="font-family:sans-serif;min-width:180px;">
-            <div style="font-weight:800;font-size:14px;color:${color};margin-bottom:8px;border-bottom:2px solid ${color};padding-bottom:6px;">🚪 Check-Out</div>
-            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">👤 ${smName}</div>
-            <div style="margin-bottom:4px;">🕐 ${att.end_time||'—'}</div>
-            <div style="font-size:12px;color:#666;margin-top:4px;">📍 ${outAddr}</div>
+          .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:190px;padding:2px;">
+            <div style="font-weight:800;font-size:13px;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color};display:flex;align-items:center;gap:6px;">
+              <span style="background:#FF446622;border:1.5px solid #FF4466;border-radius:6px;padding:1px 7px;font-size:10px;color:#FF4466;">🚪 OUT</span>
+              ${smName}
+            </div>
+            <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#444;">
+              <div>🕐 ${att.end_time||'—'}</div>
+              <div style="font-size:11px;color:#777;">📍 ${outAddr}</div>
+            </div>
           </div>`);
       } else if(att&&att.start_lat){
         // Checked-in but not yet out — don't plot a fake GPS location
