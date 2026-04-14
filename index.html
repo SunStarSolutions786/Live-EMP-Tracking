@@ -994,12 +994,18 @@ button{font-family:'DM Sans',sans-serif;}
           <button class="dept-btn" onclick="setMapDept('sales',this)">📊 Sales</button>
           <button class="dept-btn" onclick="setMapDept('backoffice',this)">🏢 Back Office</button>
         </div>
-        <div class="fbar">
+        <div class="fbar" style="flex-wrap:wrap;gap:10px;align-items:flex-end;">
           <div class="fg-sm"><label class="fl-sm">Date</label><input class="fi-sm" type="date" id="mapDate"></div>
           <div class="fg-sm"><label class="fl-sm">Employee</label>
             <select class="fsel-sm" id="mapSalesmanFilter"><option value="">All</option></select>
           </div>
           <button class="btn-go" onclick="loadMap()">🗺️ Show Map</button>
+          <!-- Tile toggle -->
+          <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+            <span style="font-size:12px;color:var(--txt-2);">Map Type:</span>
+            <button id="tileStreetBtn" onclick="setMapTile('street')" style="padding:7px 14px;border-radius:var(--r-sm);border:1px solid var(--gold);background:var(--gold);color:#000;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">🗺️ Street</button>
+            <button id="tileSatBtn" onclick="setMapTile('satellite')" style="padding:7px 14px;border-radius:var(--r-sm);border:1px solid var(--border);background:transparent;color:var(--txt-2);font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">🛰️ Satellite</button>
+          </div>
         </div>
         <div id="visitMap"></div>
         <!-- Legend -->
@@ -1007,10 +1013,10 @@ button{font-family:'DM Sans',sans-serif;}
         <!-- Icon guide -->
         <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);">
           <span style="font-size:12px;color:var(--txt-2);">Map Icons:</span>
-          <span style="font-size:12px;color:var(--txt-2);">🔵 <b style="color:var(--txt);">Colored circle (IN)</b> — green border = Check-In</span>
-          <span style="font-size:12px;color:var(--txt-2);">🔴 <b style="color:var(--txt);">Colored circle (OUT)</b> — red border = Check-Out</span>
+          <span style="font-size:12px;color:var(--txt-2);">🟢 <b style="color:var(--txt);">Circle (IN)</b> — green border = Check-In</span>
+          <span style="font-size:12px;color:var(--txt-2);">🔴 <b style="color:var(--txt);">Circle (OUT)</b> — red border = Check-Out</span>
           <span style="font-size:12px;color:var(--txt-2);">📍 <b style="color:var(--txt);">Teardrop #N</b> — Visit stop</span>
-          <span style="font-size:12px;color:var(--txt-2);">Each employee gets a unique color. Overlapping markers are spread apart.</span>
+          <span style="font-size:12px;color:var(--txt-2);">⚠️ <b style="color:var(--txt);">Legend badge</b> — Not yet checked out</span>
         </div>
       </div>
 
@@ -1325,8 +1331,8 @@ button{font-family:'DM Sans',sans-serif;}
      MODALS
 ══════════════════════════════════════════════ -->
 <!-- Add Company Modal -->
-<div class="modal-ov" id="addCompanyModal">
-  <div class="modal-box">
+<div class="modal-ov" id="addCompanyModal" style="align-items:flex-start;padding:20px;overflow-y:auto;">
+  <div class="modal-box" style="max-width:520px;width:100%;margin:auto;">
     <div class="modal-title">🏢 Add New Company</div>
     <div class="modal-sub">Enter company information and admin login details</div>
     <div id="acErr" class="err-box"></div>
@@ -2685,7 +2691,7 @@ async function loadHistory(){
           if(!empUidSet.has(v.salesman_uid)) return;
           const u=APP.salesmen[v.salesman_uid]||{emp_type:'sales'};
           lastHistoryData.push({
-            date, status:'Visit', name:u.name||v.salesman_name||'—',
+            date, status:'Visit', name:v.salesman_name||'—',
             location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—', time:v.time||'—',
             outlet:v.outlet||'—',
             remarks:v.remarks||'—',
@@ -2795,14 +2801,41 @@ async function loadVisits(){
 }
 
 /* ════ MAP ════ */
+// Tile layer references
+let _streetLayer=null, _satLayer=null, _satLabelLayer=null, _currentTile='street';
+
+function setMapTile(type){
+  _currentTile=type;
+  document.getElementById('tileStreetBtn').style.cssText='padding:7px 14px;border-radius:var(--r-sm);border:1px solid '+(type==='street'?'var(--gold);background:var(--gold);color:#000':'var(--border);background:transparent;color:var(--txt-2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif;';
+  document.getElementById('tileSatBtn').style.cssText='padding:7px 14px;border-radius:var(--r-sm);border:1px solid '+(type==='satellite'?'var(--gold);background:var(--gold);color:#000':'var(--border);background:transparent;color:var(--txt-2)')+';font-size:12px;font-weight:700;cursor:pointer;font-family:\'DM Sans\',sans-serif;';
+  if(!APP.mapInstance) return;
+  if(type==='street'){
+    if(_satLayer) APP.mapInstance.removeLayer(_satLayer);
+    if(_satLabelLayer) APP.mapInstance.removeLayer(_satLabelLayer);
+    if(_streetLayer) _streetLayer.addTo(APP.mapInstance);
+  } else {
+    if(_streetLayer) APP.mapInstance.removeLayer(_streetLayer);
+    if(_satLayer) _satLayer.addTo(APP.mapInstance);
+    if(_satLabelLayer) _satLabelLayer.addTo(APP.mapInstance);
+  }
+}
+
 function initMap(){
   if(!document.getElementById('visitMap')) return;
   if(!APP.mapInstance){
-    APP.mapInstance=L.map('visitMap',{zoomControl:true}).setView([22.5726,88.3639],12);
-    // Clean tile layer
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
-      attribution:'© OpenStreetMap © CartoDB',maxZoom:19
+    APP.mapInstance=L.map('visitMap',{zoomControl:true,attributionControl:true}).setView([22.5726,88.3639],13);
+    // Street layer (CartoDB light — default)
+    _streetLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
+      attribution:'© OpenStreetMap © CartoDB',maxZoom:19,subdomains:'abcd'
     }).addTo(APP.mapInstance);
+    // Satellite layer (Esri World Imagery)
+    _satLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+      attribution:'© Esri, Maxar, Earthstar Geographics',maxZoom:19
+    });
+    // Satellite label overlay (place names on top of satellite)
+    _satLabelLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',{
+      attribution:'',maxZoom:19,subdomains:'abcd',pane:'overlayPane'
+    });
   }
 }
 
@@ -2870,14 +2903,6 @@ async function loadMap(){
     const smUids=new Set([...Object.keys(visitsBySm),...Object.keys(attBySm)]);
     if(smUids.size===0){ doneLoading(); toast('No data found for this date','err'); return; }
 
-    // Helper: small spiral offset so overlapping markers spread out
-    function spiralOffset(idx, baseLat, baseLng){
-      if(idx===0) return [baseLat, baseLng];
-      const r=0.00015*Math.ceil(idx/8);
-      const angle=(idx*(Math.PI*2/8));
-      return [baseLat + r*Math.cos(angle), baseLng + r*Math.sin(angle)];
-    }
-
     for(const uid of smUids){
       const color=palette[ci%palette.length];
       const empIdx=ci; ci++;
@@ -2897,16 +2922,12 @@ async function loadMap(){
       // Visit markers
       smVisits.forEach((v,i)=>{
         if(!v.lat||!v.lng) return;
-        const [lat,lng]=spiralOffset(empIdx, v.lat, v.lng);
+        const lat=v.lat, lng=v.lng;
         bounds.push([lat,lng]);
-        const size=26;
+        const size=34;
         const icon=L.divIcon({
-          html:`<div style="position:relative;width:${size}px;height:${size+8}px;">
-            <div style="background:${color};width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid rgba(255,255,255,0.9);box-shadow:0 3px 10px rgba(0,0,0,0.4),0 0 0 1px ${color}44;display:flex;align-items:center;justify-content:center;">
-              <div style="transform:rotate(45deg);font-size:10px;font-weight:900;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.6);letter-spacing:-0.5px;">${i+1}</div>
-            </div>
-          </div>`,
-          className:'',iconSize:[size,size+8],iconAnchor:[size/2,size+8],popupAnchor:[0,-(size+8)]
+          html:`<div style="background:${color};width:${size}px;height:${size}px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;"><div style="transform:rotate(45deg);font-size:12px;font-weight:900;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.5);">${i+1}</div></div>`,
+          iconSize:[size,size],iconAnchor:[size/2,size],popupAnchor:[0,-size]
         });
         L.marker([lat,lng],{icon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:sans-serif;min-width:190px;"><div style="font-weight:800;font-size:14px;margin-bottom:6px;color:${color}">Visit #${i+1} — ${v.salesman_name||smName}</div><div style="margin-bottom:4px;">🏪 <b>${v.outlet}</b></div><div style="margin-bottom:4px;">🕐 ${v.time}</div>${v.remarks?`<div style="margin-top:6px;padding:6px 8px;background:#f5f5f5;border-radius:4px;font-size:12px;">💬 ${v.remarks}</div>`:''}</div>`);
@@ -2914,17 +2935,15 @@ async function loadMap(){
 
       // Check-In marker
       if(att&&att.start_lat&&att.start_lng){
-        const [lat,lng]=spiralOffset(empIdx, att.start_lat, att.start_lng);
+        const lat=att.start_lat, lng=att.start_lng;
         bounds.push([lat,lng]);
         const inAddr=att.start_address||(att.start_lat?`${att.start_lat.toFixed(5)}, ${att.start_lng.toFixed(5)}`:'—');
         const inIcon=L.divIcon({
-          html:`<div style="position:relative;width:30px;height:30px;">
-            <div style="background:${color};width:30px;height:30px;border-radius:50%;border:2.5px solid #1FD17A;box-shadow:0 2px 10px rgba(0,0,0,0.4),0 0 0 3px ${color}33;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
-              <div style="font-size:7px;font-weight:900;color:#1FD17A;line-height:1;letter-spacing:0.3px;">IN</div>
-              <div style="font-size:11px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
-            </div>
+          html:`<div style="background:${color};width:40px;height:40px;border-radius:50%;border:3px solid #1FD17A;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
+            <div style="font-size:9px;font-weight:900;color:#fff;line-height:1;">IN</div>
+            <div style="font-size:13px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
           </div>`,
-          className:'',iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-18]
+          iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]
         });
         L.marker([lat,lng],{icon:inIcon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:sans-serif;min-width:180px;">
@@ -2937,17 +2956,15 @@ async function loadMap(){
 
       // Check-Out marker
       if(att&&att.end_lat&&att.end_lng){
-        const [lat,lng]=spiralOffset(empIdx, att.end_lat, att.end_lng);
+        const lat=att.end_lat, lng=att.end_lng;
         bounds.push([lat,lng]);
         const outAddr=att.end_address||(att.end_lat?`${att.end_lat.toFixed(5)}, ${att.end_lng.toFixed(5)}`:'—');
         const outIcon=L.divIcon({
-          html:`<div style="position:relative;width:30px;height:30px;">
-            <div style="background:${color};width:30px;height:30px;border-radius:50%;border:2.5px solid #FF4466;box-shadow:0 2px 10px rgba(0,0,0,0.4),0 0 0 3px ${color}33;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
-              <div style="font-size:6px;font-weight:900;color:#FF4466;line-height:1;letter-spacing:0.3px;">OUT</div>
-              <div style="font-size:11px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
-            </div>
+          html:`<div style="background:${color};width:40px;height:40px;border-radius:50%;border:3px solid #FF4466;box-shadow:0 2px 10px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;">
+            <div style="font-size:9px;font-weight:900;color:#fff;line-height:1;">OUT</div>
+            <div style="font-size:13px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
           </div>`,
-          className:'',iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-18]
+          iconSize:[40,40],iconAnchor:[20,20],popupAnchor:[0,-24]
         });
         L.marker([lat,lng],{icon:outIcon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:sans-serif;min-width:180px;">
@@ -2957,23 +2974,9 @@ async function loadMap(){
             <div style="font-size:12px;color:#666;margin-top:4px;">📍 ${outAddr}</div>
           </div>`);
       } else if(att&&att.start_lat){
-        // Check-in but no check-out yet — show pending marker
-        const [lat,lng]=spiralOffset(empIdx, att.start_lat+0.0001, att.start_lng+0.0001);
-        const pendIcon=L.divIcon({
-          html:`<div style="position:relative;width:30px;height:30px;">
-            <div style="background:#555;width:30px;height:30px;border-radius:50%;border:2px dashed #FF4466;box-shadow:0 2px 8px rgba(0,0,0,0.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;opacity:0.85;">
-              <div style="font-size:6px;font-weight:900;color:#FF4466;line-height:1;">OUT?</div>
-              <div style="font-size:11px;font-weight:900;color:#fff;line-height:1;">${initial}</div>
-            </div>
-          </div>`,
-          className:'',iconSize:[30,30],iconAnchor:[15,15],popupAnchor:[0,-18]
-        });
-        L.marker([lat,lng],{icon:pendIcon}).addTo(APP.mapInstance)
-          .bindPopup(`<div style="font-family:sans-serif;min-width:180px;">
-            <div style="font-weight:800;font-size:14px;color:#FF4466;margin-bottom:8px;border-bottom:2px dashed #FF4466;padding-bottom:6px;">⚠️ Check-Out Pending</div>
-            <div style="font-size:13px;font-weight:700;margin-bottom:4px;">👤 ${smName}</div>
-            <div style="font-size:12px;color:#888;">Employee has not checked out yet</div>
-          </div>`);
+        // Checked-in but not yet out — don't plot a fake GPS location
+        // Just mark them in the legend so admin knows
+        legend[legend.length-1].pending=true;
       }
     }
 
@@ -2987,9 +2990,10 @@ async function loadMap(){
       if(legend.length>0){
         legendEl.style.display='flex';
         legendEl.innerHTML=legend.map(l=>`
-          <div style="display:flex;align-items:center;gap:7px;background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:5px 13px;">
-            <div style="width:13px;height:13px;border-radius:50%;background:${l.color};flex-shrink:0;border:2px solid rgba(255,255,255,0.25);"></div>
+          <div style="display:flex;align-items:center;gap:7px;background:var(--bg-card);border:1px solid ${l.pending?'rgba(255,153,0,0.5)':' var(--border)'};border-radius:20px;padding:5px 13px;">
+            <div style="width:11px;height:11px;border-radius:50%;background:${l.color};flex-shrink:0;border:2px solid rgba(255,255,255,0.25);"></div>
             <span style="font-size:12px;font-weight:600;color:var(--txt);">${l.name}</span>
+            ${l.pending?'<span style="font-size:10px;background:#FF9900;color:#000;border-radius:10px;padding:1px 7px;font-weight:800;">⚠️ No Checkout</span>':''}
           </div>`).join('');
       } else {
         legendEl.style.display='none';
@@ -3816,7 +3820,7 @@ async function loadSAReport(){
           const u=salesmen[v.salesman_uid];
           const type=u.emp_type==='backoffice'?'Back Office':'Sales';
           const loc=v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—';
-          coRows.push({co:co.name,date,type,status:'Visit',name:u.name||v.salesman_name,location:loc,time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',sort_ts:v.timestamp||0});
+          coRows.push({co:co.name,date,type,status:'Visit',name:v.salesman_name||u.name,location:loc,time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',sort_ts:v.timestamp||0});
           totalVisits++;
         });
       }
@@ -4029,7 +4033,7 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
         if(!empUidSet.has(v.salesman_uid)) return;
         const u=APP.salesmen[v.salesman_uid]||{emp_type:'sales'};
         const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-        rows.push({date,status:'Visit',name:u.name||v.salesman_name||'—',location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',type,sort_ts:v.timestamp||0});
+        rows.push({date,status:'Visit',name:v.salesman_name||'—',location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',type,sort_ts:v.timestamp||0});
       });
     }
   }
