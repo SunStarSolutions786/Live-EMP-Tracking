@@ -2920,28 +2920,36 @@ async function loadMap(){
       if(fullPath.length>1) addArrowLine(APP.mapInstance,fullPath,color);
 
       // ── Shared pin SVG builder ──
-      // type: 'visit'|'in'|'out'  label: number or letter
-      function makePinIcon(pinColor, label, borderColor){
-        // Google Maps style: large bulb top, tapers to sharp bottom point
-        // White inner circle with label
-        const w=32, h=42;
+      function makePinIcon(pinColor, label, borderColor, nameInitial){
+        const w=24, h=32;
         return L.divIcon({
           className:'',
-          html:`<div style="filter:drop-shadow(0 3px 6px rgba(0,0,0,0.55));width:${w}px;height:${h}px;">
-            <svg viewBox="0 0 32 42" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
-              <!-- outer pin shape -->
-              <path d="M16 0C7.163 0 0 7.163 0 16c0 10 16 26 16 26S32 26 32 16C32 7.163 24.837 0 16 0z"
-                fill="${pinColor}" stroke="${borderColor}" stroke-width="1.5"/>
-              <!-- white inner circle -->
-              <circle cx="16" cy="15" r="9" fill="white" opacity="0.92"/>
-              <!-- label -->
-              <text x="16" y="20" text-anchor="middle"
-                font-family="DM Sans,Arial,sans-serif"
-                font-size="10" font-weight="900"
-                fill="${pinColor}">${label}</text>
-            </svg>
+          html:`<div style="display:flex;flex-direction:column;align-items:center;gap:1px;">
+            <div style="
+              font-size:9px;font-weight:800;
+              color:${pinColor};
+              background:#fff;
+              border:1.5px solid ${pinColor};
+              border-radius:6px;
+              padding:1px 5px;
+              line-height:1.4;
+              box-shadow:0 1px 4px rgba(0,0,0,0.25);
+              white-space:nowrap;
+              letter-spacing:0.3px;
+            ">${nameInitial}</div>
+            <div style="filter:drop-shadow(0 2px 4px rgba(0,0,0,0.5));width:${w}px;height:${h}px;">
+              <svg viewBox="0 0 24 32" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 0C5.373 0 0 5.373 0 12c0 8.5 12 20 12 20S24 20.5 24 12C24 5.373 18.627 0 12 0z"
+                  fill="${pinColor}" stroke="${borderColor}" stroke-width="1.2"/>
+                <circle cx="12" cy="11" r="6.5" fill="white" opacity="0.93"/>
+                <text x="12" y="15" text-anchor="middle"
+                  font-family="DM Sans,Arial,sans-serif"
+                  font-size="${label.toString().length>2?7:8}" font-weight="900"
+                  fill="${pinColor}">${label}</text>
+              </svg>
+            </div>
           </div>`,
-          iconSize:[w,h], iconAnchor:[w/2,h], popupAnchor:[0,-(h+4)]
+          iconSize:[w, h+18], iconAnchor:[w/2, h+18], popupAnchor:[0,-(h+22)]
         });
       }
 
@@ -2950,7 +2958,7 @@ async function loadMap(){
         if(!v.lat||!v.lng) return;
         const lat=v.lat, lng=v.lng;
         bounds.push([lat,lng]);
-        const icon=makePinIcon(color, i+1, 'rgba(0,0,0,0.25)');
+        const icon=makePinIcon(color, i+1, 'rgba(0,0,0,0.2)', initial);
         L.marker([lat,lng],{icon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:200px;padding:2px;">
             <div style="font-weight:800;font-size:13px;margin-bottom:8px;color:${color};display:flex;align-items:center;gap:6px;">
@@ -2970,7 +2978,7 @@ async function loadMap(){
         const lat=att.start_lat, lng=att.start_lng;
         bounds.push([lat,lng]);
         const inAddr=att.start_address||(att.start_lat?`${att.start_lat.toFixed(5)}, ${att.start_lng.toFixed(5)}`:'—');
-        const inIcon=makePinIcon(color, 'IN', '#1FD17A');
+        const inIcon=makePinIcon(color, 'IN', '#1FD17A', initial);
         L.marker([lat,lng],{icon:inIcon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:190px;padding:2px;">
             <div style="font-weight:800;font-size:13px;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color};display:flex;align-items:center;gap:6px;">
@@ -2989,7 +2997,7 @@ async function loadMap(){
         const lat=att.end_lat, lng=att.end_lng;
         bounds.push([lat,lng]);
         const outAddr=att.end_address||(att.end_lat?`${att.end_lat.toFixed(5)}, ${att.end_lng.toFixed(5)}`:'—');
-        const outIcon=makePinIcon(color, 'OUT', '#FF4466');
+        const outIcon=makePinIcon(color, 'OUT', '#FF4466', initial);
         L.marker([lat,lng],{icon:outIcon}).addTo(APP.mapInstance)
           .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:190px;padding:2px;">
             <div style="font-weight:800;font-size:13px;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color};display:flex;align-items:center;gap:6px;">
