@@ -902,6 +902,7 @@ button{font-family:'DM Sans',sans-serif;}
       <div class="sid-item" onclick="adminPage('performance',this)"><span class="sid-icon">🏆</span><span>Performance</span></div>
       <div class="sid-item" onclick="adminPage('map',this)"><span class="sid-icon">🗺️</span><span>Map View</span></div>
       <div class="sid-item" onclick="adminPage('export',this)"><span class="sid-icon">📥</span><span>Reports</span></div>
+      <div class="sid-item" onclick="adminPage('settings',this)"><span class="sid-icon">⚙️</span><span>Settings</span></div>
     </div>
     <!-- Main -->
     <div class="admin-main">
@@ -975,7 +976,7 @@ button{font-family:'DM Sans',sans-serif;}
               <thead><tr>
                 <th style="width:90px;">Date</th>
                 <th style="width:88px;">Status</th>
-                <th style="width:100px;">Name</th>
+                <th style="width:150px;">Name</th>
                 <th style="width:80px;">Time</th>
                 <th style="width:110px;">Outlet</th>
                 <th>Remarks</th>
@@ -1137,8 +1138,87 @@ button{font-family:'DM Sans',sans-serif;}
             </div>
           </div>
 
+          <!-- C) Late & Overtime Report -->
+          <div class="ov-card" style="cursor:default;">
+            <div class="ov-icon">⏰</div>
+            <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">C — Late & Overtime Report</div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Check-in/out vs shift time — late, early out & overtime</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
+                <select class="fsel-sm" id="rptLateType" style="width:100%;min-width:unset;">
+                  <option value="all">All Employees</option>
+                  <option value="sales">Sales Only</option>
+                  <option value="backoffice">Back Office Only</option>
+                </select>
+              </div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="rptLateStart" style="width:100%;min-width:unset;"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="rptLateEnd" style="width:100%;min-width:unset;"></div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptLateExcel()">📊 Excel</button>
+              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptLatePDF()">📄 PDF</button>
+            </div>
+          </div>
+
         </div><!-- end grid -->
       </div><!-- end page-export -->
+
+      <!-- SETTINGS PAGE -->
+      <div class="admin-page" id="page-settings">
+        <div class="ph"><div class="pt">Settings</div><div class="ps">Configure company holidays, shift timings and preferences</div></div>
+        <div style="display:flex;flex-direction:column;gap:18px;max-width:660px;">
+
+          <!-- Weekly Holidays -->
+          <div class="tc" style="padding:22px;">
+            <div class="tc-hd" style="margin-bottom:14px;"><div class="tc-title">🏖️ Weekly Holidays</div></div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;" id="adHolidayChips">
+              <div class="holiday-chip" data-day="0" onclick="toggleHolidayChip(this)">Sun</div>
+              <div class="holiday-chip" data-day="1" onclick="toggleHolidayChip(this)">Mon</div>
+              <div class="holiday-chip" data-day="2" onclick="toggleHolidayChip(this)">Tue</div>
+              <div class="holiday-chip" data-day="3" onclick="toggleHolidayChip(this)">Wed</div>
+              <div class="holiday-chip" data-day="4" onclick="toggleHolidayChip(this)">Thu</div>
+              <div class="holiday-chip" data-day="5" onclick="toggleHolidayChip(this)">Fri</div>
+              <div class="holiday-chip" data-day="6" onclick="toggleHolidayChip(this)">Sat</div>
+            </div>
+            <div style="font-size:11px;color:var(--txt-3);margin-top:8px;">Selected days won't count as absent and daily emails won't be sent.</div>
+          </div>
+
+          <!-- Custom Holidays -->
+          <div class="tc" style="padding:22px;">
+            <div class="tc-hd" style="margin-bottom:14px;"><div class="tc-title">🎉 Festival & Custom Holidays</div></div>
+            <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+              <input class="fi-sm" type="text" id="adCHName" placeholder="Holiday name (e.g. Durga Puja)" style="flex:1;min-width:160px;">
+              <input class="fi-sm" type="date" id="adCHDate" style="min-width:140px;">
+              <button class="btn-go" style="padding:8px 16px;font-size:13px;" onclick="addAdminCustomHoliday()">➕ Add</button>
+            </div>
+            <div id="adCustomHolidayList" style="display:flex;flex-direction:column;gap:6px;"></div>
+            <div style="font-size:11px;color:var(--txt-3);margin-top:8px;">These dates will be marked as Holiday in attendance — no absent, no email.</div>
+          </div>
+
+          <!-- Shift Timing -->
+          <div class="tc" style="padding:22px;">
+            <div class="tc-hd" style="margin-bottom:4px;"><div class="tc-title">🕐 Default Shift Timing</div></div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Company-wide default. Can be overridden per employee in Edit Employee.</div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;">
+              <div class="fg" style="flex:1;min-width:160px;margin-bottom:0;">
+                <label class="fl">Shift In Time</label>
+                <input class="fi" type="time" id="adShiftIn" value="09:00">
+              </div>
+              <div class="fg" style="flex:1;min-width:160px;margin-bottom:0;">
+                <label class="fl">Shift Out Time</label>
+                <input class="fi" type="time" id="adShiftOut" value="18:00">
+              </div>
+              <div class="fg" style="flex:1;min-width:160px;margin-bottom:0;">
+                <label class="fl">Grace Period (minutes)</label>
+                <input class="fi" type="number" id="adGreetingPeriod" value="15" min="0" max="60">
+                <div style="font-size:11px;color:var(--txt-3);margin-top:4px;">Late is counted only after grace period ends</div>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn" onclick="saveAdminSettings()" style="max-width:280px;">💾 Save Settings</button>
+        </div>
+      </div>
 
     </div><!-- end admin-main -->
   </div><!-- end admin-body -->
@@ -1178,7 +1258,7 @@ button{font-family:'DM Sans',sans-serif;}
     <div class="ov-grid" style="margin-bottom:28px;">
       <div class="ov-card"><div class="ov-icon">🏢</div><div class="ov-val" id="sa-companies">0</div><div class="ov-lbl">Total Companies</div></div>
       <div class="ov-card"><div class="ov-icon">👥</div><div class="ov-val" id="sa-salesmen">0</div><div class="ov-lbl">Total Employees</div></div>
-      <div class="ov-card"><div class="ov-icon">📍</div><div class="ov-val" id="sa-today">0</div><div class="ov-lbl">Today's Total Visits</div></div>
+      <div class="ov-card"><div class="ov-icon">✅</div><div class="ov-val" id="sa-today">0</div><div class="ov-lbl">Present Today</div></div>
     </div>
     <div class="co-grid" id="coGrid"><div class="empty"><div class="empty-icon">🏢</div>No companies found.</div></div>
     </div><!-- end sa-panel-companies -->
@@ -1428,6 +1508,24 @@ button{font-family:'DM Sans',sans-serif;}
         <option value="backoffice">🏢 Back Office Employee</option>
       </select>
     </div>
+    <!-- Shift Override -->
+    <div style="background:rgba(75,159,255,0.06);border:1px solid rgba(75,159,255,0.2);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--info);margin-bottom:10px;">🕐 Shift Override (leave blank to use company default)</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div class="fg" style="flex:1;min-width:130px;margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Shift In</label>
+          <input class="fi" type="time" id="esShiftIn" placeholder="Company default">
+        </div>
+        <div class="fg" style="flex:1;min-width:130px;margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Shift Out</label>
+          <input class="fi" type="time" id="esShiftOut" placeholder="Company default">
+        </div>
+        <div class="fg" style="flex:1;min-width:130px;margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Grace Period (min)</label>
+          <input class="fi" type="number" id="esGreeting" placeholder="Company default" min="0" max="60">
+        </div>
+      </div>
+    </div>
     <div class="modal-acts">
       <button class="btn-cancel" onclick="closeModal('editSalesmanModal')">Cancel</button>
       <button class="btn-confirm" onclick="saveSalesmanEdit()">Save Changes</button>
@@ -1497,6 +1595,40 @@ function openModal(id){ document.getElementById(id).classList.add('on'); }
 function closeModal(id){ document.getElementById(id).classList.remove('on'); }
 
 function todayStr(){ const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
+
+/* ── Time & Shift helpers ── */
+function parseTimeToMin(t){ // "HH:MM" → total minutes
+  if(!t||!t.includes(':')) return 0;
+  const [h,m]=t.split(':').map(Number);
+  return h*60+(m||0);
+}
+function minToHHMM(m){ // total minutes → "HH:MM"
+  const h=Math.floor(Math.abs(m)/60), mm=Math.abs(m)%60;
+  return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+}
+function minToHHMMSigned(m){ // with +/-
+  if(m===0) return '00:00';
+  return (m>0?'+':'-')+minToHHMM(m);
+}
+function getEmpShift(uid){
+  const u=APP.salesmen[uid]||APP.userData||{};
+  return {
+    shiftIn:  u.shift_in  || APP.companyShiftIn  || '09:00',
+    shiftOut: u.shift_out || APP.companyShiftOut || '18:00',
+    greeting: (u.greeting_period!=null?u.greeting_period:null) ?? APP.companyGreetingPeriod ?? 15
+  };
+}
+function isCustomHoliday(dateStr, customHolidays){
+  if(!customHolidays||!customHolidays.length) return null;
+  return customHolidays.find(h=>h.date===dateStr)||null;
+}
+function isAnyHoliday(dateStr, weeklyHolidays, customHolidays){
+  const dow=new Date(dateStr+'T00:00:00').getDay();
+  if((weeklyHolidays||[]).includes(dow)) return {type:'weekly',name:'Weekly Holiday'};
+  const ch=isCustomHoliday(dateStr,customHolidays);
+  if(ch) return {type:'custom',name:ch.name};
+  return null;
+}
 
 /* ── Auto ID generators ── */
 async function generateCompanyId(){
@@ -1651,7 +1783,7 @@ async function initApp(){
 
   // Set default dates
   const today=todayStr();
-  ['vStartDate','vEndDate','mapDate','rptHistStart','rptHistEnd','saReportFrom','saReportTo'].forEach(id=>{
+  ['vStartDate','vEndDate','mapDate','rptHistStart','rptHistEnd','rptLateStart','rptLateEnd','saReportFrom','saReportTo'].forEach(id=>{
     const el=document.getElementById(id);
     if(el) el.value=today;
   });
@@ -1805,31 +1937,28 @@ async function loadSuperDashboard(){
     const companies=coSnap.exists()?coSnap.val():{};
     const ids=Object.keys(companies);
     document.getElementById('sa-companies').textContent=ids.length;
-    
-    let totalSalesmen=0, todayVisits=0;
     const today=todayStr();
     const grid=document.getElementById('coGrid');
-    
     if(ids.length===0){ grid.innerHTML='<div class="empty"><div class="empty-icon">🏢</div>No companies found. Add a new one.</div>'; doneLoading(); return; }
-    
-    // fetch all data - optimized parallel loading
+
+    // Load all company data in parallel for speed
     const details=await Promise.all(ids.map(async id=>{
       const co=companies[id];
-      let smCount=0, todayV=0;
-      const [smSnap, vSnap]=await Promise.all([
+      const [smSnap, attSnap]=await Promise.all([
         db.ref('users').orderByChild('company_id').equalTo(id).get(),
-        db.ref(`visits/${id}/${today}`).get()
+        db.ref(`attendance/${id}/${today}`).get()
       ]);
-      if(smSnap.exists()) smCount=Object.values(smSnap.val()).filter(u=>u.role==='salesman'&&u.status!=='deleted_by_admin').length;
-      totalSalesmen+=smCount;
-      if(vSnap.exists()) todayV=Object.keys(vSnap.val()).length;
-      todayVisits+=todayV;
-      return {id, ...co, smCount, todayV};
+      const smCount=smSnap.exists()?Object.values(smSnap.val()).filter(u=>u.role==='salesman'&&u.status!=='deleted_by_admin').length:0;
+      // Count employees who checked in today (present)
+      const presentToday=attSnap.exists()?Object.keys(attSnap.val()).length:0;
+      return {id, ...co, smCount, presentToday};
     }));
-    
+
+    let totalSalesmen=0, totalPresent=0;
+    details.forEach(co=>{ totalSalesmen+=co.smCount; totalPresent+=co.presentToday; });
     document.getElementById('sa-salesmen').textContent=totalSalesmen;
-    document.getElementById('sa-today').textContent=todayVisits;
-    
+    document.getElementById('sa-today').textContent=totalPresent;
+
     grid.innerHTML=details.map(co=>{
       const mods=co.modules||{sales:true};
       const modBadge=mods.sales&&mods.backoffice?'<span class="mod-badge mod-both">Sales + Back Office</span>':
@@ -1845,10 +1974,10 @@ async function loadSuperDashboard(){
           ${co.co_id?`<span style="font-size:10px;font-weight:800;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:8px;padding:2px 8px;white-space:nowrap;flex-shrink:0;">${co.co_id}</span>`:''}
         </div>
         <div style="margin-bottom:8px;">${modBadge}</div>
-        <div class="co-meta">Admin: ${co.admin_name||'—'} &nbsp;|&nbsp; 🏖 ${holidayText}</div>
+        <div class="co-meta">${co.co_id?`<span style="font-weight:800;color:var(--gold);">${co.co_id}</span> &nbsp;|&nbsp; `:''}Admin: ${co.admin_name||'—'} &nbsp;|&nbsp; 🏖 ${holidayText}</div>
         <div class="co-stats">
           <div><div class="co-sv">${co.smCount}</div><div class="co-sl">Employees</div></div>
-          <div><div class="co-sv">${co.todayV}</div><div class="co-sl">Today's Visits</div></div>
+          <div><div class="co-sv" style="color:var(--ok);">${co.presentToday}</div><div class="co-sl">Present Today</div></div>
         </div>
         <div class="co-acts">
           <button class="btn-sm-g" onclick="openCoMgmt('${co.id}','${co.admin_uid}','${co.name.replace(/'/g,"\\'")}')">⚙️ Manage</button>
@@ -2007,6 +2136,15 @@ async function saveSalesmanEdit(){
     if(pass) updates.password=pass;
     const empTypeEl=document.getElementById('esEmpType');
     if(empTypeEl) updates.emp_type=empTypeEl.value;
+    // Shift override (only save if filled)
+    const si=document.getElementById('esShiftIn')?.value;
+    const so=document.getElementById('esShiftOut')?.value;
+    const gp=document.getElementById('esGreeting')?.value;
+    if(si) updates.shift_in=si; else updates.shift_in=null;
+    if(so) updates.shift_out=so; else updates.shift_out=null;
+    if(gp!==''&&gp!=null) updates.greeting_period=parseInt(gp)||null; else updates.greeting_period=null;
+    // Remove nulls to keep DB clean
+    Object.keys(updates).forEach(k=>{ if(updates[k]===null) delete updates[k]; });
     await db.ref(`users/${uid}`).update(updates);
 
     doneLoading(); toast('Employee updated successfully! ✅');
@@ -2159,8 +2297,10 @@ async function loadCoMgmtSalesmen(){
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
           <div class="sm-av" style="background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${u.name[0].toUpperCase()}</div>
           <div style="min-width:0;">
-            <div class="sm-nm">${u.name}${isInactive?' <span style="font-size:10px;color:var(--err);font-weight:600;background:rgba(255,68,102,0.1);padding:2px 7px;border-radius:10px;">Inactive</span>':''}</div>
-            <div class="sm-em">${u.email}${u.password?' &nbsp;🔑 '+u.password:''}${u.emp_id?` &nbsp;<span style="font-size:10px;font-weight:800;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.25);border-radius:6px;padding:1px 6px;">${u.emp_id}</span>`:''}</div>
+            <div class="sm-nm" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">
+              ${u.emp_id?`<span style="font-size:10px;font-weight:800;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.25);border-radius:6px;padding:1px 7px;margin-right:6px;">${u.emp_id}</span>`:''}${u.name}${isInactive?' <span style="font-size:10px;color:var(--err);font-weight:600;background:rgba(255,68,102,0.1);padding:2px 7px;border-radius:10px;">Inactive</span>':''}
+            </div>
+            <div class="sm-em">${u.email}${u.password?' &nbsp;🔑 '+u.password:''}</div>
           </div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0;">
@@ -2337,6 +2477,10 @@ async function editSalesmanSA(uid){
     const idDisp=document.getElementById('esEmpIdDisplay');
     const idVal=document.getElementById('esEmpIdVal');
     if(idDisp&&idVal){ if(u.emp_id){ idVal.textContent=u.emp_id; idDisp.style.display='block'; } else { idDisp.style.display='none'; } }
+    // Shift override fields
+    document.getElementById('esShiftIn').value=u.shift_in||'';
+    document.getElementById('esShiftOut').value=u.shift_out||'';
+    document.getElementById('esGreeting').value=u.greeting_period!=null?u.greeting_period:'';
     doneLoading(); openModal('editSalesmanModal');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -2365,13 +2509,17 @@ async function initAdmin(){
     document.getElementById('adCompanyName').textContent=co.name;
     APP.companyModules=co.modules||{sales:true,backoffice:true};
     APP.companyHolidays=co.holidays||[0];
+    APP.companyCustomHolidays=co.custom_holidays||[];
+    APP.companyShiftIn=co.shift_in||'09:00';
+    APP.companyShiftOut=co.shift_out||'18:00';
+    APP.companyGreetingPeriod=co.greeting_period||15;
     APP.companyCcEmails=co.cc_emails||[];
-    // Always show both Sales and Back Office filter/add options
     const filterSales=document.getElementById('smFilterSales');
     const filterBo=document.getElementById('smFilterBo');
     if(filterSales) filterSales.style.display='';
     if(filterBo) filterBo.style.display='';
   }
+  // Load salesmen and overview in parallel for speed
   await loadSalesmen();
   await loadOverview();
 }
@@ -2382,9 +2530,78 @@ function adminPage(page,el){
   document.getElementById(`page-${page}`).classList.add('active');
   el.classList.add('active');
   if(page==='map') setTimeout(()=>{ initMap(); if(APP.mapInstance) APP.mapInstance.invalidateSize(); },150);
+  if(page==='settings') loadAdminSettings();
 }
 
-async function loadSalesmen(){
+/* ════ COMPANY ADMIN SETTINGS ════ */
+async function loadAdminSettings(){
+  try{
+    const snap=await db.ref(`companies/${APP.companyId}`).get();
+    if(!snap.exists()) return;
+    const co=snap.val();
+    // Weekly holidays
+    setHolidayChips('adHolidayChips', co.holidays||[0]);
+    // Shift timings
+    document.getElementById('adShiftIn').value=co.shift_in||'09:00';
+    document.getElementById('adShiftOut').value=co.shift_out||'18:00';
+    document.getElementById('adGreetingPeriod').value=co.greeting_period!=null?co.greeting_period:15;
+    // Custom holidays
+    APP.companyCustomHolidays=co.custom_holidays||[];
+    renderAdminCustomHolidays();
+  }catch(e){ toast('Error loading settings','err'); }
+}
+
+function renderAdminCustomHolidays(){
+  const list=document.getElementById('adCustomHolidayList');
+  const ch=APP.companyCustomHolidays||[];
+  if(ch.length===0){
+    list.innerHTML='<div style="font-size:12px;color:var(--txt-3);padding:8px 0;">No custom holidays added yet.</div>';
+    return;
+  }
+  list.innerHTML=ch.sort((a,b)=>a.date.localeCompare(b.date)).map((h,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);">
+      <span style="font-size:13px;font-weight:700;color:var(--gold);">🎉</span>
+      <span style="flex:1;font-size:13px;font-weight:600;">${h.name}</span>
+      <span style="font-size:12px;color:var(--txt-2);">${h.date}</span>
+      <button onclick="removeAdminCustomHoliday(${i})" style="background:none;border:none;color:var(--err);cursor:pointer;font-size:14px;padding:2px 6px;">✕</button>
+    </div>`).join('');
+}
+
+function addAdminCustomHoliday(){
+  const name=document.getElementById('adCHName').value.trim();
+  const date=document.getElementById('adCHDate').value;
+  if(!name||!date){ toast('Enter holiday name and date','err'); return; }
+  if(!APP.companyCustomHolidays) APP.companyCustomHolidays=[];
+  if(APP.companyCustomHolidays.some(h=>h.date===date)){ toast('This date already has a holiday','err'); return; }
+  APP.companyCustomHolidays.push({name,date});
+  document.getElementById('adCHName').value='';
+  document.getElementById('adCHDate').value='';
+  renderAdminCustomHolidays();
+}
+
+function removeAdminCustomHoliday(idx){
+  APP.companyCustomHolidays.splice(idx,1);
+  renderAdminCustomHolidays();
+}
+
+async function saveAdminSettings(){
+  loading('Saving settings...');
+  try{
+    const holidays=getSelectedHolidays('adHolidayChips');
+    const shift_in=document.getElementById('adShiftIn').value||'09:00';
+    const shift_out=document.getElementById('adShiftOut').value||'18:00';
+    const greeting_period=parseInt(document.getElementById('adGreetingPeriod').value)||15;
+    const custom_holidays=APP.companyCustomHolidays||[];
+    await db.ref(`companies/${APP.companyId}`).update({holidays, shift_in, shift_out, greeting_period, custom_holidays});
+    APP.companyHolidays=holidays;
+    APP.companyShiftIn=shift_in;
+    APP.companyShiftOut=shift_out;
+    APP.companyGreetingPeriod=greeting_period;
+    doneLoading(); toast('Settings saved! ✅');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+
   const snap=await db.ref('users').orderByChild('company_id').equalTo(APP.companyId).get();
   APP.salesmen={};
   if(snap.exists()){
@@ -2418,12 +2635,13 @@ function renderSalesmanList(){
       ?'<span class="mod-badge mod-bo" style="font-size:10px;padding:2px 7px;margin-left:6px;">Back Office</span>'
       :'<span class="mod-badge mod-sales" style="font-size:10px;padding:2px 7px;margin-left:6px;">Sales</span>';
     const inactiveBadge=isInactive?'<span style="font-size:10px;color:var(--err);font-weight:600;background:rgba(255,68,102,0.1);padding:2px 8px;border-radius:10px;margin-left:6px;">Inactive</span>':'';
+    const empIdBadge=u.emp_id?`<span style="font-size:10px;font-weight:800;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.25);border-radius:6px;padding:1px 7px;margin-right:8px;">${u.emp_id}</span>`:'';
     return `<div class="sm-list-item" data-dept="${isBo?'backoffice':'sales'}" style="opacity:${isInactive?0.65:1};">
       <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;">
         <div class="sm-av" style="background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${u.name[0].toUpperCase()}</div>
         <div style="min-width:0;">
-          <div class="sm-nm" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">${u.name}${typeBadge}${inactiveBadge}</div>
-          <div class="sm-em">${u.email}${u.emp_id?` &nbsp;<span style="font-size:10px;font-weight:800;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.25);border-radius:6px;padding:1px 6px;">${u.emp_id}</span>`:''}</div>
+          <div class="sm-nm" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">${empIdBadge}${u.name}${typeBadge}${inactiveBadge}</div>
+          <div class="sm-em">${u.email}</div>
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0;">
@@ -2474,6 +2692,10 @@ async function editSalesmanAdmin(uid){
     const idDisp=document.getElementById('esEmpIdDisplay');
     const idVal=document.getElementById('esEmpIdVal');
     if(idDisp&&idVal){ if(u.emp_id){ idVal.textContent=u.emp_id; idDisp.style.display='block'; } else { idDisp.style.display='none'; } }
+    // Shift override fields
+    document.getElementById('esShiftIn').value=u.shift_in||'';
+    document.getElementById('esShiftOut').value=u.shift_out||'';
+    document.getElementById('esGreeting').value=u.greeting_period!=null?u.greeting_period:'';
     doneLoading();
     openModal('editSalesmanModal');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
@@ -2601,18 +2823,21 @@ async function loadOverview(){
       const u=APP.salesmen[uid]||{name:'Unknown',emp_type:'sales'};
       const isBo=u.emp_type==='backoffice';
       const typeTag=isBo?'<span style="font-size:10px;color:var(--ok);background:rgba(31,209,122,0.1);padding:1px 6px;border-radius:8px;margin-left:5px;">BO</span>':'';
-      if(att.start_time) events.push({ts:att.start_timestamp||0, status:'In', rawName:u.name, name:u.name+typeTag, details:'Day Started', time:att.start_time});
-      if(att.end_time) events.push({ts:att.end_timestamp||0, status:'Out', rawName:u.name, name:u.name+typeTag, details:'Day Ended', time:att.end_time});
-      else if(att.start_time) events.push({ts:(att.start_timestamp||0)+1, status:'Pending', rawName:u.name, name:u.name+typeTag, details:'Not Checked Out', time:'—'});
+      const idTag=u.emp_id?`<span style="font-size:10px;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);padding:1px 6px;border-radius:6px;margin-right:5px;font-weight:800;">${u.emp_id}</span>`:'';
+      if(att.start_time) events.push({ts:att.start_timestamp||0, status:'In', rawName:u.name, name:idTag+u.name+typeTag, details:'Day Started', time:att.start_time});
+      if(att.end_time) events.push({ts:att.end_timestamp||0, status:'Out', rawName:u.name, name:idTag+u.name+typeTag, details:'Day Ended', time:att.end_time});
+      else if(att.start_time) events.push({ts:(att.start_timestamp||0)+1, status:'Pending', rawName:u.name, name:idTag+u.name+typeTag, details:'Not Checked Out', time:'—'});
     });
   }
   // Visit events
   if(vSnap.exists()){
     Object.values(vSnap.val()).forEach(v=>{
+      const u=APP.salesmen[v.salesman_uid]||{};
+      const idTag=u.emp_id?`<span style="font-size:10px;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);padding:1px 6px;border-radius:6px;margin-right:5px;font-weight:800;">${u.emp_id}</span>`:'';
       events.push({
         ts:v.timestamp||0, status:'Visit',
-        rawName:v.salesman_name||'—',
-        name:v.salesman_name||'—',
+        rawName:u.name||v.salesman_name||'—',
+        name:idTag+(u.name||v.salesman_name||'—'),
         details:`🏪 ${v.outlet}${v.remarks?' — '+v.remarks:''}`,
         time:v.time||'—'
       });
@@ -2760,11 +2985,12 @@ async function loadHistory(){
       tbody.innerHTML=lastHistoryData.map(r=>{
         const statusColor=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
         const statusIcon=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
-        const fullTip=`${r.name} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
+        const fullTip=`${r.emp_id||''} ${r.name} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
+        const empIdBadge=r.emp_id&&r.emp_id!=='—'?`<span style="font-size:10px;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);padding:1px 6px;border-radius:6px;margin-right:5px;font-weight:800;">${r.emp_id}</span>`:'';
         return `<tr title="${fullTip}">
           <td>${r.date}</td>
           <td><span style="color:${statusColor};font-weight:700;">${statusIcon} ${r.status}</span></td>
-          <td class="tbl-name" title="${r.name}">${r.name}</td>
+          <td class="tbl-name" title="${r.name}">${empIdBadge}${r.name}</td>
           <td>${r.time}</td>
           <td style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
           <td class="c-rmk" title="${r.remarks}">${r.remarks}</td>
@@ -2960,8 +3186,15 @@ async function loadMap(){
       const empIdx=ci; ci++;
       const smVisits=(visitsBySm[uid]||[]).sort((a,b)=>a.timestamp-b.timestamp);
       const att=attBySm[uid]||null;
-      const smName=(APP.salesmen[uid]||{}).name||'Unknown';
+      const u=APP.salesmen[uid]||{};
+      const smName=u.name||'Unknown';
       const initial=smName[0].toUpperCase();
+      const empId=u.emp_id||'';
+      // Get shift for this employee
+      const shift=getEmpShift(uid);
+      const shiftLabel=`${shift.shiftIn} – ${shift.shiftOut}`;
+      const gracePeriod=shift.greeting;
+
       legend.push({name:smName,color});
 
       // ── Full path: Check-In → Visit1 → Visit2 → ... → Check-Out ──
@@ -3030,15 +3263,23 @@ async function loadMap(){
         const lat=att.start_lat, lng=att.start_lng;
         bounds.push([lat,lng]);
         const inAddr=att.start_address||(att.start_lat?`${att.start_lat.toFixed(5)}, ${att.start_lng.toFixed(5)}`:'—');
-        const inIcon=makePinIcon(color, 'IN', '#1FD17A', initial);
+        // Late check
+        const actualInMin=parseTimeToMin(att.start_time||'');
+        const shiftInMin=parseTimeToMin(shift.shiftIn);
+        const lateMin=actualInMin-(shiftInMin+gracePeriod);
+        const isLate=lateMin>0;
+        const lateTag=isLate?`<span style="background:#FF4466;color:#fff;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:800;">⚠️ Late ${minToHHMM(lateMin)}</span>`:'';
+        const inIcon=makePinIcon(isLate?'#FF4466':color, 'IN', '#1FD17A', initial);
         L.marker([lat,lng],{icon:inIcon}).addTo(APP.mapInstance)
-          .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:190px;padding:2px;">
-            <div style="font-weight:800;font-size:13px;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color};display:flex;align-items:center;gap:6px;">
+          .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:210px;padding:2px;">
+            <div style="font-weight:800;font-size:13px;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color};display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
               <span style="background:#1FD17A22;border:1.5px solid #1FD17A;border-radius:6px;padding:1px 7px;font-size:10px;color:#1FD17A;">✅ IN</span>
               ${smName}
+              ${empId?`<span style="font-size:10px;color:#4B9FFF;background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.25);border-radius:5px;padding:1px 6px;">${empId}</span>`:''}
             </div>
             <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#444;">
-              <div>🕐 ${att.start_time||'—'}</div>
+              <div>🕐 <b>${att.start_time||'—'}</b> &nbsp; ${lateTag}</div>
+              <div style="color:#888;">⏱️ Shift: ${shiftLabel} (Grace: ${gracePeriod}m)</div>
               <div style="font-size:11px;color:#777;">📍 ${inAddr}</div>
             </div>
           </div>`);
@@ -3049,22 +3290,38 @@ async function loadMap(){
         const lat=att.end_lat, lng=att.end_lng;
         bounds.push([lat,lng]);
         const outAddr=att.end_address||(att.end_lat?`${att.end_lat.toFixed(5)}, ${att.end_lng.toFixed(5)}`:'—');
+        // Overtime / early-out check
+        const actualOutMin=parseTimeToMin(att.end_time||'');
+        const shiftOutMin=parseTimeToMin(shift.shiftOut);
+        const shiftDurMin=shiftOutMin-parseTimeToMin(shift.shiftIn);
+        const actualInMin2=parseTimeToMin(att.start_time||'');
+        const workedMin=actualOutMin-actualInMin2;
+        const overtimeMin=workedMin-shiftDurMin;
+        const earlyMin=shiftOutMin-actualOutMin;
+        let timeBadge='';
+        if(overtimeMin>0) timeBadge=`<span style="background:#1FD17A;color:#000;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:800;">OT +${minToHHMM(overtimeMin)}</span>`;
+        else if(earlyMin>0) timeBadge=`<span style="background:#FF9900;color:#000;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:800;">Early -${minToHHMM(earlyMin)}</span>`;
         const outIcon=makePinIcon(color, 'OUT', '#FF4466', initial);
         L.marker([lat,lng],{icon:outIcon}).addTo(APP.mapInstance)
-          .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:190px;padding:2px;">
-            <div style="font-weight:800;font-size:13px;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color};display:flex;align-items:center;gap:6px;">
+          .bindPopup(`<div style="font-family:'DM Sans',sans-serif;min-width:210px;padding:2px;">
+            <div style="font-weight:800;font-size:13px;color:${color};margin-bottom:8px;padding-bottom:6px;border-bottom:2px solid ${color};display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
               <span style="background:#FF446622;border:1.5px solid #FF4466;border-radius:6px;padding:1px 7px;font-size:10px;color:#FF4466;">🚪 OUT</span>
               ${smName}
+              ${empId?`<span style="font-size:10px;color:#4B9FFF;background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.25);border-radius:5px;padding:1px 6px;">${empId}</span>`:''}
             </div>
             <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#444;">
-              <div>🕐 ${att.end_time||'—'}</div>
+              <div>🕐 <b>${att.end_time||'—'}</b> &nbsp; ${timeBadge}</div>
+              <div style="color:#888;">⏱️ Shift: ${shiftLabel}</div>
               <div style="font-size:11px;color:#777;">📍 ${outAddr}</div>
             </div>
           </div>`);
       } else if(att&&att.start_lat){
-        // Checked-in but not yet out — don't plot a fake GPS location
-        // Just mark them in the legend so admin knows
-        legend[legend.length-1].pending=true;
+        // Step 13: Only show "pending" if shift time has passed
+        const nowMin=new Date().getHours()*60+new Date().getMinutes();
+        const shiftEndMin=parseTimeToMin(shift.shiftOut);
+        if(nowMin>=shiftEndMin){
+          legend[legend.length-1].pending=true;
+        }
       }
     }
 
@@ -3244,7 +3501,9 @@ async function loadPerformance(){
               ${i<3?['🥇','🥈','🥉'][i]:i+1}
             </div>
             <div>
-              <div style="font-size:16px;font-weight:700;">${r.name}${deptBadge}</div>
+              <div style="font-size:16px;font-weight:700;">
+                ${r.emp_id&&r.emp_id!=='—'?`<span style="font-size:11px;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);padding:2px 8px;border-radius:7px;margin-right:7px;font-weight:800;vertical-align:middle;">${r.emp_id}</span>`:''}${r.name}${deptBadge}
+              </div>
               <div class="grade-badge" style="background:${g.bg};color:${g.color};margin-top:5px;">
                 ${g.emoji} ${g.label}
               </div>
@@ -3922,7 +4181,7 @@ async function loadSAReport(){
       html+=`<div class="tc" style="margin-bottom:18px;">
         <div class="tc-hd">
           <div style="display:flex;align-items:center;gap:10px;">
-            <div class="tc-title">🏢 ${co.name}</div>
+            <div class="tc-title">🏢 ${co.name}${co.co_id?` <span style="font-size:11px;font-weight:800;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:8px;padding:2px 8px;margin-left:4px;">${co.co_id}</span>`:''}</div>
             <span style="font-size:12px;color:var(--txt-2);">${coRows.filter(r=>r.status==='Visit').length} Visits &nbsp;|&nbsp; ${coRows.filter(r=>r.status==='In').length} Check-Ins</span>
           </div>
         </div>
@@ -3932,7 +4191,7 @@ async function loadSAReport(){
               <th style="width:90px;">Date</th>
               <th style="width:82px;">Type</th>
               <th style="width:88px;">Status</th>
-              <th style="width:100px;">Name</th>
+              <th style="width:160px;">Name</th>
               <th style="width:80px;">Time</th>
               <th style="width:110px;">Outlet</th>
               <th>Remarks</th>
@@ -3941,12 +4200,13 @@ async function loadSAReport(){
               ${coRows.map(r=>{
                 const sc=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
                 const si=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
-                const tip=`${r.name} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
+                const tip=`${r.emp_id||''} ${r.name} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
+                const empIdBadge=r.emp_id&&r.emp_id!=='—'?`<span style="font-size:9px;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);padding:1px 5px;border-radius:5px;margin-right:4px;font-weight:800;">${r.emp_id}</span>`:'';
                 return `<tr title="${tip}">
                   <td>${r.date}</td>
                   <td style="font-size:11px;color:var(--txt-2);">${r.type}</td>
                   <td><span style="color:${sc};font-weight:700;">${si} ${r.status}</span></td>
-                  <td class="tbl-name" title="${r.name}">${r.name}</td>
+                  <td class="tbl-name" title="${r.name}">${empIdBadge}${r.name}</td>
                   <td>${r.time}</td>
                   <td style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
                   <td class="c-rmk" title="${r.remarks}">${r.remarks}</td>
@@ -4207,7 +4467,9 @@ async function buildAttSummaryMatrix(month,year,typeFilter){
   const dateLabel=`${MONTHS_N[month-1]} ${year}`;
   const today=new Date();
   const coSnap=await db.ref(`companies/${APP.companyId}`).get();
-  const holidays=(coSnap.exists()&&coSnap.val().holidays)||[0];
+  const coData=coSnap.exists()?coSnap.val():{};
+  const holidays=coData.holidays||[0];
+  const customHolidays=coData.custom_holidays||[];
   const empList=Object.entries(APP.salesmen).filter(([,u])=>{
     if(u.status==='deleted_by_admin') return false;
     if(typeFilter==='sales') return u.emp_type!=='backoffice';
@@ -4228,16 +4490,245 @@ async function buildAttSummaryMatrix(month,year,typeFilter){
   empList.forEach(([uid])=>{
     matrix[uid]={};
     allDates.forEach(ds=>{
-      const dayOfWeek=new Date(ds+'T00:00:00').getDay();
-      const isHol=holidays.includes(dayOfWeek);
+      const hol=isAnyHoliday(ds,holidays,customHolidays);
       const att=attByDate[ds]?attByDate[ds][uid]:null;
-      if(isHol) matrix[uid][ds]='Holiday';
+      if(hol) matrix[uid][ds]='Holiday';
       else if(att&&att.end_time) matrix[uid][ds]='Present';
-      else if(att&&!att.end_time) matrix[uid][ds]='Present'; // checked-in but not out = still Present
+      else if(att&&!att.end_time) matrix[uid][ds]='Present';
       else matrix[uid][ds]='Absent';
     });
   });
-  return {matrix,co,dateLabel,empList,allDates,holidays};
+  return {matrix,co,dateLabel,empList,allDates,holidays,customHolidays};
+}
+
+/* ════ REPORTS C — LATE & OVERTIME REPORT ════ */
+async function buildLateRows(startDate, endDate, typeFilter){
+  const rows=[];
+  const dates=[];
+  let cur=new Date(startDate+'T00:00:00');
+  const end=new Date(endDate+'T00:00:00');
+  while(cur<=end){
+    const y=cur.getFullYear(),m=String(cur.getMonth()+1).padStart(2,'0'),d=String(cur.getDate()).padStart(2,'0');
+    dates.push(`${y}-${m}-${d}`); cur.setDate(cur.getDate()+1);
+  }
+  const coSnap=await db.ref(`companies/${APP.companyId}`).get();
+  const coData=coSnap.exists()?coSnap.val():{};
+  const weeklyHols=coData.holidays||[0];
+  const customHols=coData.custom_holidays||[];
+
+  const empList=Object.entries(APP.salesmen).filter(([,u])=>{
+    if(u.status==='deleted_by_admin') return false;
+    if(typeFilter==='sales') return u.emp_type!=='backoffice';
+    if(typeFilter==='backoffice') return u.emp_type==='backoffice';
+    return true;
+  });
+
+  for(const date of dates){
+    const hol=isAnyHoliday(date,weeklyHols,customHols);
+    if(hol) continue; // skip holidays entirely
+
+    const attSnap=await db.ref(`attendance/${APP.companyId}/${date}`).get();
+    if(!attSnap.exists()) continue;
+    const attDay=attSnap.val();
+
+    for(const [uid,u] of empList){
+      const att=attDay[uid];
+      if(!att||!att.start_time) continue; // absent — skip
+
+      const shift=getEmpShift(uid);
+      const shiftInMin=parseTimeToMin(shift.shiftIn);
+      const shiftOutMin=parseTimeToMin(shift.shiftOut);
+      const grace=shift.greeting;
+      const shiftDurMin=shiftOutMin-shiftInMin;
+
+      const actualInMin=parseTimeToMin(att.start_time);
+      const actualOutMin=att.end_time?parseTimeToMin(att.end_time):null;
+
+      // Late = actual_in − (shift_in + grace), only positive
+      const lateMin=Math.max(0, actualInMin-(shiftInMin+grace));
+      // Early out = shift_out − actual_out (only if checked out before shift end)
+      const earlyOutMin=actualOutMin!=null?Math.max(0,shiftOutMin-actualOutMin):null;
+      // Working duration
+      const workedMin=actualOutMin!=null?actualOutMin-actualInMin:null;
+      // Overtime = worked − shift_duration, only if positive
+      const overtimeMin=workedMin!=null?Math.max(0,workedMin-shiftDurMin):null;
+
+      rows.push({
+        date, uid,
+        emp_id:u.emp_id||'—',
+        name:u.name,
+        emp_type:u.emp_type||'sales',
+        shift_in:shift.shiftIn,
+        shift_out:shift.shiftOut,
+        grace,
+        in_time:att.start_time,
+        out_time:att.end_time||null,
+        late_min:lateMin,
+        early_out_min:earlyOutMin,
+        worked_min:workedMin,
+        overtime_min:overtimeMin,
+        shift_dur_min:shiftDurMin,
+        is_late:lateMin>0
+      });
+    }
+  }
+  rows.sort((a,b)=>a.date.localeCompare(b.date)||a.name.localeCompare(b.name));
+  return rows;
+}
+
+async function exportRptLateExcel(){
+  const startDate=document.getElementById('rptLateStart').value;
+  const endDate=document.getElementById('rptLateEnd').value;
+  const typeFilter=document.getElementById('rptLateType').value;
+  if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
+  loading('Building Late & Overtime report...');
+  try{
+    const rows=await buildLateRows(startDate,endDate,typeFilter);
+    if(!rows.length){ doneLoading(); toast('No attendance records found','err'); return; }
+    const co=getCompanyName();
+    const wb=new ExcelJS.Workbook();
+    const ws=wb.addWorksheet('Late & Overtime');
+
+    // ── Title Block ──
+    ws.mergeCells('A1:L1');
+    ws.getCell('A1').value='SunStar Solutions — Late & Overtime Report';
+    ws.getCell('A1').font={name:'DM Sans',size:14,bold:true,color:{argb:'FF000000'}};
+    ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+    ws.getCell('A1').alignment={horizontal:'center',vertical:'middle'};
+    ws.getRow(1).height=24;
+
+    ws.mergeCells('A2:L2');
+    ws.getCell('A2').value=`${co}`;
+    ws.getCell('A2').font={size:11,bold:true,color:{argb:'FFF0F4FF'}};
+    ws.getCell('A2').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0C1229'}};
+    ws.getCell('A2').alignment={horizontal:'center'};
+
+    ws.mergeCells('A3:L3');
+    ws.getCell('A3').value=`${startDate} to ${endDate}  |  Records: ${rows.length}`;
+    ws.getCell('A3').font={size:10,color:{argb:'FF7A8DB8'}};
+    ws.getCell('A3').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF06091A'}};
+    ws.getCell('A3').alignment={horizontal:'center'};
+
+    ws.mergeCells('A4:L4'); ws.getRow(4).height=6;
+    ws.getCell('A4').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+
+    // ── Headers ──
+    const headers=['#','Emp ID','Name','Date','Shift In','Shift Out','Grace(m)','Actual In','Actual Out','Late','Early Out','Overtime'];
+    const hRow=ws.getRow(5);
+    headers.forEach((h,i)=>{
+      const cell=hRow.getCell(i+1);
+      cell.value=h;
+      cell.font={bold:true,color:{argb:'FF000000'},size:10};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.border={bottom:{style:'medium',color:{argb:'FFEFA800'}}};
+    });
+    hRow.height=18;
+    ws.views=[{state:'frozen',ySplit:5}];
+    ws.autoFilter={from:'A5',to:'L5'};
+    const colWidths=[4,12,22,12,10,10,9,10,10,12,12,12];
+    colWidths.forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
+
+    // ── Data Rows ──
+    rows.forEach((r,i)=>{
+      const rowNum=6+i;
+      const dRow=ws.getRow(rowNum);
+      const bg=i%2===0?'FFFFFFFF':'FFE8EDFA';
+      const lateStr=r.late_min>0?minToHHMM(r.late_min):'—';
+      const earlyStr=r.early_out_min!=null&&r.early_out_min>0?minToHHMM(r.early_out_min):'—';
+      const otStr=r.overtime_min!=null&&r.overtime_min>0?minToHHMM(r.overtime_min):'—';
+      const vals=[i+1,r.emp_id,r.name,r.date,r.shift_in,r.shift_out,r.grace,r.in_time,r.out_time||'—',lateStr,earlyStr,otStr];
+      vals.forEach((v,ci)=>{
+        const cell=dRow.getCell(ci+1);
+        cell.value=v;
+        cell.font={size:9,color:{argb:'FF1A2850'}};
+        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
+        cell.alignment={horizontal:ci===2?'left':'center',vertical:'middle'};
+        // Highlight late
+        if(r.is_late){
+          if(ci===7){ cell.font={size:9,bold:true,color:{argb:'FFFF4466'}}; } // Actual In
+          if(ci===9){ cell.font={size:9,bold:true,color:{argb:'FFFF4466'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFE0E6'}}; } // Late col
+        }
+        // Highlight overtime green
+        if(r.overtime_min>0&&ci===11){ cell.font={size:9,bold:true,color:{argb:'FF1FD17A'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE0FBF0'}}; }
+        // Highlight early out orange
+        if(r.early_out_min>0&&ci===10){ cell.font={size:9,bold:true,color:{argb:'FFFF9900'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF3DC'}}; }
+      });
+      dRow.height=15;
+    });
+
+    await xlsDownload(wb,`${co}_Late_Overtime_${startDate}_${endDate}`);
+    doneLoading(); toast('Late & Overtime Excel downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
+}
+
+async function exportRptLatePDF(){
+  const startDate=document.getElementById('rptLateStart').value;
+  const endDate=document.getElementById('rptLateEnd').value;
+  const typeFilter=document.getElementById('rptLateType').value;
+  if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
+  loading('Building Late & Overtime PDF...');
+  try{
+    const rows=await buildLateRows(startDate,endDate,typeFilter);
+    if(!rows.length){ doneLoading(); toast('No attendance records found','err'); return; }
+    const co=getCompanyName();
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF('l','pt','a4');
+    doc.setFontSize(18); doc.setTextColor(239,168,0);
+    doc.text('SunStar Solutions — Late & Overtime Report',40,38);
+    doc.setFontSize(11); doc.setTextColor(120,130,180);
+    doc.text(`${co}  |  ${startDate} to ${endDate}`,40,56);
+    doc.setFontSize(9); doc.setTextColor(100,110,150);
+    doc.text(`Records: ${rows.length}  |  ⚠️ Red = Late  |  🟢 Green = Overtime  |  🟡 Orange = Early Out`,40,70);
+
+    doc.autoTable({
+      startY:82,
+      head:[['#','Emp ID','Name','Date','Shift In','Shift Out','Grace','In','Out','Late','Early Out','Overtime']],
+      body:rows.map((r,i)=>[
+        i+1,
+        r.emp_id,
+        r.name,
+        r.date,
+        r.shift_in,
+        r.shift_out,
+        r.grace+'m',
+        r.in_time,
+        r.out_time||'—',
+        r.late_min>0?minToHHMM(r.late_min):'—',
+        r.early_out_min!=null&&r.early_out_min>0?minToHHMM(r.early_out_min):'—',
+        r.overtime_min!=null&&r.overtime_min>0?minToHHMM(r.overtime_min):'—'
+      ]),
+      styles:{fontSize:7.5,textColor:[200,210,240],fillColor:[12,18,41],cellPadding:3,halign:'center'},
+      headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold',fontSize:8},
+      alternateRowStyles:{fillColor:[17,26,56]},
+      columnStyles:{
+        2:{halign:'left',cellWidth:70},
+        3:{cellWidth:60},
+        9:{cellWidth:36},
+        10:{cellWidth:44},
+        11:{cellWidth:44}
+      },
+      didParseCell:(d)=>{
+        if(d.section!=='body') return;
+        const r=rows[d.row.index];
+        if(!r) return;
+        // Late: red In-time and Late column
+        if(r.is_late&&(d.column.index===7||d.column.index===9)){
+          d.cell.styles.textColor=[255,68,102]; d.cell.styles.fontStyle='bold';
+        }
+        // Overtime: green
+        if(r.overtime_min>0&&d.column.index===11){
+          d.cell.styles.textColor=[31,209,122]; d.cell.styles.fontStyle='bold';
+        }
+        // Early out: orange
+        if(r.early_out_min>0&&d.column.index===10){
+          d.cell.styles.textColor=[255,153,0]; d.cell.styles.fontStyle='bold';
+        }
+      }
+    });
+    doc.save(`${co}_Late_Overtime_${startDate}_${endDate}.pdf`);
+    doneLoading(); toast('Late & Overtime PDF downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
 }
 
 /* ════ PWA INSTALL ════ */
