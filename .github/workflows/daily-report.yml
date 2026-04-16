@@ -2,27 +2,30 @@ name: Daily Report Email
 
 on:
   schedule:
-    - cron: '30 18 * * *'  # 12:30 AM Bangladesh time (UTC+6 = 18:30 UTC)
-  workflow_dispatch:         # Manual trigger for testing
+    # Runs at 18:30 UTC = 12:00 AM IST (midnight)
+    - cron: '30 18 * * *'
+  workflow_dispatch:  # Allow manual trigger for testing
 
 jobs:
   send-report:
     runs-on: ubuntu-latest
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: npm install firebase-admin nodemailer xlsx
+        run: npm install
 
-      - name: Send Daily Report
+      - name: Send daily report
         env:
-          FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
-          EMAIL_USER: ${{ secrets.EMAIL_USER }}
-          EMAIL_PASS: ${{ secrets.EMAIL_PASS }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
         run: node send-report.js
