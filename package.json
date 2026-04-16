@@ -1,0 +1,13 @@
+{
+  "name": "sunstar-daily-report",
+  "version": "1.0.0",
+  "description": "SunStar Solutions daily email report",
+  "main": "send-report.js",
+  "scripts": {
+    "start": "node send-report.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "nodemailer": "^6.9.0"
+  }
+}
