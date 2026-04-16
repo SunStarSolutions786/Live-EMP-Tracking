@@ -2602,6 +2602,7 @@ async function saveAdminSettings(){
 }
 
 
+async function loadSalesmen(){
   const snap=await db.ref('users').orderByChild('company_id').equalTo(APP.companyId).get();
   APP.salesmen={};
   if(snap.exists()){
