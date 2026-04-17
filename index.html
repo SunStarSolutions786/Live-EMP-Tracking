@@ -2,8 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>SunStar Solutions — Field Force Management</title>
+<meta name="theme-color" content="#EFA800">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SunStar">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -206,68 +211,98 @@ button{font-family:'DM Sans',sans-serif;}
 .btn-out:hover{background:rgba(255,68,102,0.2);}
 
 /* ════════════════════════════════════════════════
-   SALESMAN SCREEN
+   SALESMAN SCREEN — MOBILE APP STYLE
 ════════════════════════════════════════════════ */
 #salesmanScreen{display:none!important;min-height:100vh;}
-#salesmanScreen.on{display:block!important;}
-.sm-wrap{max-width:580px;margin:0 auto;padding:28px 18px;}
-.greet{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;line-height:1.2;}
+#salesmanScreen.on{display:flex!important;flex-direction:column;}
+
+/* Mobile nav — compact */
+#salesmanScreen .nav{
+  height:54px;padding:0 14px;flex-shrink:0;
+}
+#salesmanScreen .nav-title{font-size:17px;}
+#salesmanScreen .user-pill{padding:4px 10px 4px 4px;}
+#salesmanScreen .user-nm{font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* Bottom tab bar */
+.sm-tab-bar{
+  display:flex;position:fixed;bottom:0;left:0;right:0;
+  background:var(--bg-card);border-top:1px solid var(--border);
+  z-index:300;height:58px;
+  box-shadow:0 -4px 20px rgba(0,0,0,0.35);
+}
+.sm-tab{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;cursor:pointer;padding:6px 4px;border:none;background:none;
+  color:var(--txt-3);font-family:'DM Sans',sans-serif;transition:color .2s;
+}
+.sm-tab.active{ color:var(--gold); }
+.sm-tab-icon{font-size:20px;line-height:1;}
+.sm-tab-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;}
+
+/* Scrollable content area with bottom padding for tab bar */
+.sm-scroll{
+  flex:1;overflow-y:auto;padding:16px 14px 72px;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Compact cards */
+.sm-wrap{max-width:600px;margin:0 auto;width:100%;}
+.greet{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:700;line-height:1.2;}
 .greet span{color:var(--gold);}
 .date-pill{
   display:inline-flex;align-items:center;gap:6px;
   background:var(--gold-dim);border:1px solid rgba(239,168,0,0.25);
-  border-radius:20px;padding:5px 14px;font-size:12px;color:var(--gold-lt);
-  font-weight:600;margin-top:8px;letter-spacing:.5px;
+  border-radius:20px;padding:4px 12px;font-size:11px;color:var(--gold-lt);
+  font-weight:600;margin-top:6px;letter-spacing:.5px;
 }
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0;}
 .sc{
   background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
-  padding:18px 14px;text-align:center;transition:all .25s;
+  padding:14px 10px;text-align:center;
 }
-.sc:hover{border-color:var(--border-lg);transform:translateY(-2px);}
-.sc-val{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:700;color:var(--gold);line-height:1;}
-.sc-lbl{font-size:11px;color:var(--txt-2);text-transform:uppercase;letter-spacing:1px;margin-top:5px;}
+.sc-val{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--gold);line-height:1;}
+.sc-lbl{font-size:10px;color:var(--txt-2);text-transform:uppercase;letter-spacing:0.8px;margin-top:4px;}
 .card{
   background:var(--bg-card);border:1px solid var(--border);
-  border-radius:var(--r);padding:26px;margin-bottom:22px;box-shadow:var(--shadow);
+  border-radius:var(--r);padding:18px;margin-bottom:14px;box-shadow:var(--shadow);
 }
 .card-hd{
-  display:flex;align-items:center;gap:10px;margin-bottom:22px;
-  font-size:15px;font-weight:700;color:var(--txt);
+  display:flex;align-items:center;gap:10px;margin-bottom:16px;
+  font-size:14px;font-weight:700;color:var(--txt);
 }
 .card-icon{
-  width:32px;height:32px;background:var(--gold-dim);border-radius:8px;
-  display:flex;align-items:center;justify-content:center;font-size:15px;
+  width:30px;height:30px;background:var(--gold-dim);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:14px;
 }
 .gps-bar{
   display:flex;align-items:center;gap:10px;
   background:rgba(31,209,122,0.07);border:1px solid rgba(31,209,122,0.18);
-  border-radius:var(--r-sm);padding:11px 15px;font-size:13px;color:var(--ok);
-  margin-bottom:18px;
+  border-radius:var(--r-sm);padding:10px 14px;font-size:12px;color:var(--ok);
+  margin-bottom:14px;
 }
 .gps-bar.err{background:rgba(255,68,102,0.07);border-color:rgba(255,68,102,0.18);color:var(--err);}
-.gps-dot{width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite;}
+.gps-dot{width:7px;height:7px;border-radius:50%;background:var(--ok);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
 /* Visit items */
 .visit-item{
-  display:flex;align-items:flex-start;gap:14px;
+  display:flex;align-items:flex-start;gap:12px;
   background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
-  padding:16px 18px;margin-bottom:10px;transition:all .25s;
+  padding:14px;margin-bottom:10px;transition:all .25s;
   animation:fadeSlide .35s ease;
 }
 @keyframes fadeSlide{from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:translateX(0);}}
-.visit-item:hover{border-color:var(--border-lg);}
 .v-num{
-  width:34px;height:34px;flex-shrink:0;border-radius:50%;
+  width:30px;height:30px;flex-shrink:0;border-radius:50%;
   background:var(--gold-dim);border:1px solid rgba(239,168,0,0.28);
   display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:800;color:var(--gold);
+  font-size:12px;font-weight:800;color:var(--gold);
 }
-.v-outlet{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:4px;}
-.v-remarks{font-size:13px;color:var(--txt-2);margin-bottom:8px;}
-.v-meta{display:flex;gap:14px;font-size:12px;color:var(--txt-3);}
-.empty{text-align:center;padding:48px 20px;color:var(--txt-2);}
-.empty-icon{font-size:44px;margin-bottom:14px;opacity:.4;}
+.v-outlet{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:3px;}
+.v-remarks{font-size:12px;color:var(--txt-2);margin-bottom:6px;}
+.v-meta{display:flex;gap:12px;font-size:11px;color:var(--txt-3);}
+.empty{text-align:center;padding:40px 16px;color:var(--txt-2);}
+.empty-icon{font-size:38px;margin-bottom:12px;opacity:.4;}
 
 /* ════════════════════════════════════════════════
    ADMIN SCREEN
@@ -788,15 +823,13 @@ button{font-family:'DM Sans',sans-serif;}
         <div class="user-av" id="smAv">R</div>
         <div class="user-nm" id="smNm">Salesman</div>
       </div>
-      <button onclick="smShowPage('home')" id="smBtnHome" style="background:none;border:none;color:var(--gold);font-size:18px;cursor:pointer;padding:6px;" title="Home">🏠</button>
-      <button onclick="smShowPage('report')" id="smBtnReport" style="background:none;border:none;color:var(--txt-2);font-size:18px;cursor:pointer;padding:6px;" title="My Report">📊</button>
-      <button onclick="smShowPage('profile')" id="smBtnProfile" style="background:none;border:none;color:var(--txt-2);font-size:18px;cursor:pointer;padding:6px;" title="My Profile">👤</button>
-      <button id="pwaInstallBtn" style="display:none;background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:var(--r-sm);padding:7px 12px;color:var(--gold);font-size:12px;font-weight:700;cursor:pointer;" onclick="installPWA()">📲 Install</button>
-      <button class="btn-out" onclick="doLogout()">Logout</button>
+      <button id="pwaInstallBtn" style="display:none;background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:var(--r-sm);padding:6px 10px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;" onclick="installPWA()">📲</button>
+      <button class="btn-out" style="font-size:12px;padding:6px 10px;" onclick="doLogout()">Exit</button>
     </div>
   </div>
-  <!-- content -->
-  <div class="sm-wrap">
+  <!-- Scrollable content -->
+  <div class="sm-scroll">
+    <div class="sm-wrap">
   <!-- ── HOME PAGE ── -->
   <div id="smPageHome">
     <div class="greet">Good day, <span id="smGreet">Salesman</span>!</div>
@@ -945,6 +978,23 @@ button{font-family:'DM Sans',sans-serif;}
   </div><!-- end smPageProfile -->
 
   </div><!-- end sm-wrap -->
+  </div><!-- end sm-scroll -->
+
+  <!-- ── Bottom Tab Bar ── -->
+  <div class="sm-tab-bar">
+    <button class="sm-tab active" id="smTabHome" onclick="smShowPage('home')">
+      <span class="sm-tab-icon">🏠</span>
+      <span class="sm-tab-label">Home</span>
+    </button>
+    <button class="sm-tab" id="smTabReport" onclick="smShowPage('report')">
+      <span class="sm-tab-icon">📊</span>
+      <span class="sm-tab-label">My Report</span>
+    </button>
+    <button class="sm-tab" id="smTabProfile" onclick="smShowPage('profile')">
+      <span class="sm-tab-icon">👤</span>
+      <span class="sm-tab-label">Profile</span>
+    </button>
+  </div>
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -1734,10 +1784,20 @@ function closeModal(id){ document.getElementById(id).classList.remove('on'); }
 function todayStr(){ const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; }
 
 /* ── Time & Shift helpers ── */
-function parseTimeToMin(t){ // "HH:MM" → total minutes
+function parseTimeToMin(t){ // "HH:MM" or "HH:MM AM/PM" → total minutes (always 0-1439)
   if(!t||!t.includes(':')) return 0;
-  const [h,m]=t.split(':').map(Number);
-  return h*60+(m||0);
+  const str=t.trim();
+  const ampmMatch=str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if(ampmMatch){
+    let h=parseInt(ampmMatch[1]), m=parseInt(ampmMatch[2]);
+    const period=ampmMatch[3].toUpperCase();
+    if(period==='PM' && h!==12) h+=12;
+    if(period==='AM' && h===12) h=0;
+    return h*60+m;
+  }
+  // 24-hour: "HH:MM"
+  const parts=str.split(':');
+  return parseInt(parts[0])*60+(parseInt(parts[1])||0);
 }
 function minToHHMM(m){ // total minutes → "HH:MM"
   const h=Math.floor(Math.abs(m)/60), mm=Math.abs(m)%60;
@@ -1746,6 +1806,13 @@ function minToHHMM(m){ // total minutes → "HH:MM"
 function minToHHMMSigned(m){ // with +/-
   if(m===0) return '00:00';
   return (m>0?'+':'-')+minToHHMM(m);
+}
+function fmt12hr(t){ // "HH:MM" or "HH:MM AM/PM" → display "09:00 AM"
+  if(!t||t==='—') return '—';
+  const min=parseTimeToMin(t);
+  const h=Math.floor(min/60), m=min%60;
+  const ap=h>=12?'PM':'AM';
+  return `${h%12||12}:${String(m).padStart(2,'0')} ${ap}`;
 }
 function getEmpShift(uid){
   const u=APP.salesmen[uid]||APP.userData||{};
@@ -2384,7 +2451,7 @@ function renderCSCustomHolidays(){
     </div>`).join('');
 }
 
-function addCSCustomHoliday(){
+async function addCSCustomHoliday(){
   const name=document.getElementById('csCHName').value.trim();
   const date=document.getElementById('csCHDate').value;
   if(!name||!date){ toast('Enter holiday name and date','err'); return; }
@@ -2394,11 +2461,17 @@ function addCSCustomHoliday(){
   document.getElementById('csCHName').value='';
   document.getElementById('csCHDate').value='';
   renderCSCustomHolidays();
+  const coId=document.getElementById('csCoId').value;
+  try{ await db.ref(`companies/${coId}`).update({custom_holidays:window._csCustomHolidays}); toast('Holiday saved ✅'); }
+  catch(e){ toast('Save failed','err'); }
 }
 
-function removeCSCustomHoliday(idx){
+async function removeCSCustomHoliday(idx){
   window._csCustomHolidays.splice(idx,1);
   renderCSCustomHolidays();
+  const coId=document.getElementById('csCoId').value;
+  try{ await db.ref(`companies/${coId}`).update({custom_holidays:window._csCustomHolidays}); toast('Holiday removed'); }
+  catch(e){ toast('Save failed','err'); }
 }
 
 async function saveCoSettings(){
@@ -2770,7 +2843,7 @@ function renderAdminCustomHolidays(){
     </div>`).join('');
 }
 
-function addAdminCustomHoliday(){
+async function addAdminCustomHoliday(){
   const name=document.getElementById('adCHName').value.trim();
   const date=document.getElementById('adCHDate').value;
   if(!name||!date){ toast('Enter holiday name and date','err'); return; }
@@ -2780,11 +2853,16 @@ function addAdminCustomHoliday(){
   document.getElementById('adCHName').value='';
   document.getElementById('adCHDate').value='';
   renderAdminCustomHolidays();
+  // Auto-save to Firebase
+  try{ await db.ref(`companies/${APP.companyId}`).update({custom_holidays:APP.companyCustomHolidays}); toast('Holiday saved ✅'); }
+  catch(e){ toast('Save failed: '+e.message,'err'); }
 }
 
-function removeAdminCustomHoliday(idx){
+async function removeAdminCustomHoliday(idx){
   APP.companyCustomHolidays.splice(idx,1);
   renderAdminCustomHolidays();
+  try{ await db.ref(`companies/${APP.companyId}`).update({custom_holidays:APP.companyCustomHolidays}); toast('Holiday removed'); }
+  catch(e){ toast('Save failed: '+e.message,'err'); }
 }
 
 async function saveAdminSettings(){
@@ -4028,9 +4106,9 @@ async function initSalesman(){
 function smShowPage(page){
   ['home','report','profile'].forEach(p=>{
     const el=document.getElementById(`smPage${p.charAt(0).toUpperCase()+p.slice(1)}`);
-    const btn=document.getElementById(`smBtn${p.charAt(0).toUpperCase()+p.slice(1)}`);
+    const tab=document.getElementById(`smTab${p.charAt(0).toUpperCase()+p.slice(1)}`);
     if(el) el.style.display=p===page?'block':'none';
-    if(btn){ btn.style.color=p===page?'var(--gold)':'var(--txt-2)'; }
+    if(tab) tab.classList.toggle('active',p===page);
   });
   if(page==='profile') loadSmProfile();
 }
@@ -5203,6 +5281,17 @@ window.addEventListener('appinstalled',()=>{
    START
 ════════════════════════════════════════════════ */
 window.addEventListener('load',initApp);
+
+// ── Inline PWA Manifest ──
+(function(){
+  const logoB64='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAQdUlEQVR42u1aeZQV1Z3+7r21vKp6r/emu4GmQRaFZhNQicEBlxg1GsXk4TImxCSCwxwSCQbRQR+PGFA0xlFjAiQRcFTSnShRE7dE0CG4IKssQrM3TW/vdb+96lXVvXf+aJhwjJMTaAiZmf7OqfPq3HPq3fv77m/57q8K6EEPetCDHvSgB/9fwc7q7IQC5OwSQM/GpDLSNW+8buTFyefGXHTi2P8ZAj7LoP8em9T1y8SR6xE7fM3xtUiASPmXPnG2yDl14yHJX1u4DIMBBMkXC9YlFhW/DZBjY/8zkVJK8o9v+LHdy7zzxSpn9ajJxw04boT76jUXSVnHJEBk64xg6jdWoiMSapPPRAJSgsjtYS27buI4AJB1YMefc34/+qty23UVJ87xDxkChEDKOjDrn8a3ctJyh/3L3o+RKBPHiXBzW7+RePy7Mwkgk+t+NyHARaHq87LOgysuJAQyuf2dOf7+7ZNlBBRhCBJlIreq4qeebL4NvxnTLuvACIH8h88BhEQF+gcWBHqnZmUWl9Yl+l9fQKIQkjhtBsst3D5jRpDK7IWqKxD0JUE8NbpTTi0yRH6eaEQHiUIcfv7WoszPSl40SjN3kiolQqJR8b8jCe6AXBOBEhzd+L5N8L7VKxnWGtb9qWXuhHOEFjygW75RKVe/jmb6JbdJSzkpNS08Lcye+v1rWtbX/Szb27Jowjkl+9/4k1WcmZzJqW8ExzRvlWugzN9xencfOINVWEZAsyOqbjfdxM+dbQL5mOGiomyNpiSPZOPGS7R2xJa373y1pRwgI+65upJ4u4bryF6fF1Y5ySeu08tsTR+kIKeVhUO3HH6REJwRDyCnNwFK5P74uQuUTjurhz/eAUKQ/qm5P5iRA1J7zDpeXP39koc/OpL5yuArpJm+2A9hIDNBmI4WomjbaNG5G2KbEoGQefDugnMytyY19eOiWdmRgETmN8PHoKJSBCe8tUVKkNOVC0j3jY4QzI9iLUAn1ULmK0cO5G3tv9abvfbMXmMp+vCbCeS2wjmtkaNX9P2aaaQXB0NuJQkKCAOgQYDoBEQHXErAgur6bNWwb8pte2/mTK3VmLE6UNUx3QkqWVrR59u7dmxuHwsAxRCYAkHQPSLOSAh0/Kl/jbY9ttWKoTDeUn5f2ZMHFrVc3mdWLyPzWNL04BqSK5pkoRABMwEZkHB1wFUlLyxXWUZWXBa6bd+a2Nyafysd2PlgzqQbzcv6TSRV27KftQnd8QZyqjtPCKR896py32kdKQ7brbascDSS8hAoQrJZiRms4Utwcl8vuq/t2o7w2H5u7MAeNeSqXIdQLKFAQycJBd+kptJGdKcIphweKvTOT4EcKfhmqh/m16rYuYOnR/RdpgT0AyKk26yIBqlIFkD4mgxYbwXCe1/uEo8gp+oJSrekriK4oMnLURG/q9BpMlLN0hYtTBgJ34MTyOb0oVdKtJGmtrbLijWupzk8wiUpUAk6tcJ55T86+vSfSZXUef6cy5hijo4tvO/coH9ub796XIVoK';
+  const manifest={name:'SunStar Solutions',short_name:'SunStar',start_url:'./',display:'standalone',background_color:'#06091A',theme_color:'#EFA800',icons:[{src:logoB64,sizes:'72x72',type:'image/png'},{src:logoB64,sizes:'192x192',type:'image/png'}]};
+  const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement('link');
+  link.rel='manifest'; link.href=url;
+  document.head.appendChild(link);
+})();
 </script>
 </body>
 </html>
