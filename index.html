@@ -788,12 +788,17 @@ button{font-family:'DM Sans',sans-serif;}
         <div class="user-av" id="smAv">R</div>
         <div class="user-nm" id="smNm">Salesman</div>
       </div>
+      <button onclick="smShowPage('home')" id="smBtnHome" style="background:none;border:none;color:var(--gold);font-size:18px;cursor:pointer;padding:6px;" title="Home">🏠</button>
+      <button onclick="smShowPage('report')" id="smBtnReport" style="background:none;border:none;color:var(--txt-2);font-size:18px;cursor:pointer;padding:6px;" title="My Report">📊</button>
+      <button onclick="smShowPage('profile')" id="smBtnProfile" style="background:none;border:none;color:var(--txt-2);font-size:18px;cursor:pointer;padding:6px;" title="My Profile">👤</button>
       <button id="pwaInstallBtn" style="display:none;background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:var(--r-sm);padding:7px 12px;color:var(--gold);font-size:12px;font-weight:700;cursor:pointer;" onclick="installPWA()">📲 Install</button>
       <button class="btn-out" onclick="doLogout()">Logout</button>
     </div>
   </div>
   <!-- content -->
   <div class="sm-wrap">
+  <!-- ── HOME PAGE ── -->
+  <div id="smPageHome">
     <div class="greet">Good day, <span id="smGreet">Salesman</span>!</div>
     <div class="date-pill" id="smDate">📅 Today</div>
 
@@ -871,7 +876,75 @@ button{font-family:'DM Sans',sans-serif;}
     <!-- Today's visits -->
     <div id="smVisitHeading" class="card-hd" style="padding:0;margin-bottom:14px;"><div class="card-icon">📋</div>Today's Visits</div>
     <div id="smVisitListWrap"><div id="smVisitList"><div class="empty"><div class="empty-icon">🏪</div>No visits submitted yet</div></div></div>
-  </div>
+  </div><!-- end smPageHome -->
+
+  <!-- ── SELF REPORT PAGE ── -->
+  <div id="smPageReport" style="display:none;">
+    <div class="greet" style="margin-bottom:6px;">📊 My Report</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:flex-end;">
+      <div class="fg" style="flex:1;min-width:130px;margin-bottom:0;">
+        <label class="fl" style="font-size:11px;">From</label>
+        <input class="fi" type="date" id="smRptFrom">
+      </div>
+      <div class="fg" style="flex:1;min-width:130px;margin-bottom:0;">
+        <label class="fl" style="font-size:11px;">To</label>
+        <input class="fi" type="date" id="smRptTo">
+      </div>
+      <button class="btn-go" onclick="loadSmSelfReport()" style="min-width:90px;">🔍 Search</button>
+    </div>
+    <!-- Summary cards -->
+    <div class="stats-row" id="smRptSummary" style="display:none;">
+      <div class="sc"><div class="sc-val" id="smRptPresent">0</div><div class="sc-lbl">Present</div></div>
+      <div class="sc"><div class="sc-val" id="smRptVisits">0</div><div class="sc-lbl">Visits</div></div>
+      <div class="sc"><div class="sc-val" id="smRptLate">0</div><div class="sc-lbl">Late Days</div></div>
+    </div>
+    <div id="smRptContent"><div class="empty" style="padding:30px 0;"><div class="empty-icon">📅</div>Select date range and search</div></div>
+  </div><!-- end smPageReport -->
+
+  <!-- ── PROFILE PAGE ── -->
+  <div id="smPageProfile" style="display:none;">
+    <div class="greet" style="margin-bottom:16px;">👤 My Profile</div>
+    <!-- Profile card -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px;">
+        <div style="width:52px;height:52px;border-radius:50%;background:var(--gold-dim);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;">
+          <span id="smProfAv" style="font-size:22px;font-weight:800;color:var(--gold);">R</span>
+        </div>
+        <div>
+          <div style="font-size:18px;font-weight:700;" id="smProfName">—</div>
+          <div id="smProfTypeBadge" style="margin-top:4px;"></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:13px;color:var(--txt-2);">Employee ID</span>
+          <span id="smProfEmpId" style="font-size:13px;font-weight:800;color:var(--gold);">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:13px;color:var(--txt-2);">Email</span>
+          <span id="smProfEmail" style="font-size:12px;color:var(--txt);">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:13px;color:var(--txt-2);">Shift Time</span>
+          <span id="smProfShift" style="font-size:13px;font-weight:600;color:var(--info);">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:13px;color:var(--txt-2);">Grace Period</span>
+          <span id="smProfGrace" style="font-size:13px;color:var(--txt);">—</span>
+        </div>
+        <div style="padding:10px 0;">
+          <span style="font-size:13px;color:var(--txt-2);display:block;margin-bottom:8px;">Weekly Off Days</span>
+          <div id="smProfHolidays" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+        </div>
+        <div id="smProfCustomHolSection" style="display:none;padding:10px 0;border-top:1px solid var(--border);">
+          <span style="font-size:13px;color:var(--txt-2);display:block;margin-bottom:8px;">Festival Holidays</span>
+          <div id="smProfCustomHol" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+      </div>
+    </div>
+  </div><!-- end smPageProfile -->
+
+  </div><!-- end sm-wrap -->
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -919,15 +992,20 @@ button{font-family:'DM Sans',sans-serif;}
         <!-- Recent History -->
         <div class="tc">
           <div class="tc-hd"><div class="tc-title">⚡ Today's Activity</div></div>
-          <table class="tbl">
+          <div style="overflow-x:auto;">
+          <table class="tbl" id="ovActivityTable">
             <thead><tr>
-              <th style="width:88px;">Status</th>
-              <th style="width:110px;">Employee</th>
-              <th>Details</th>
-              <th style="width:80px;">Time</th>
+              <th style="width:120px;">Employee</th>
+              <th style="width:90px;">Shift</th>
+              <th style="width:72px;">In</th>
+              <th style="width:72px;">Out</th>
+              <th style="width:70px;">Duration</th>
+              <th style="width:56px;">Visits</th>
+              <th>Remarks</th>
             </tr></thead>
-            <tbody id="recentTbody"><tr><td colspan="4" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">No activity today yet</td></tr></tbody>
+            <tbody id="recentTbody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">No activity today yet</td></tr></tbody>
           </table>
+          </div>
         </div>
       </div>
 
@@ -976,12 +1054,13 @@ button{font-family:'DM Sans',sans-serif;}
               <thead><tr>
                 <th style="width:90px;">Date</th>
                 <th style="width:88px;">Status</th>
-                <th style="width:150px;">Name</th>
+                <th style="width:90px;">Emp ID</th>
+                <th style="width:140px;">Name</th>
                 <th style="width:80px;">Time</th>
                 <th style="width:110px;">Outlet</th>
                 <th>Remarks</th>
               </tr></thead>
-              <tbody id="visitTbody"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">Apply filter and search</td></tr></tbody>
+              <tbody id="visitTbody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">Apply filter and search</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1331,14 +1410,24 @@ button{font-family:'DM Sans',sans-serif;}
 
 <!-- Company Settings Modal (Super Admin) -->
 <div class="modal-ov" id="coSettingsModal" style="align-items:flex-start;padding:20px;overflow-y:auto;">
-  <div class="modal-box" style="max-width:520px;width:100%;margin:auto;">
+  <div class="modal-box" style="max-width:560px;width:100%;margin:auto;">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
       <div class="modal-title" id="coSettingsTitle">Company Settings</div>
       <button onclick="closeModal('coSettingsModal')" style="background:none;border:none;color:var(--txt-2);font-size:20px;cursor:pointer;">✕</button>
     </div>
     <input type="hidden" id="csCoId">
+    <input type="hidden" id="csAdminUid">
 
-    <!-- Holiday -->
+    <!-- Login As Company -->
+    <div style="background:rgba(239,168,0,0.08);border:1px solid rgba(239,168,0,0.3);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--gold);">🔑 Access Company Admin</div>
+        <div style="font-size:11px;color:var(--txt-2);margin-top:3px;">Log in as this company's admin to manage settings directly</div>
+      </div>
+      <button onclick="loginAsCompany()" style="background:linear-gradient(145deg,var(--gold),#C88A00);border:none;border-radius:var(--r-sm);padding:9px 18px;color:#000;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;">🔑 Login As</button>
+    </div>
+
+    <!-- Weekly Holiday -->
     <div class="settings-section">
       <div class="settings-title">🏖️ Weekly Holidays</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;" id="csHolidayChips">
@@ -1351,6 +1440,37 @@ button{font-family:'DM Sans',sans-serif;}
         <div class="holiday-chip" data-day="6" onclick="toggleHolidayChip(this)">Sat</div>
       </div>
       <div style="font-size:11px;color:var(--txt-3);margin-top:8px;">Holiday days won't count as absent. Daily report email won't be sent on holidays.</div>
+    </div>
+
+    <!-- Custom/Festival Holidays -->
+    <div class="settings-section">
+      <div class="settings-title">🎉 Festival & Custom Holidays</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        <input class="fi-sm" type="text" id="csCHName" placeholder="Holiday name (e.g. Eid, Durga Puja)" style="flex:1;min-width:150px;">
+        <input class="fi-sm" type="date" id="csCHDate" style="min-width:130px;">
+        <button class="btn-go" style="padding:7px 14px;font-size:12px;" onclick="addCSCustomHoliday()">➕ Add</button>
+      </div>
+      <div id="csCustomHolidayList"></div>
+      <div style="font-size:11px;color:var(--txt-3);margin-top:6px;">These dates will be marked as Holiday — no absent, no email.</div>
+    </div>
+
+    <!-- Shift Timing -->
+    <div class="settings-section">
+      <div class="settings-title">🕐 Default Shift Timing</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div class="fg" style="flex:1;min-width:140px;margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Shift In</label>
+          <input class="fi" type="time" id="csShiftIn" value="09:00">
+        </div>
+        <div class="fg" style="flex:1;min-width:140px;margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Shift Out</label>
+          <input class="fi" type="time" id="csShiftOut" value="18:00">
+        </div>
+        <div class="fg" style="flex:1;min-width:140px;margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Grace Period (min)</label>
+          <input class="fi" type="number" id="csGreetingPeriod" value="15" min="0" max="60">
+        </div>
+      </div>
     </div>
 
     <!-- Report Mail Required -->
@@ -1367,7 +1487,6 @@ button{font-family:'DM Sans',sans-serif;}
         </label>
       </div>
       <input type="hidden" id="csMailRequired" value="true">
-      <div style="font-size:11px;color:var(--txt-3);margin-top:8px;">If set to No, daily report emails won't be sent regardless of CC addresses.</div>
     </div>
 
     <!-- CC Emails -->
@@ -1459,8 +1578,8 @@ button{font-family:'DM Sans',sans-serif;}
 </div>
 
 <!-- Add Salesman Modal -->
-<div class="modal-ov" id="addSalesmanModal">
-  <div class="modal-box">
+<div class="modal-ov" id="addSalesmanModal" style="align-items:flex-start;padding:20px;overflow-y:auto;">
+  <div class="modal-box" style="max-width:500px;width:100%;margin:auto;">
     <div class="modal-title">👤 Add New Salesman</div>
     <div class="modal-sub">Enter salesman information and login details</div>
     <div id="asErr" class="err-box"></div>
@@ -1474,6 +1593,24 @@ button{font-family:'DM Sans',sans-serif;}
         <option value="backoffice">🏢 Back Office Employee</option>
       </select>
     </div>
+    <!-- Shift Override for new employee -->
+    <div style="background:rgba(75,159,255,0.06);border:1px solid rgba(75,159,255,0.2);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--info);margin-bottom:10px;">🕐 Shift (leave blank for company default)</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div class="fg" style="flex:1;min-width:120px;margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Shift In</label>
+          <input class="fi" type="time" id="asShiftIn">
+        </div>
+        <div class="fg" style="flex:1;min-width:120px;margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Shift Out</label>
+          <input class="fi" type="time" id="asShiftOut">
+        </div>
+        <div class="fg" style="flex:1;min-width:120px;margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Grace Period (min)</label>
+          <input class="fi" type="number" id="asGreeting" placeholder="Company default" min="0" max="60">
+        </div>
+      </div>
+    </div>
     <div class="modal-acts">
       <button class="btn-cancel" onclick="closeModal('addSalesmanModal')">Cancel</button>
       <button class="btn-confirm" onclick="addSalesman()">Create Employee</button>
@@ -1482,8 +1619,8 @@ button{font-family:'DM Sans',sans-serif;}
 </div>
 
 <!-- Edit Salesman Modal -->
-<div class="modal-ov" id="editSalesmanModal">
-  <div class="modal-box">
+<div class="modal-ov" id="editSalesmanModal" style="align-items:flex-start;padding:20px;overflow-y:auto;">
+  <div class="modal-box" style="max-width:500px;width:100%;margin:auto;">
     <div class="modal-title">✏️ Edit Employee</div>
     <div class="modal-sub">Update employee details</div>
     <div id="esErr" class="err-box"></div>
@@ -2213,17 +2350,55 @@ async function openCoSettings(coId, coName){
     const snap=await db.ref(`companies/${coId}`).get();
     const co=snap.val()||{};
     document.getElementById('csCoId').value=coId;
+    // Store admin uid for login-as
+    document.getElementById('csAdminUid').value=co.admin_uid||'';
     document.getElementById('coSettingsTitle').innerHTML=`🔧 ${coName} — Settings`+(co.co_id?` <span style="font-size:11px;font-weight:800;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:8px;padding:2px 8px;">${co.co_id}</span>`:'');
-    // Holidays
+    // Weekly holidays
     setHolidayChips('csHolidayChips', co.holidays||[0]);
+    // Custom holidays
+    window._csCustomHolidays=co.custom_holidays?[...co.custom_holidays]:[];
+    renderCSCustomHolidays();
+    // Shift timing
+    document.getElementById('csShiftIn').value=co.shift_in||'09:00';
+    document.getElementById('csShiftOut').value=co.shift_out||'18:00';
+    document.getElementById('csGreetingPeriod').value=co.greeting_period!=null?co.greeting_period:15;
     // Mail required (default true)
-    const mailReq=co.mail_required!==false;
-    setMailRequired(mailReq);
+    setMailRequired(co.mail_required!==false);
     // CC emails
     document.getElementById('csCcEmails').value=(co.cc_emails||[]).join(', ');
     doneLoading();
     openModal('coSettingsModal');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+function renderCSCustomHolidays(){
+  const list=document.getElementById('csCustomHolidayList');
+  const ch=window._csCustomHolidays||[];
+  if(ch.length===0){ list.innerHTML='<div style="font-size:12px;color:var(--txt-3);padding:6px 0;">No custom holidays added yet.</div>'; return; }
+  list.innerHTML=ch.sort((a,b)=>a.date.localeCompare(b.date)).map((h,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:6px;">
+      <span style="font-size:14px;">🎉</span>
+      <span style="flex:1;font-size:13px;font-weight:600;">${h.name}</span>
+      <span style="font-size:12px;color:var(--txt-2);">${h.date}</span>
+      <button onclick="removeCSCustomHoliday(${i})" style="background:none;border:none;color:var(--err);cursor:pointer;font-size:14px;padding:0 4px;">✕</button>
+    </div>`).join('');
+}
+
+function addCSCustomHoliday(){
+  const name=document.getElementById('csCHName').value.trim();
+  const date=document.getElementById('csCHDate').value;
+  if(!name||!date){ toast('Enter holiday name and date','err'); return; }
+  if(!window._csCustomHolidays) window._csCustomHolidays=[];
+  if(window._csCustomHolidays.some(h=>h.date===date)){ toast('Date already has a holiday','err'); return; }
+  window._csCustomHolidays.push({name,date});
+  document.getElementById('csCHName').value='';
+  document.getElementById('csCHDate').value='';
+  renderCSCustomHolidays();
+}
+
+function removeCSCustomHoliday(idx){
+  window._csCustomHolidays.splice(idx,1);
+  renderCSCustomHolidays();
 }
 
 async function saveCoSettings(){
@@ -2232,12 +2407,40 @@ async function saveCoSettings(){
   const mail_required=document.getElementById('csMailRequired').value==='true';
   const ccRaw=document.getElementById('csCcEmails').value.trim();
   const cc_emails=ccRaw?ccRaw.split(',').map(e=>e.trim()).filter(Boolean):[];
+  const shift_in=document.getElementById('csShiftIn').value||'09:00';
+  const shift_out=document.getElementById('csShiftOut').value||'18:00';
+  const greeting_period=parseInt(document.getElementById('csGreetingPeriod').value)||15;
+  const custom_holidays=window._csCustomHolidays||[];
   loading('Saving settings...');
   try{
-    await db.ref(`companies/${coId}`).update({holidays, mail_required, cc_emails});
+    await db.ref(`companies/${coId}`).update({holidays, mail_required, cc_emails, shift_in, shift_out, greeting_period, custom_holidays});
     doneLoading(); toast('Settings saved! ✅');
     closeModal('coSettingsModal');
     await loadSuperDashboard();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+async function loginAsCompany(){
+  const adminUid=document.getElementById('csAdminUid').value;
+  if(!adminUid){ toast('No admin found for this company','err'); return; }
+  loading('Loading company...');
+  try{
+    const snap=await db.ref(`users/${adminUid}`).get();
+    if(!snap.exists()){ doneLoading(); toast('Admin user not found','err'); return; }
+    const adminData=snap.val();
+    if(!adminData.password){ doneLoading(); toast('Admin password not stored — cannot auto-login','err'); return; }
+    closeModal('coSettingsModal');
+    // Sign in as company admin using stored credentials
+    const cfg=JSON.parse(localStorage.getItem('ss_config'));
+    const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:adminData.email,password:adminData.password,returnSecureToken:true})
+    });
+    const data=await res.json();
+    if(data.error){ doneLoading(); toast('Login failed: '+data.error.message,'err'); return; }
+    // Sign in via Firebase Auth
+    await auth.signInWithEmailAndPassword(adminData.email,adminData.password);
+    doneLoading(); toast(`Logged in as ${adminData.name} ✅`);
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
@@ -2745,7 +2948,14 @@ async function addSalesman(){
   try{
     const uid=await createAuthUser(email,pass);
     const emp_id=await generateEmpId(APP.companyId);
-    await db.ref(`users/${uid}`).set({ name, email, role:'salesman', emp_type:empType, emp_id, company_id:APP.companyId, password:pass, created_at:Date.now() });
+    const newEmp={ name, email, role:'salesman', emp_type:empType, emp_id, company_id:APP.companyId, password:pass, created_at:Date.now() };
+    const si=document.getElementById('asShiftIn')?.value;
+    const so=document.getElementById('asShiftOut')?.value;
+    const gp=document.getElementById('asGreeting')?.value;
+    if(si) newEmp.shift_in=si;
+    if(so) newEmp.shift_out=so;
+    if(gp!==''&&gp!=null) newEmp.greeting_period=parseInt(gp)||null;
+    await db.ref(`users/${uid}`).set(newEmp);
     doneLoading(); toast(`"${name}" created as ${empType==='sales'?'Sales':'Back Office'} employee!`);
     await loadSalesmen();
     await loadOverview();
@@ -2794,11 +3004,11 @@ async function loadOverview(){
     db.ref(`attendance/${APP.companyId}/${today}`).get()
   ]);
 
+  // Count totals
   let todayTotal=0;
   const presentSet=new Set();
   if(attSnap.exists()) Object.keys(attSnap.val()).forEach(uid=>presentSet.add(uid));
   if(vSnap.exists()) Object.values(vSnap.val()).forEach(v=>{ todayTotal++; presentSet.add(v.salesman_uid); });
-
   document.getElementById('ov-today').textContent=todayTotal;
   document.getElementById('ov-present').textContent=presentSet.size;
 
@@ -2814,53 +3024,102 @@ async function loadOverview(){
   }
   document.getElementById('ov-month').textContent=monthTotal;
 
-  // Build combined Today Activity list
+  // ── Build per-employee summary table ──
   const tbody=document.getElementById('recentTbody');
-  const events=[];
+  const attData=attSnap.exists()?attSnap.val():{};
+  const visData=vSnap.exists()?vSnap.val():{};
 
-  // Attendance events
-  if(attSnap.exists()){
-    Object.entries(attSnap.val()).forEach(([uid,att])=>{
-      const u=APP.salesmen[uid]||{name:'Unknown',emp_type:'sales'};
-      const isBo=u.emp_type==='backoffice';
-      const typeTag=isBo?'<span style="font-size:10px;color:var(--ok);background:rgba(31,209,122,0.1);padding:1px 6px;border-radius:8px;margin-left:5px;">BO</span>':'';
-      const idTag=u.emp_id?`<span style="font-size:10px;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);padding:1px 6px;border-radius:6px;margin-right:5px;font-weight:800;">${u.emp_id}</span>`:'';
-      if(att.start_time) events.push({ts:att.start_timestamp||0, status:'In', rawName:u.name, name:idTag+u.name+typeTag, details:'Day Started', time:att.start_time});
-      if(att.end_time) events.push({ts:att.end_timestamp||0, status:'Out', rawName:u.name, name:idTag+u.name+typeTag, details:'Day Ended', time:att.end_time});
-      else if(att.start_time) events.push({ts:(att.start_timestamp||0)+1, status:'Pending', rawName:u.name, name:idTag+u.name+typeTag, details:'Not Checked Out', time:'—'});
-    });
-  }
-  // Visit events
-  if(vSnap.exists()){
-    Object.values(vSnap.val()).forEach(v=>{
-      const u=APP.salesmen[v.salesman_uid]||{};
-      const idTag=u.emp_id?`<span style="font-size:10px;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);padding:1px 6px;border-radius:6px;margin-right:5px;font-weight:800;">${u.emp_id}</span>`:'';
-      events.push({
-        ts:v.timestamp||0, status:'Visit',
-        rawName:u.name||v.salesman_name||'—',
-        name:idTag+(u.name||v.salesman_name||'—'),
-        details:`🏪 ${v.outlet}${v.remarks?' — '+v.remarks:''}`,
-        time:v.time||'—'
-      });
-    });
-  }
+  // Count visits per employee
+  const visitsByEmp={};
+  Object.values(visData).forEach(v=>{
+    visitsByEmp[v.salesman_uid]=(visitsByEmp[v.salesman_uid]||0)+1;
+  });
 
-  if(events.length===0){
-    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--txt-3);">No activity today yet</td></tr>';
+  // Build rows for all employees who have any activity today
+  const seenUids=new Set([...Object.keys(attData),...Object.keys(visitsByEmp)]);
+  if(seenUids.size===0){
+    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--txt-3);">No activity today yet</td></tr>';
     return;
   }
 
-  // Sort latest first
-  events.sort((a,b)=>b.ts-a.ts);
-  tbody.innerHTML=events.slice(0,20).map(e=>{
-    const sc=e.status==='In'?'var(--ok)':e.status==='Out'?'var(--err)':e.status==='Pending'?'#FF9900':'var(--info)';
-    const si=e.status==='In'?'🟢':e.status==='Out'?'🔴':e.status==='Pending'?'⚠️':'📍';
-    const plainDetails=e.details.replace(/🏪\s*/,'');
+  // Also include employees with no attendance (absent)
+  const allEmpUids=new Set([...seenUids,...Object.keys(APP.salesmen)]);
+  const rows=[];
+
+  for(const uid of allEmpUids){
+    const u=APP.salesmen[uid];
+    if(!u||u.status==='deleted_by_admin') continue;
+    const att=attData[uid]||null;
+    const vCount=visitsByEmp[uid]||0;
+    const shift=getEmpShift(uid);
+    const shiftLabel=`${shift.shiftIn}–${shift.shiftOut}`;
+
+    // Determine status + remarks
+    let status='Absent', statusColor='var(--err)', inTime='—', outTime='—', duration='—', remarks='Absent';
+    let sortKey=3;
+
+    if(att){
+      inTime=att.start_time||'—';
+      if(att.end_time){
+        outTime=att.end_time;
+        // Duration
+        const inMin=parseTimeToMin(att.start_time);
+        const outMin=parseTimeToMin(att.end_time);
+        const dur=outMin-inMin;
+        duration=dur>0?minToHHMM(dur):'—';
+        status='Present'; statusColor='var(--ok)'; sortKey=2;
+        // Late check
+        const lateMin=Math.max(0,inMin-(parseTimeToMin(shift.shiftIn)+shift.greeting));
+        const earlyMin=Math.max(0,parseTimeToMin(shift.shiftOut)-outMin);
+        const otMin=Math.max(0,dur-(parseTimeToMin(shift.shiftOut)-parseTimeToMin(shift.shiftIn)));
+        const badges=[];
+        if(lateMin>0) badges.push(`<span style="color:#FF4466;font-weight:700;font-size:11px;">⚠️ Late ${minToHHMM(lateMin)}</span>`);
+        if(earlyMin>0) badges.push(`<span style="color:#FF9900;font-size:11px;">⬆️ Early ${minToHHMM(earlyMin)}</span>`);
+        if(otMin>0) badges.push(`<span style="color:#1FD17A;font-size:11px;">OT +${minToHHMM(otMin)}</span>`);
+        remarks=badges.length?badges.join(' &nbsp;'):'On time ✅';
+      } else {
+        // Checked in, not yet out
+        const nowMin=new Date().getHours()*60+new Date().getMinutes();
+        const shiftOutMin=parseTimeToMin(shift.shiftOut);
+        const lateMin=Math.max(0,parseTimeToMin(inTime)-(parseTimeToMin(shift.shiftIn)+shift.greeting));
+        if(nowMin>shiftOutMin){
+          status='Pending'; statusColor='#FF9900'; sortKey=1;
+          remarks=`⚠️ Checkout pending${lateMin>0?` | Late ${minToHHMM(lateMin)}`:''}`;
+        } else {
+          status='In'; statusColor='var(--ok)'; sortKey=0;
+          const liveMin=nowMin-parseTimeToMin(inTime);
+          duration=liveMin>0?minToHHMM(liveMin)+'*':'—';
+          remarks=`Active${lateMin>0?` | ⚠️ Late ${minToHHMM(lateMin)}`:''}`;
+        }
+      }
+    } else {
+      remarks='—';
+    }
+
+    rows.push({uid,u,shift:shiftLabel,inTime,outTime,duration,vCount,status,statusColor,remarks,sortKey});
+  }
+
+  // Sort: In/Pending first, then Present, then Absent; within group A-Z
+  rows.sort((a,b)=>a.sortKey-b.sortKey||a.u.name.localeCompare(b.u.name));
+
+  tbody.innerHTML=rows.map(r=>{
+    const isBo=r.u.emp_type==='backoffice';
+    const empIdBadge=r.u.emp_id?`<span style="font-size:9px;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);padding:1px 5px;border-radius:4px;margin-right:4px;font-weight:800;">${r.u.emp_id}</span>`:'';
+    const boTag=isBo?'<span style="font-size:9px;color:var(--ok);background:rgba(31,209,122,0.1);padding:1px 4px;border-radius:4px;margin-left:3px;">BO</span>':'';
     return `<tr>
-      <td><span style="color:${sc};font-weight:700;">${si} ${e.status}</span></td>
-      <td class="tbl-name" title="${e.rawName||''}">${e.name}</td>
-      <td class="c-rmk" style="font-size:12px;" title="${plainDetails}">${e.details}</td>
-      <td>${e.time}</td>
+      <td style="min-width:120px;">
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <div style="font-size:11px;">${empIdBadge}</div>
+          <div style="font-weight:600;font-size:12px;">${r.u.name}${boTag}</div>
+          <div style="font-size:10px;font-weight:700;color:${r.statusColor};">${r.status}</div>
+        </div>
+      </td>
+      <td style="font-size:11px;color:var(--txt-2);white-space:nowrap;">${r.shift}</td>
+      <td style="font-size:12px;font-weight:600;color:${r.inTime!=='—'?'var(--ok)':'var(--txt-3)'};">${r.inTime}</td>
+      <td style="font-size:12px;font-weight:600;color:${r.outTime!=='—'?'var(--err)':'var(--txt-3)'};">${r.outTime}</td>
+      <td style="font-size:12px;color:var(--gold);font-weight:600;">${r.duration}</td>
+      <td style="text-align:center;font-size:12px;font-weight:700;color:${r.vCount>0?'var(--info)':'var(--txt-3)'};">${r.vCount||'—'}</td>
+      <td style="font-size:11px;color:var(--txt-2);">${r.remarks}</td>
     </tr>`;
   }).join('');
 }
@@ -2940,7 +3199,7 @@ async function loadHistory(){
           const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}${att.end_accuracy?` (±${att.end_accuracy}m)`:''}`:' —');
           if(att.start_time){
             lastHistoryData.push({
-              date, status:'In', name:u.name, emp_id:u.emp_id||'—',
+              uid, date, status:'In', name:u.name, emp_id:u.emp_id||'—',
               location:inLoc, time:att.start_time,
               outlet:'—', remarks:'Day Started', emp_type:u.emp_type||'sales',
               sort_ts: att.start_timestamp||0
@@ -2948,14 +3207,14 @@ async function loadHistory(){
           }
           if(att.end_time){
             lastHistoryData.push({
-              date, status:'Out', name:u.name, emp_id:u.emp_id||'—',
+              uid, date, status:'Out', name:u.name, emp_id:u.emp_id||'—',
               location:outLoc, time:att.end_time,
               outlet:'—', remarks:'Day Ended', emp_type:u.emp_type||'sales',
               sort_ts: att.end_timestamp||0
             });
           } else if(att.start_time){
             lastHistoryData.push({
-              date, status:'Pending', name:u.name, emp_id:u.emp_id||'—',
+              uid, date, status:'Pending', name:u.name, emp_id:u.emp_id||'—',
               location:'—', time:'—',
               outlet:'—', remarks:'⚠️ Not Checked Out', emp_type:u.emp_type||'sales',
               sort_ts: (att.start_timestamp||0)+1
@@ -2969,7 +3228,7 @@ async function loadHistory(){
           if(!empUidSet.has(v.salesman_uid)) return;
           const u=APP.salesmen[v.salesman_uid]||{emp_type:'sales'};
           lastHistoryData.push({
-            date, status:'Visit', name:u.name||v.salesman_name||'—', emp_id:u.emp_id||'—',
+            uid:v.salesman_uid, date, status:'Visit', name:u.name||v.salesman_name||'—', emp_id:u.emp_id||'—',
             location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—', time:v.time||'—',
             outlet:v.outlet||'—',
             remarks:v.remarks||'—',
@@ -2991,7 +3250,8 @@ async function loadHistory(){
         return `<tr title="${fullTip}">
           <td>${r.date}</td>
           <td><span style="color:${statusColor};font-weight:700;">${statusIcon} ${r.status}</span></td>
-          <td class="tbl-name" title="${r.name}">${empIdBadge}${r.name}</td>
+          <td style="font-size:11px;font-weight:800;color:var(--info);">${r.emp_id&&r.emp_id!=='—'?r.emp_id:'—'}</td>
+          <td class="tbl-name" title="${r.name}">${r.name}</td>
           <td>${r.time}</td>
           <td style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
           <td class="c-rmk" title="${r.remarks}">${r.remarks}</td>
@@ -3007,14 +3267,17 @@ function exportHistoryExcel(){
   if(lastHistoryData.length===0){ toast('Load history data first','err'); return; }
   loading('Generating Excel...');
   const co=getCompanyName();
-  const headers=['#','Emp ID','Type','Date','Status','Name','Location','Time','Outlet','Remarks'];
-  const data=lastHistoryData.map((r,i)=>[i+1,r.emp_id||'—',r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]);
+  const headers=['#','Emp ID','Type','Date','Status','Name','Shift','Location','Time','Outlet','Remarks'];
+  const data=lastHistoryData.map((r,i)=>{
+    const shift=getEmpShift(r.uid||'');
+    const shiftStr=`${shift.shiftIn}–${shift.shiftOut}`;
+    return [i+1,r.emp_id||'—',r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,shiftStr,r.location,r.time,r.outlet||'—',r.remarks];
+  });
   const wb=new ExcelJS.Workbook();
-  xlsBuildSheet(wb,'History',`${co} — History Report`,`Records: ${data.length}`,headers,data,[4,12,12,12,12,20,26,10,20,45])
+  xlsBuildSheet(wb,'History',`${co} — History Report`,`Records: ${data.length}`,headers,data,[4,12,12,12,12,20,14,26,10,20,45])
     .then(ws=>{
-      // Wrap Remarks column (col 9)
-      ws.getColumn(9).alignment={wrapText:true,vertical:'top'};
-      ws.getColumn(8).alignment={wrapText:false,vertical:'middle'};
+      ws.getColumn(11).alignment={wrapText:true,vertical:'top'}; // Remarks
+      ws.getColumn(10).alignment={wrapText:false,vertical:'middle'};
       return xlsDownload(wb,`${co}_History_Report`);
     })
     .then(()=>{ doneLoading(); toast('Excel downloading!'); })
@@ -3033,15 +3296,19 @@ function exportHistoryPDF(){
   doc.text(`Records: ${lastHistoryData.length}`,40,58);
   doc.autoTable({
     startY:72,
-    head:[['#','Emp ID','Type','Date','Status','Name','Location','Time','Outlet','Remarks']],
-    body:lastHistoryData.map((r,i)=>[i+1,r.emp_id||'—',r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]),
-    styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41],overflow:'linebreak',cellPadding:3},
+    head:[['#','Emp ID','Type','Date','Status','Name','Shift','Location','Time','Outlet','Remarks']],
+    body:lastHistoryData.map((r,i)=>{
+      const sh=getEmpShift(r.uid||'');
+      return [i+1,r.emp_id||'—',r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,`${sh.shiftIn}–${sh.shiftOut}`,r.location,r.time,r.outlet||'—',r.remarks];
+    }),
+    styles:{fontSize:6.5,textColor:[200,210,240],fillColor:[12,18,41],overflow:'linebreak',cellPadding:3},
     headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
     alternateRowStyles:{fillColor:[17,26,56]},
     columnStyles:{
       4:{fontStyle:'bold'},
-      8:{cellWidth:45},
-      9:{cellWidth:90,overflow:'linebreak'}
+      6:{cellWidth:42},
+      9:{cellWidth:40},
+      10:{cellWidth:85,overflow:'linebreak'}
     },
     didParseCell:(d)=>{
       if(d.section==='body'&&d.column.index===4){
@@ -3681,6 +3948,7 @@ async function xlsBuildSheet(wb, sheetName, title, subtitle, headers, rows, colW
       if(v==='Present'||v==='P'){  bg='FFD1FAE5'; fg='FF065F46'; bold=true; }
       else if(v==='Absent'||v==='A'){  bg='FFFEE2E2'; fg='FF991B1B'; bold=true; }
       else if(v==='Holiday'){ bg='FFFFF3CD'; fg='FF7A4F00'; bold=true; }
+      else if(v.startsWith('Late(')){ bg='FFFEF3C7'; fg='FFB45309'; bold=true; } // orange for late
       else if(v==='In'){ fg='FF065F46'; bold=true; }
       else if(v==='Out'){ fg='FF991B1B'; bold=true; }
       else if(v==='Visit'){ fg='FF1A5FA8'; bold=true; }
@@ -3705,7 +3973,7 @@ async function xlsBuildSheet(wb, sheetName, title, subtitle, headers, rows, colW
 /* ════ SALESMAN SCREEN ════ */
 async function initSalesman(){
   show('salesmanScreen');
-  // If beforeinstallprompt already fired before screen loaded, show button now
+  smShowPage('home'); // start on home
   const pwaBtn=document.getElementById('pwaInstallBtn');
   if(pwaBtn) pwaBtn.style.display=deferredPrompt?'block':'none';
   document.getElementById('smAv').textContent=APP.userData.name[0].toUpperCase();
@@ -3747,6 +4015,166 @@ async function initSalesman(){
   await loadSalesmanStats();
   if(!isBo) await loadTodayVisits();
   scheduleAutoEndDay();
+  // Default report date range = current month
+  const now2=new Date();
+  const y=now2.getFullYear(),m=String(now2.getMonth()+1).padStart(2,'0');
+  const firstDay=`${y}-${m}-01`;
+  const lastDay=`${y}-${m}-${String(new Date(y,now2.getMonth()+1,0).getDate()).padStart(2,'0')}`;
+  const fromEl=document.getElementById('smRptFrom'); if(fromEl) fromEl.value=firstDay;
+  const toEl=document.getElementById('smRptTo'); if(toEl) toEl.value=lastDay;
+}
+
+/* ════ EMPLOYEE PAGE NAVIGATION ════ */
+function smShowPage(page){
+  ['home','report','profile'].forEach(p=>{
+    const el=document.getElementById(`smPage${p.charAt(0).toUpperCase()+p.slice(1)}`);
+    const btn=document.getElementById(`smBtn${p.charAt(0).toUpperCase()+p.slice(1)}`);
+    if(el) el.style.display=p===page?'block':'none';
+    if(btn){ btn.style.color=p===page?'var(--gold)':'var(--txt-2)'; }
+  });
+  if(page==='profile') loadSmProfile();
+}
+
+/* ════ EMPLOYEE PROFILE ════ */
+async function loadSmProfile(){
+  try{
+    const u=APP.userData;
+    document.getElementById('smProfAv').textContent=(u.name||'?')[0].toUpperCase();
+    document.getElementById('smProfName').textContent=u.name||'—';
+    document.getElementById('smProfEmpId').textContent=u.emp_id||'—';
+    document.getElementById('smProfEmail').textContent=u.email||'—';
+
+    // Type badge
+    const isBo=u.emp_type==='backoffice';
+    document.getElementById('smProfTypeBadge').innerHTML=`<span style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:700;background:${isBo?'rgba(31,209,122,0.1)':'rgba(75,159,255,0.1)'};color:${isBo?'var(--ok)':'var(--info)'};">${isBo?'🏢 Back Office':'📊 Sales'}</span>`;
+
+    // Load company settings for holiday/shift info
+    const coSnap=await db.ref(`companies/${APP.companyId}`).get();
+    const co=coSnap.exists()?coSnap.val():{};
+
+    // Shift — employee override or company default
+    const shiftIn=u.shift_in||co.shift_in||'09:00';
+    const shiftOut=u.shift_out||co.shift_out||'18:00';
+    const grace=(u.greeting_period!=null?u.greeting_period:null)??(co.greeting_period!=null?co.greeting_period:15);
+    const fmt12=t=>{ const[h,m]=t.split(':').map(Number); const ap=h>=12?'PM':'AM'; return `${h%12||12}:${String(m).padStart(2,'0')} ${ap}`; };
+    document.getElementById('smProfShift').textContent=`${fmt12(shiftIn)} – ${fmt12(shiftOut)}`;
+    document.getElementById('smProfGrace').textContent=`${grace} minutes`;
+
+    // Weekly holidays
+    const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const hols=co.holidays||[0];
+    const holContainer=document.getElementById('smProfHolidays');
+    holContainer.innerHTML=hols.map(d=>`<span style="background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:16px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--gold);">${dayNames[d]}</span>`).join('');
+
+    // Custom holidays
+    const customHols=co.custom_holidays||[];
+    const customSec=document.getElementById('smProfCustomHolSection');
+    const customList=document.getElementById('smProfCustomHol');
+    if(customHols.length>0){
+      customSec.style.display='block';
+      customList.innerHTML=customHols.sort((a,b)=>a.date.localeCompare(b.date)).map(h=>`
+        <div style="display:flex;justify-content:space-between;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);">
+          <span style="font-size:13px;">🎉 ${h.name}</span>
+          <span style="font-size:12px;color:var(--txt-2);">${h.date}</span>
+        </div>`).join('');
+    } else {
+      customSec.style.display='none';
+    }
+  }catch(e){ toast('Error loading profile','err'); }
+}
+
+/* ════ EMPLOYEE SELF REPORT ════ */
+async function loadSmSelfReport(){
+  const from=document.getElementById('smRptFrom').value;
+  const to=document.getElementById('smRptTo').value;
+  if(!from||!to){ toast('Please select date range','err'); return; }
+  loading('Loading your report...');
+  const content=document.getElementById('smRptContent');
+  try{
+    const dates=[];
+    let cur=new Date(from+'T00:00:00');
+    const end=new Date(to+'T00:00:00');
+    while(cur<=end){ const y=cur.getFullYear(),m=String(cur.getMonth()+1).padStart(2,'0'),d=String(cur.getDate()).padStart(2,'0'); dates.push(`${y}-${m}-${d}`); cur.setDate(cur.getDate()+1); }
+
+    const coSnap=await db.ref(`companies/${APP.companyId}`).get();
+    const co=coSnap.exists()?coSnap.val():{};
+    const weeklyHols=co.holidays||[0];
+    const customHols=co.custom_holidays||[];
+    const shift={
+      shiftIn: APP.userData.shift_in||co.shift_in||'09:00',
+      shiftOut: APP.userData.shift_out||co.shift_out||'18:00',
+      greeting: (APP.userData.greeting_period!=null?APP.userData.greeting_period:null)??(co.greeting_period!=null?co.greeting_period:15)
+    };
+
+    const rows=[];
+    let presentCount=0,lateCount=0,visitCount=0;
+
+    for(const date of dates){
+      const hol=isAnyHoliday(date,weeklyHols,customHols);
+      const [attSnap,vSnap]=await Promise.all([
+        db.ref(`attendance/${APP.companyId}/${date}/${APP.user.uid}`).get(),
+        APP.isBackOffice?Promise.resolve(null):db.ref(`visits/${APP.companyId}/${date}`).orderByChild('salesman_uid').equalTo(APP.user.uid).get()
+      ]);
+      const att=attSnap.exists()?attSnap.val():null;
+      const vCount=vSnap&&vSnap.exists()?Object.keys(vSnap.val()).length:0;
+      visitCount+=vCount;
+
+      let status='Absent', inT='—', outT='—', dur='—', lateStr='—', note='';
+      if(hol){ status='Holiday'; note=hol.name; }
+      else if(att){
+        presentCount++;
+        inT=att.start_time||'—';
+        outT=att.end_time||'—';
+        if(att.start_time&&att.end_time){
+          const d2=parseTimeToMin(att.end_time)-parseTimeToMin(att.start_time);
+          dur=d2>0?minToHHMM(d2):'—';
+        }
+        const lateMin=att.start_time?Math.max(0,parseTimeToMin(att.start_time)-(parseTimeToMin(shift.shiftIn)+shift.greeting)):0;
+        if(lateMin>0){ lateStr=minToHHMM(lateMin); lateCount++; status='Late'; }
+        else { status=att.end_time?'Present':'Present'; }
+        if(!att.end_time) note='⚠️ No checkout';
+      }
+
+      rows.push({date,status,inT,outT,dur,lateStr,vCount,note,hol:!!hol});
+    }
+
+    // Update summary
+    document.getElementById('smRptSummary').style.display='flex';
+    document.getElementById('smRptPresent').textContent=presentCount;
+    document.getElementById('smRptVisits').textContent=visitCount;
+    document.getElementById('smRptLate').textContent=lateCount;
+
+    // Render table
+    const fmt12=t=>{ if(!t||t==='—') return '—'; const[h,m]=t.split(':').map(Number); const ap=h>=12?'PM':'AM'; return `${h%12||12}:${String(m).padStart(2,'0')} ${ap}`; };
+    content.innerHTML=`<div style="overflow-x:auto;"><table class="tbl">
+      <thead><tr>
+        <th style="width:90px;">Date</th>
+        <th style="width:80px;">Status</th>
+        <th style="width:70px;">In</th>
+        <th style="width:70px;">Out</th>
+        <th style="width:65px;">Duration</th>
+        <th style="width:55px;">Late</th>
+        ${!APP.isBackOffice?'<th style="width:50px;">Visits</th>':''}
+        <th>Note</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r=>{
+          const sc=r.status==='Present'?'var(--ok)':r.status==='Late'?'#FF9900':r.status==='Absent'?'var(--err)':r.status==='Holiday'?'var(--gold)':'var(--txt-2)';
+          return `<tr style="${r.hol?'opacity:0.7;':''}">
+            <td style="font-size:12px;">${r.date}</td>
+            <td><span style="color:${sc};font-weight:700;font-size:12px;">${r.status}</span></td>
+            <td style="font-size:12px;color:var(--ok);">${fmt12(r.inT)}</td>
+            <td style="font-size:12px;color:var(--err);">${fmt12(r.outT)}</td>
+            <td style="font-size:12px;color:var(--gold);">${r.dur}</td>
+            <td style="font-size:12px;color:${r.lateStr!=='—'?'#FF9900':'var(--txt-3)'};">${r.lateStr}</td>
+            ${!APP.isBackOffice?`<td style="text-align:center;font-size:12px;color:${r.vCount?'var(--info)':'var(--txt-3)'};">${r.vCount||'—'}</td>`:''}
+            <td style="font-size:11px;color:var(--txt-2);">${r.note}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table></div>`;
+    doneLoading();
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
 }
 
 /* ════ ACCURATE GPS ════ */
@@ -4298,12 +4726,15 @@ async function exportRptHistExcel(){
     const rows=await buildHistoryRows(startDate, endDate, typeFilter);
     if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
     const co=getCompanyName();
-    const headers=['#','Emp ID','Type','Date','Status','Name','Location','Time','Outlet','Remarks'];
-    const data=rows.map((r,i)=>[i+1,r.emp_id||'—',r.type,r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]);
+    const headers=['#','Emp ID','Type','Date','Status','Name','Shift','Location','Time','Outlet','Remarks'];
+    const data=rows.map((r,i)=>{
+      const sh=getEmpShift(r.uid||'');
+      return [i+1,r.emp_id||'—',r.type,r.date,r.status,r.name,`${sh.shiftIn}–${sh.shiftOut}`,r.location,r.time,r.outlet||'—',r.remarks];
+    });
     const wb=new ExcelJS.Workbook();
-    await xlsBuildSheet(wb,'History',`${co} — History Report`,`${startDate} to ${endDate}  |  Records: ${rows.length}`,headers,data,[4,12,12,12,12,20,26,10,20,45]);
+    await xlsBuildSheet(wb,'History',`${co} — History Report`,`${startDate} to ${endDate}  |  Records: ${rows.length}`,headers,data,[4,12,12,12,12,20,14,26,10,20,45]);
     const ws=wb.getWorksheet('History');
-    ws.getColumn(10).alignment={wrapText:true,vertical:'top'};
+    ws.getColumn(11).alignment={wrapText:true,vertical:'top'};
     await xlsDownload(wb,`${co}_History_${startDate}_${endDate}`);
     doneLoading(); toast('History Excel downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
@@ -4327,15 +4758,19 @@ async function exportRptHistPDF(){
     doc.text(`${startDate} to ${endDate}  |  Records: ${rows.length}`,40,58);
     doc.autoTable({
       startY:72,
-      head:[['#','Emp ID','Type','Date','Status','Name','Location','Time','Outlet','Remarks']],
-      body:rows.map((r,i)=>[i+1,r.emp_id||'—',r.type,r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]),
-      styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41],overflow:'linebreak',cellPadding:3},
+      head:[['#','Emp ID','Type','Date','Status','Name','Shift','Location','Time','Outlet','Remarks']],
+      body:rows.map((r,i)=>{
+        const sh=getEmpShift(r.uid||'');
+        return [i+1,r.emp_id||'—',r.type,r.date,r.status,r.name,`${sh.shiftIn}–${sh.shiftOut}`,r.location,r.time,r.outlet||'—',r.remarks];
+      }),
+      styles:{fontSize:6.5,textColor:[200,210,240],fillColor:[12,18,41],overflow:'linebreak',cellPadding:3},
       headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
       alternateRowStyles:{fillColor:[17,26,56]},
       columnStyles:{
         4:{fontStyle:'bold'},
-        8:{cellWidth:45},
-        9:{cellWidth:90,overflow:'linebreak'}
+        6:{cellWidth:42},
+        9:{cellWidth:40},
+        10:{cellWidth:85,overflow:'linebreak'}
       },
       didParseCell:(d)=>{
         if(d.section==='body'&&d.column.index===4){
@@ -4374,9 +4809,9 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
         const type=u.emp_type==='backoffice'?'Back Office':'Sales';
         const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}${att.start_accuracy?` (±${att.start_accuracy}m)`:''}`:' —');
         const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}${att.end_accuracy?` (±${att.end_accuracy}m)`:''}`:' —');
-        if(att.start_time) rows.push({date,status:'In',name:u.name,emp_id:u.emp_id||'—',location:inLoc,time:att.start_time,outlet:'—',remarks:'Day Started',type,sort_ts:att.start_timestamp||0});
-        if(att.end_time) rows.push({date,status:'Out',name:u.name,emp_id:u.emp_id||'—',location:outLoc,time:att.end_time,outlet:'—',remarks:'Day Ended',type,sort_ts:att.end_timestamp||0});
-        else if(att.start_time) rows.push({date,status:'Pending',name:u.name,emp_id:u.emp_id||'—',location:'—',time:'—',outlet:'—',remarks:'⚠️ Not Checked Out',type,sort_ts:(att.start_timestamp||0)+1});
+        if(att.start_time) rows.push({uid,date,status:'In',name:u.name,emp_id:u.emp_id||'—',location:inLoc,time:att.start_time,outlet:'—',remarks:'Day Started',type,sort_ts:att.start_timestamp||0});
+        if(att.end_time) rows.push({uid,date,status:'Out',name:u.name,emp_id:u.emp_id||'—',location:outLoc,time:att.end_time,outlet:'—',remarks:'Day Ended',type,sort_ts:att.end_timestamp||0});
+        else if(att.start_time) rows.push({uid,date,status:'Pending',name:u.name,emp_id:u.emp_id||'—',location:'—',time:'—',outlet:'—',remarks:'⚠️ Not Checked Out',type,sort_ts:(att.start_timestamp||0)+1});
       });
     }
     if(vSnap.exists()){
@@ -4384,7 +4819,7 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
         if(!empUidSet.has(v.salesman_uid)) return;
         const u=APP.salesmen[v.salesman_uid]||{emp_type:'sales'};
         const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-        rows.push({date,status:'Visit',name:u.name||v.salesman_name||'—',emp_id:u.emp_id||'—',location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',type,sort_ts:v.timestamp||0});
+        rows.push({uid:v.salesman_uid,date,status:'Visit',name:u.name||v.salesman_name||'—',emp_id:u.emp_id||'—',location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',type,sort_ts:v.timestamp||0});
       });
     }
   }
@@ -4451,6 +4886,7 @@ async function exportRptSumPDF(){
             if(v==='Present') d.cell.styles.textColor=[31,209,122];
             else if(v==='Absent') d.cell.styles.textColor=[255,68,102];
             else if(v==='Holiday') d.cell.styles.textColor=[239,168,0];
+            else if(typeof v==='string'&&v.startsWith('Late(')){ d.cell.styles.textColor=[255,153,0]; }
             d.cell.styles.fontStyle='bold';
           }
         }
@@ -4488,14 +4924,21 @@ async function buildAttSummaryMatrix(month,year,typeFilter){
   const attByDate={};
   allDates.forEach((ds,i)=>{ if(attSnaps[i].exists()) attByDate[ds]=attSnaps[i].val(); });
   const matrix={};
-  empList.forEach(([uid])=>{
+  empList.forEach(([uid,u])=>{
     matrix[uid]={};
     allDates.forEach(ds=>{
       const hol=isAnyHoliday(ds,holidays,customHolidays);
       const att=attByDate[ds]?attByDate[ds][uid]:null;
       if(hol) matrix[uid][ds]='Holiday';
-      else if(att&&att.end_time) matrix[uid][ds]='Present';
-      else if(att&&!att.end_time) matrix[uid][ds]='Present';
+      else if(att&&att.start_time){
+        // Check if late
+        const shift=getEmpShift(uid);
+        const inMin=parseTimeToMin(att.start_time);
+        const shiftInMin=parseTimeToMin(shift.shiftIn);
+        const grace=shift.greeting;
+        const lateMin=inMin-(shiftInMin+grace);
+        matrix[uid][ds]=lateMin>0?`Late(${minToHHMM(lateMin)})`:'Present';
+      }
       else matrix[uid][ds]='Absent';
     });
   });
