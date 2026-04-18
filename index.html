@@ -1096,7 +1096,6 @@ button{font-family:'DM Sans',sans-serif;}
             <div class="tc-title">History Records</div>
             <div class="tc-acts">
               <button class="btn-exp" onclick="exportHistoryExcel()">📊 Excel</button>
-              <button class="btn-exp" onclick="exportHistoryPDF()">📄 PDF</button>
             </div>
           </div>
           <div style="overflow-x:auto;">
@@ -1175,7 +1174,6 @@ button{font-family:'DM Sans',sans-serif;}
             <label class="fl-sm">&nbsp;</label>
             <div style="display:flex;gap:8px;">
               <button class="btn-exp" onclick="exportPerfExcel()">📊 Excel</button>
-              <button class="btn-exp" onclick="exportPerfPDF()">📄 PDF</button>
             </div>
           </div>
         </div>
@@ -1209,7 +1207,7 @@ button{font-family:'DM Sans',sans-serif;}
 
       <!-- REPORTS PAGE -->
       <div class="admin-page" id="page-export">
-        <div class="ph"><div class="pt">Reports</div><div class="ps">Export professional Excel & PDF reports</div></div>
+        <div class="ph"><div class="pt">Reports</div><div class="ps">Export professional Excel reports</div></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;">
 
           <!-- A) History Report -->
@@ -1230,7 +1228,6 @@ button{font-family:'DM Sans',sans-serif;}
             </div>
             <div style="display:flex;gap:10px;">
               <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptHistExcel()">📊 Excel</button>
-              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptHistPDF()">📄 PDF</button>
             </div>
           </div>
 
@@ -1263,7 +1260,6 @@ button{font-family:'DM Sans',sans-serif;}
             </div>
             <div style="display:flex;gap:10px;">
               <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptSumExcel()">📊 Excel</button>
-              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptSumPDF()">📄 PDF</button>
             </div>
           </div>
 
@@ -1285,7 +1281,6 @@ button{font-family:'DM Sans',sans-serif;}
             </div>
             <div style="display:flex;gap:10px;">
               <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptLateExcel()">📊 Excel</button>
-              <button class="btn-exp" style="flex:1;justify-content:center;" onclick="exportRptLatePDF()">📄 PDF</button>
             </div>
           </div>
 
@@ -1407,7 +1402,6 @@ button{font-family:'DM Sans',sans-serif;}
         <div class="fg-sm" style="margin-left:auto;"><label class="fl-sm">&nbsp;</label>
           <div style="display:flex;gap:8px;">
             <button class="btn-exp" onclick="exportSAReportExcel()">📊 Excel</button>
-            <button class="btn-exp" onclick="exportSAReportPDF()">📄 PDF</button>
           </div>
         </div>
       </div>
@@ -1743,7 +1737,7 @@ button{font-family:'DM Sans',sans-serif;}
 
 <!-- ══════════════════════════════════════════════
      SCRIPTS — Leaflet loaded upfront (needed for Map tab)
-     ExcelJS + jsPDF lazy-loaded only when Reports are used
+     ExcelJS lazy-loaded only when Reports are used
 ══════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 
@@ -1760,11 +1754,7 @@ function loadLib(url){
   return _libLoaded[url];
 }
 async function ensureReportLibs(){
-  await Promise.all([
-    loadLib('https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js'),
-    loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
-  ]);
-  await loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js');
+  await loadLib('https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js');
 }
 </script>
 
@@ -1996,7 +1986,6 @@ async function initApp(){
     appId:"1:223023626528:web:655c631d5e53c53fbdff45"
   });
   localStorage.setItem('ss_config',cfg);
-  if(false){ hide('loginScreen'); show('setupScreen'); return; }
   
   try{
     await loadFirebase(JSON.parse(cfg));
@@ -3387,68 +3376,9 @@ async function exportHistoryExcel(){
     .catch(e=>{ doneLoading(); toast('Error: '+e.message,'err'); });
 }
 
-async function exportHistoryPDF(){
-  if(lastHistoryData.length===0){ toast('Load history data first','err'); return; }
-  loading('Generating PDF...');
-  await ensureReportLibs();
-  const co=getCompanyName();
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF('l','pt','a4');
-  doc.setFontSize(16); doc.setTextColor(239,168,0);
-  doc.text(`${co} — History Report`,40,40);
-  doc.setFontSize(10); doc.setTextColor(120,130,180);
-  doc.text(`Records: ${lastHistoryData.length}`,40,58);
-  doc.autoTable({
-    startY:72,
-    head:[['#','Emp ID','Type','Date','Status','Name','Shift','Location','Time','Outlet','Remarks']],
-    body:lastHistoryData.map((r,i)=>{
-      const sh=getEmpShift(r.uid||'');
-      return [i+1,r.emp_id||'—',r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,`${sh.shiftIn}–${sh.shiftOut}`,r.location,r.time,r.outlet||'—',r.remarks];
-    }),
-    styles:{fontSize:6.5,textColor:[200,210,240],fillColor:[12,18,41],overflow:'linebreak',cellPadding:3},
-    headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[17,26,56]},
-    columnStyles:{
-      4:{fontStyle:'bold'},
-      6:{cellWidth:42},
-      9:{cellWidth:40},
-      10:{cellWidth:85,overflow:'linebreak'}
-    },
-    didParseCell:(d)=>{
-      if(d.section==='body'&&d.column.index===4){
-        const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:d.cell.raw==='Pending'?[255,153,0]:[75,159,255];
-        d.cell.styles.textColor=c; d.cell.styles.fontStyle='bold';
-      }
-    }
-  });
-  doc.save(`${co}_History_Report.pdf`);
-  doneLoading(); toast('PDF downloading!');
-}
 
-/* ════ VISITS (internal data builder) ════ */
-let lastVisitData=[];
-async function loadVisits(){
-  const startDate=document.getElementById('vStartDate').value;
-  const endDate=document.getElementById('vEndDate').value;
-  const salesmanUid=document.getElementById('vSalesmanFilter').value;
-  if(!startDate||!endDate){ return; }
-  lastVisitData=[];
-  try{
-    const dates=[];
-    let cur=new Date(startDate+'T00:00:00');
-    const end=new Date(endDate+'T00:00:00');
-    while(cur<=end){ const _y=cur.getFullYear(),_m=String(cur.getMonth()+1).padStart(2,'0'),_d=String(cur.getDate()).padStart(2,'0'); dates.push(`${_y}-${_m}-${_d}`); cur.setDate(cur.getDate()+1); }
-    for(const date of dates){
-      const snap=await db.ref(`visits/${APP.companyId}/${date}`).get();
-      if(snap.exists()){
-        Object.values(snap.val()).forEach(v=>{
-          if(!salesmanUid||v.salesman_uid===salesmanUid) lastVisitData.push({...v,date});
-        });
-      }
-    }
-    lastVisitData.sort((a,b)=>a.timestamp-b.timestamp);
-  }catch(e){ console.warn('loadVisits error:',e); }
-}
+
+
 
 /* ════ MAP ════ */
 // Tile layer references
@@ -3934,44 +3864,7 @@ async function exportPerfExcel(){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-async function exportPerfPDF(){
-  if(lastPerfData.length===0){ toast('Please calculate first','err'); return; }
-  loading('Generating PDF...');
-  await ensureReportLibs();
-  const month=parseInt(document.getElementById('perfMonth').value);
-  const year=parseInt(document.getElementById('perfYear').value);
-  const MONTHS_A=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF('l','pt','a4');
-  doc.setFontSize(18); doc.setTextColor(239,168,0);
-  doc.text('SunStar Solutions — Performance Report',40,40);
-  doc.setFontSize(12); doc.setTextColor(120,130,180);
-  doc.text(`${getCompanyName()} | ${MONTHS_A[month]} ${year}`,40,60);
-  doc.autoTable({
-    startY:76,
-    head:[['Rank','Emp ID','Salesman','Score','Grade','Present','Visits','Visits/Day','Avg Hours','Att','Visit','Dur']],
-    body:lastPerfData.map((r,i)=>[
-      i+1, r.emp_id||'—', r.name, `${r.total}/100`, gradeInfo(r.total).emoji+' '+gradeInfo(r.total).label,
-      `${r.presentDays}/${r.workingDays}`, r.totalVisits,
-      r.visitsPerDay.toFixed(1), r.avgHours.toFixed(1)+'h',
-      r.attScore, r.visitScore, r.durScore
-    ]),
-    styles:{fontSize:9,textColor:[200,210,240],fillColor:[12,18,41],halign:'center'},
-    headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[17,26,56]},
-    columnStyles:{2:{halign:'left',fontStyle:'bold'},4:{halign:'left'}},
-    didParseCell:(d)=>{
-      if(d.section==='body'&&d.column.index===2){
-        const score=parseInt(d.cell.raw);
-        const g=gradeInfo(score);
-        d.cell.styles.textColor=g.ring==='#EFA800'?[239,168,0]:g.ring==='#1FD17A'?[31,209,122]:g.ring==='#4B9FFF'?[75,159,255]:[255,68,102];
-        d.cell.styles.fontStyle='bold';
-      }
-    }
-  });
-  doc.save(`${getCompanyName()}_Performance_${MONTHS_A[month]}_${year}.pdf`);
-  doneLoading(); toast('PDF downloading!');
-}
+
 
 /* ════ EXPORT ════ */
 /* ════ EXCELJS HELPERS ════ */
@@ -4781,40 +4674,7 @@ async function exportSAReportExcel(){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-async function exportSAReportPDF(){
-  if(SA_reportData.length===0){ toast('Please load data first','err'); return; }
-  loading('Generating PDF...');
-  await ensureReportLibs();
-  const fromDate=document.getElementById('saReportFrom').value;
-  const toDate=document.getElementById('saReportTo').value;
-  const {jsPDF}=window.jspdf;
-  const doc=new jsPDF('l','pt','a4');
-  doc.setFontSize(16); doc.setTextColor(239,168,0);
-  doc.text('SunStar Solutions — All Companies Report',40,40);
-  doc.setFontSize(10); doc.setTextColor(120,130,180);
-  doc.text(`${fromDate} to ${toDate}  |  Records: ${SA_reportData.length}`,40,58);
-  doc.autoTable({
-    startY:72,
-    head:[['#','Company','Emp ID','Type','Date','Status','Name','Location','Time','Outlet','Remarks']],
-    body:SA_reportData.map((r,i)=>[i+1,r.co,r.emp_id||'—',r.type,r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]),
-    styles:{fontSize:6.5,textColor:[200,210,240],fillColor:[12,18,41],overflow:'linebreak',cellPadding:3},
-    headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
-    alternateRowStyles:{fillColor:[17,26,56]},
-    columnStyles:{
-      5:{fontStyle:'bold'},
-      9:{cellWidth:40},
-      10:{cellWidth:80,overflow:'linebreak'}
-    },
-    didParseCell:(d)=>{
-      if(d.section==='body'&&d.column.index===5){
-        const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:d.cell.raw==='Pending'?[255,153,0]:[75,159,255];
-        d.cell.styles.textColor=c; d.cell.styles.fontStyle='bold';
-      }
-    }
-  });
-  doc.save(`SunStar_AllCompanies_${fromDate}_to_${toDate}.pdf`);
-  doneLoading(); toast('PDF downloading!');
-}
+
 
 /* ════ HELPER: get company name ════ */
 function getCompanyName(){ 
@@ -4848,50 +4708,7 @@ async function exportRptHistExcel(){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-async function exportRptHistPDF(){
-  const startDate=document.getElementById('rptHistStart').value;
-  const endDate=document.getElementById('rptHistEnd').value;
-  const typeFilter=document.getElementById('rptHistType').value;
-  if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
-  loading('Building History PDF...');
-  await ensureReportLibs();
-  try{
-    const rows=await buildHistoryRows(startDate, endDate, typeFilter);
-    if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
-    const co=getCompanyName();
-    const {jsPDF}=window.jspdf;
-    const doc=new jsPDF('l','pt','a4');
-    doc.setFontSize(16); doc.setTextColor(239,168,0);
-    doc.text(`${co} — History Report`,40,40);
-    doc.setFontSize(10); doc.setTextColor(120,130,180);
-    doc.text(`${startDate} to ${endDate}  |  Records: ${rows.length}`,40,58);
-    doc.autoTable({
-      startY:72,
-      head:[['#','Emp ID','Type','Date','Status','Name','Shift','Location','Time','Outlet','Remarks']],
-      body:rows.map((r,i)=>{
-        const sh=getEmpShift(r.uid||'');
-        return [i+1,r.emp_id||'—',r.type,r.date,r.status,r.name,`${sh.shiftIn}–${sh.shiftOut}`,r.location,r.time,r.outlet||'—',r.remarks];
-      }),
-      styles:{fontSize:6.5,textColor:[200,210,240],fillColor:[12,18,41],overflow:'linebreak',cellPadding:3},
-      headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[17,26,56]},
-      columnStyles:{
-        4:{fontStyle:'bold'},
-        6:{cellWidth:42},
-        9:{cellWidth:40},
-        10:{cellWidth:85,overflow:'linebreak'}
-      },
-      didParseCell:(d)=>{
-        if(d.section==='body'&&d.column.index===4){
-          const c=d.cell.raw==='In'?[31,209,122]:d.cell.raw==='Out'?[255,68,102]:d.cell.raw==='Pending'?[255,153,0]:[75,159,255];
-          d.cell.styles.textColor=c;
-        }
-      }
-    });
-    doc.save(`${co}_History_${startDate}_${endDate}.pdf`);
-    doneLoading(); toast('History PDF downloading!');
-  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
-}
+
 
 async function buildHistoryRows(startDate, endDate, typeFilter){
   const rows=[];
@@ -4960,54 +4777,7 @@ async function exportRptSumExcel(){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-async function exportRptSumPDF(){
-  const month=parseInt(document.getElementById('rptSumMonth').value);
-  const year=parseInt(document.getElementById('rptSumYear').value);
-  const typeFilter=document.getElementById('rptSumType').value;
-  if(!month||!year){ toast('Please select month and year','err'); return; }
-  loading('Building Attendance Summary PDF...');
-  await ensureReportLibs();
-  try{
-    const {matrix,co,dateLabel,empList,allDates}=await buildAttSummaryMatrix(month,year,typeFilter);
-    if(!empList.length){ doneLoading(); toast('No employees found','err'); return; }
-    const {jsPDF}=window.jspdf;
-    const doc=new jsPDF('l','pt','a4');
-    doc.setFontSize(16); doc.setTextColor(239,168,0);
-    doc.text(`${co} — Attendance Summary`,40,40);
-    doc.setFontSize(10); doc.setTextColor(120,130,180);
-    doc.text(dateLabel,40,58);
-    const chunkSize=15;
-    for(let c=0;c<allDates.length;c+=chunkSize){
-      if(c>0) doc.addPage();
-      const chunk=allDates.slice(c,c+chunkSize);
-      doc.autoTable({
-        startY:72,
-        head:[['Emp ID','Type','Name',...chunk.map(d=>d.split('-')[2]+'/'+d.split('-')[1])]],
-        body:empList.map(([uid,u])=>{
-          const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-          return [u.emp_id||'—',type,u.name,...chunk.map(ds=>(matrix[uid]&&matrix[uid][ds])||'—')];
-        }),
-        styles:{fontSize:7,textColor:[200,210,240],fillColor:[12,18,41],halign:'center'},
-        headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold'},
-        columnStyles:{0:{cellWidth:45,halign:'left'},1:{cellWidth:55,halign:'left'},2:{cellWidth:80,halign:'left',fontStyle:'bold'}},
-        alternateRowStyles:{fillColor:[17,26,56]},
-        didParseCell:(d)=>{
-          if(d.section==='body'&&d.column.index>=2){
-            const v=d.cell.raw;
-            if(v==='Present') d.cell.styles.textColor=[31,209,122];
-            else if(v==='Absent') d.cell.styles.textColor=[255,68,102];
-            else if(v==='Holiday') d.cell.styles.textColor=[239,168,0];
-            else if(typeof v==='string'&&v.startsWith('Late(')){ d.cell.styles.textColor=[255,153,0]; }
-            d.cell.styles.fontStyle='bold';
-          }
-        }
-      });
-    }
-    const MONTHS_N=['January','February','March','April','May','June','July','August','September','October','November','December'];
-    doc.save(`${co}_AttSummary_${MONTHS_N[month-1]}_${year}.pdf`);
-    doneLoading(); toast('Attendance Summary PDF downloading!');
-  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
-}
+
 
 async function buildAttSummaryMatrix(month,year,typeFilter){
   const MONTHS_N=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -5218,75 +4988,7 @@ async function exportRptLateExcel(){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
 }
 
-async function exportRptLatePDF(){
-  const startDate=document.getElementById('rptLateStart').value;
-  const endDate=document.getElementById('rptLateEnd').value;
-  const typeFilter=document.getElementById('rptLateType').value;
-  if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
-  loading('Building Late & Overtime PDF...');
-  await ensureReportLibs();
-  try{
-    const rows=await buildLateRows(startDate,endDate,typeFilter);
-    if(!rows.length){ doneLoading(); toast('No attendance records found','err'); return; }
-    const co=getCompanyName();
-    const {jsPDF}=window.jspdf;
-    const doc=new jsPDF('l','pt','a4');
-    doc.setFontSize(18); doc.setTextColor(239,168,0);
-    doc.text('SunStar Solutions — Late & Overtime Report',40,38);
-    doc.setFontSize(11); doc.setTextColor(120,130,180);
-    doc.text(`${co}  |  ${startDate} to ${endDate}`,40,56);
-    doc.setFontSize(9); doc.setTextColor(100,110,150);
-    doc.text(`Records: ${rows.length}  |  ⚠️ Red = Late  |  🟢 Green = Overtime  |  🟡 Orange = Early Out`,40,70);
 
-    doc.autoTable({
-      startY:82,
-      head:[['#','Emp ID','Name','Date','Shift In','Shift Out','Grace','In','Out','Late','Early Out','Overtime']],
-      body:rows.map((r,i)=>[
-        i+1,
-        r.emp_id,
-        r.name,
-        r.date,
-        r.shift_in,
-        r.shift_out,
-        r.grace+'m',
-        r.in_time,
-        r.out_time||'—',
-        r.late_min>0?minToHHMM(r.late_min):'—',
-        r.early_out_min!=null&&r.early_out_min>0?minToHHMM(r.early_out_min):'—',
-        r.overtime_min!=null&&r.overtime_min>0?minToHHMM(r.overtime_min):'—'
-      ]),
-      styles:{fontSize:7.5,textColor:[200,210,240],fillColor:[12,18,41],cellPadding:3,halign:'center'},
-      headStyles:{fillColor:[239,168,0],textColor:[0,0,0],fontStyle:'bold',fontSize:8},
-      alternateRowStyles:{fillColor:[17,26,56]},
-      columnStyles:{
-        2:{halign:'left',cellWidth:70},
-        3:{cellWidth:60},
-        9:{cellWidth:36},
-        10:{cellWidth:44},
-        11:{cellWidth:44}
-      },
-      didParseCell:(d)=>{
-        if(d.section!=='body') return;
-        const r=rows[d.row.index];
-        if(!r) return;
-        // Late: red In-time and Late column
-        if(r.is_late&&(d.column.index===7||d.column.index===9)){
-          d.cell.styles.textColor=[255,68,102]; d.cell.styles.fontStyle='bold';
-        }
-        // Overtime: green
-        if(r.overtime_min>0&&d.column.index===11){
-          d.cell.styles.textColor=[31,209,122]; d.cell.styles.fontStyle='bold';
-        }
-        // Early out: orange
-        if(r.early_out_min>0&&d.column.index===10){
-          d.cell.styles.textColor=[255,153,0]; d.cell.styles.fontStyle='bold';
-        }
-      }
-    });
-    doc.save(`${co}_Late_Overtime_${startDate}_${endDate}.pdf`);
-    doneLoading(); toast('Late & Overtime PDF downloading!');
-  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
-}
 
 /* ════ PWA INSTALL ════ */
 let deferredPrompt=null;
