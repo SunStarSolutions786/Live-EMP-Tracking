@@ -1742,12 +1742,31 @@ button{font-family:'DM Sans',sans-serif;}
 <div class="toast-wrap" id="toastWrap"></div>
 
 <!-- ══════════════════════════════════════════════
-     SCRIPTS
+     SCRIPTS — Leaflet loaded upfront (needed for Map tab)
+     ExcelJS + jsPDF lazy-loaded only when Reports are used
 ══════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<script>
+/* ── Lazy lib loader ── */
+const _libLoaded={};
+function loadLib(url){
+  if(_libLoaded[url]) return _libLoaded[url];
+  _libLoaded[url]=new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src=url; s.onload=res; s.onerror=rej;
+    document.head.appendChild(s);
+  });
+  return _libLoaded[url];
+}
+async function ensureReportLibs(){
+  await Promise.all([
+    loadLib('https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js'),
+    loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+  ]);
+  await loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js');
+}
+</script>
 
 <script>
 /* ════════════════════════════════════════════════
@@ -2779,7 +2798,11 @@ async function initAdmin(){
   show('adminScreen');
   document.getElementById('adAv').textContent=APP.userData.name[0].toUpperCase();
   document.getElementById('adNm').textContent=APP.userData.name;
-  const coSnap=await db.ref(`companies/${APP.companyId}`).get();
+  // Load company config AND salesmen in parallel for max speed
+  const [coSnap]=await Promise.all([
+    db.ref(`companies/${APP.companyId}`).get(),
+    loadSalesmen()
+  ]);
   if(coSnap.exists()){
     const co=coSnap.val();
     document.getElementById('adCompanyName').textContent=co.name;
@@ -2788,15 +2811,9 @@ async function initAdmin(){
     APP.companyCustomHolidays=co.custom_holidays||[];
     APP.companyShiftIn=co.shift_in||'09:00';
     APP.companyShiftOut=co.shift_out||'18:00';
-    APP.companyGreetingPeriod=co.greeting_period||15;
+    APP.companyGreetingPeriod=co.greeting_period!=null?co.greeting_period:15;
     APP.companyCcEmails=co.cc_emails||[];
-    const filterSales=document.getElementById('smFilterSales');
-    const filterBo=document.getElementById('smFilterBo');
-    if(filterSales) filterSales.style.display='';
-    if(filterBo) filterBo.style.display='';
   }
-  // Load salesmen and overview in parallel for speed
-  await loadSalesmen();
   await loadOverview();
 }
 
@@ -3291,12 +3308,19 @@ async function loadHistory(){
               sort_ts: att.end_timestamp||0
             });
           } else if(att.start_time){
-            lastHistoryData.push({
-              uid, date, status:'Pending', name:u.name, emp_id:u.emp_id||'—',
-              location:'—', time:'—',
-              outlet:'—', remarks:'⚠️ Not Checked Out', emp_type:u.emp_type||'sales',
-              sort_ts: (att.start_timestamp||0)+1
-            });
+            // Only show Pending AFTER shift end time has passed for that employee
+            const empShift=getEmpShift(uid);
+            const nowMin=new Date().getHours()*60+new Date().getMinutes();
+            const shiftOutMin=parseTimeToMin(empShift.shiftOut);
+            const isPast=date<todayStr()||(date===todayStr()&&nowMin>shiftOutMin);
+            if(isPast){
+              lastHistoryData.push({
+                uid, date, status:'Pending', name:u.name, emp_id:u.emp_id||'—',
+                location:'—', time:'—',
+                outlet:'—', remarks:'⚠️ Not Checked Out', emp_type:u.emp_type||'sales',
+                sort_ts: (att.start_timestamp||0)+1
+              });
+            }
           }
         });
       }
@@ -3341,9 +3365,10 @@ async function loadHistory(){
 }
 
 /* ════ HISTORY EXPORT ════ */
-function exportHistoryExcel(){
+async function exportHistoryExcel(){
   if(lastHistoryData.length===0){ toast('Load history data first','err'); return; }
   loading('Generating Excel...');
+  await ensureReportLibs();
   const co=getCompanyName();
   const headers=['#','Emp ID','Type','Date','Status','Name','Shift','Location','Time','Outlet','Remarks'];
   const data=lastHistoryData.map((r,i)=>{
@@ -3362,9 +3387,10 @@ function exportHistoryExcel(){
     .catch(e=>{ doneLoading(); toast('Error: '+e.message,'err'); });
 }
 
-function exportHistoryPDF(){
+async function exportHistoryPDF(){
   if(lastHistoryData.length===0){ toast('Load history data first','err'); return; }
   loading('Generating PDF...');
+  await ensureReportLibs();
   const co=getCompanyName();
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF('l','pt','a4');
@@ -3886,6 +3912,7 @@ async function loadPerformance(){
 async function exportPerfExcel(){
   if(lastPerfData.length===0){ toast('Please calculate first','err'); return; }
   loading('Generating Excel...');
+  await ensureReportLibs();
   const month=parseInt(document.getElementById('perfMonth').value);
   const year=parseInt(document.getElementById('perfYear').value);
   const MONTHS_A=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -3910,6 +3937,7 @@ async function exportPerfExcel(){
 async function exportPerfPDF(){
   if(lastPerfData.length===0){ toast('Please calculate first','err'); return; }
   loading('Generating PDF...');
+  await ensureReportLibs();
   const month=parseInt(document.getElementById('perfMonth').value);
   const year=parseInt(document.getElementById('perfYear').value);
   const MONTHS_A=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -4222,31 +4250,30 @@ async function loadSmSelfReport(){
     document.getElementById('smRptVisits').textContent=visitCount;
     document.getElementById('smRptLate').textContent=lateCount;
 
-    // Render table
-    const fmt12=t=>{ if(!t||t==='—') return '—'; const[h,m]=t.split(':').map(Number); const ap=h>=12?'PM':'AM'; return `${h%12||12}:${String(m).padStart(2,'0')} ${ap}`; };
+    // Render table - use fmt12hr which correctly handles AM/PM stored times
     content.innerHTML=`<div style="overflow-x:auto;"><table class="tbl">
       <thead><tr>
         <th style="width:90px;">Date</th>
-        <th style="width:80px;">Status</th>
-        <th style="width:70px;">In</th>
-        <th style="width:70px;">Out</th>
+        <th style="width:68px;">Status</th>
+        <th style="width:80px;">In</th>
+        <th style="width:80px;">Out</th>
         <th style="width:65px;">Duration</th>
         <th style="width:55px;">Late</th>
-        ${!APP.isBackOffice?'<th style="width:50px;">Visits</th>':''}
-        <th>Note</th>
+        ${!APP.isBackOffice?'<th style="width:46px;">Visits</th>':''}
+        <th>Remarks</th>
       </tr></thead>
       <tbody>
         ${rows.map(r=>{
           const sc=r.status==='Present'?'var(--ok)':r.status==='Late'?'#FF9900':r.status==='Absent'?'var(--err)':r.status==='Holiday'?'var(--gold)':'var(--txt-2)';
-          return `<tr style="${r.hol?'opacity:0.7;':''}">
-            <td style="font-size:12px;">${r.date}</td>
-            <td><span style="color:${sc};font-weight:700;font-size:12px;">${r.status}</span></td>
-            <td style="font-size:12px;color:var(--ok);">${fmt12(r.inT)}</td>
-            <td style="font-size:12px;color:var(--err);">${fmt12(r.outT)}</td>
-            <td style="font-size:12px;color:var(--gold);">${r.dur}</td>
-            <td style="font-size:12px;color:${r.lateStr!=='—'?'#FF9900':'var(--txt-3)'};">${r.lateStr}</td>
-            ${!APP.isBackOffice?`<td style="text-align:center;font-size:12px;color:${r.vCount?'var(--info)':'var(--txt-3)'};">${r.vCount||'—'}</td>`:''}
-            <td style="font-size:11px;color:var(--txt-2);">${r.note}</td>
+          return `<tr style="${r.hol?'opacity:0.65;background:rgba(239,168,0,0.04);':''}">
+            <td style="font-size:11px;white-space:nowrap;">${r.date}</td>
+            <td><span style="color:${sc};font-weight:700;font-size:11px;">${r.status}</span></td>
+            <td style="font-size:11px;font-weight:600;color:${r.inT!=='—'?'var(--ok)':'var(--txt-3)'};">${fmt12hr(r.inT)}</td>
+            <td style="font-size:11px;font-weight:600;color:${r.outT!=='—'?'var(--err)':'var(--txt-3)'};">${fmt12hr(r.outT)}</td>
+            <td style="font-size:11px;color:var(--gold);">${r.dur}</td>
+            <td style="font-size:11px;font-weight:${r.lateStr!=='—'?'700':'400'};color:${r.lateStr!=='—'?'#FF9900':'var(--txt-3)'};">${r.lateStr}</td>
+            ${!APP.isBackOffice?`<td style="text-align:center;font-size:11px;color:${r.vCount?'var(--info)':'var(--txt-3)'};">${r.vCount||'—'}</td>`:''}
+            <td style="font-size:11px;color:var(--txt-2);">${r.note||'—'}</td>
           </tr>`;
         }).join('')}
       </tbody>
@@ -4739,6 +4766,7 @@ async function loadSAReport(){
 async function exportSAReportExcel(){
   if(SA_reportData.length===0){ toast('Please load data first','err'); return; }
   loading('Generating Excel...');
+  await ensureReportLibs();
   const fromDate=document.getElementById('saReportFrom').value;
   const toDate=document.getElementById('saReportTo').value;
   const headers=['#','Company','Emp ID','Type','Date','Status','Name','Location','Time','Outlet','Remarks'];
@@ -4756,6 +4784,7 @@ async function exportSAReportExcel(){
 async function exportSAReportPDF(){
   if(SA_reportData.length===0){ toast('Please load data first','err'); return; }
   loading('Generating PDF...');
+  await ensureReportLibs();
   const fromDate=document.getElementById('saReportFrom').value;
   const toDate=document.getElementById('saReportTo').value;
   const {jsPDF}=window.jspdf;
@@ -4800,6 +4829,7 @@ async function exportRptHistExcel(){
   const typeFilter=document.getElementById('rptHistType').value;
   if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
   loading('Building History report...');
+  await ensureReportLibs();
   try{
     const rows=await buildHistoryRows(startDate, endDate, typeFilter);
     if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
@@ -4824,6 +4854,7 @@ async function exportRptHistPDF(){
   const typeFilter=document.getElementById('rptHistType').value;
   if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
   loading('Building History PDF...');
+  await ensureReportLibs();
   try{
     const rows=await buildHistoryRows(startDate, endDate, typeFilter);
     if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
@@ -4912,6 +4943,7 @@ async function exportRptSumExcel(){
   const typeFilter=document.getElementById('rptSumType').value;
   if(!month||!year){ toast('Please select month and year','err'); return; }
   loading('Building Attendance Summary...');
+  await ensureReportLibs();
   try{
     const {matrix,co,dateLabel,empList,allDates}=await buildAttSummaryMatrix(month,year,typeFilter);
     if(!empList.length){ doneLoading(); toast('No employees found','err'); return; }
@@ -4934,6 +4966,7 @@ async function exportRptSumPDF(){
   const typeFilter=document.getElementById('rptSumType').value;
   if(!month||!year){ toast('Please select month and year','err'); return; }
   loading('Building Attendance Summary PDF...');
+  await ensureReportLibs();
   try{
     const {matrix,co,dateLabel,empList,allDates}=await buildAttSummaryMatrix(month,year,typeFilter);
     if(!empList.length){ doneLoading(); toast('No employees found','err'); return; }
@@ -5104,6 +5137,7 @@ async function exportRptLateExcel(){
   const typeFilter=document.getElementById('rptLateType').value;
   if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
   loading('Building Late & Overtime report...');
+  await ensureReportLibs();
   try{
     const rows=await buildLateRows(startDate,endDate,typeFilter);
     if(!rows.length){ doneLoading(); toast('No attendance records found','err'); return; }
@@ -5190,6 +5224,7 @@ async function exportRptLatePDF(){
   const typeFilter=document.getElementById('rptLateType').value;
   if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
   loading('Building Late & Overtime PDF...');
+  await ensureReportLibs();
   try{
     const rows=await buildLateRows(startDate,endDate,typeFilter);
     if(!rows.length){ doneLoading(); toast('No attendance records found','err'); return; }
@@ -5282,15 +5317,57 @@ window.addEventListener('appinstalled',()=>{
 ════════════════════════════════════════════════ */
 window.addEventListener('load',initApp);
 
-// ── Inline PWA Manifest ──
+// ── PWA Manifest with canvas-generated icon ──
 (function(){
-  const logoB64='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAQdUlEQVR42u1aeZQV1Z3+7r21vKp6r/emu4GmQRaFZhNQicEBlxg1GsXk4TImxCSCwxwSCQbRQR+PGFA0xlFjAiQRcFTSnShRE7dE0CG4IKssQrM3TW/vdb+96lXVvXf+aJhwjJMTaAiZmf7OqfPq3HPq3fv77m/57q8K6EEPetCDHvSgB/9fwc7q7IQC5OwSQM/GpDLSNW+8buTFyefGXHTi2P8ZAj7LoP8em9T1y8SR6xE7fM3xtUiASPmXPnG2yDl14yHJX1u4DIMBBMkXC9YlFhW/DZBjY/8zkVJK8o9v+LHdy7zzxSpn9ajJxw04boT76jUXSVnHJEBk64xg6jdWoiMSapPPRAJSgsjtYS27buI4AJB1YMefc34/+qty23UVJ87xDxkChEDKOjDrn8a3ctJyh/3L3o+RKBPHiXBzW7+RePy7Mwkgk+t+NyHARaHq87LOgysuJAQyuf2dOf7+7ZNlBBRhCBJlIreq4qeebL4NvxnTLuvACIH8h88BhEQF+gcWBHqnZmUWl9Yl+l9fQKIQkjhtBsst3D5jRpDK7IWqKxD0JUE8NbpTTi0yRH6eaEQHiUIcfv7WoszPSl40SjN3kiolQqJR8b8jCe6AXBOBEhzd+L5N8L7VKxnWGtb9qWXuhHOEFjygW75RKVe/jmb6JbdJSzkpNS08Lcye+v1rWtbX/Szb27Jowjkl+9/4k1WcmZzJqW8ExzRvlWugzN9xencfOINVWEZAsyOqbjfdxM+dbQL5mOGiomyNpiSPZOPGS7R2xJa373y1pRwgI+65upJ4u4bryF6fF1Y5ySeu08tsTR+kIKeVhUO3HH6REJwRDyCnNwFK5P74uQuUTjurhz/eAUKQ/qm5P5iRA1J7zDpeXP39koc/OpL5yuArpJm+2A9hIDNBmI4WomjbaNG5G2KbEoGQefDugnMytyY19eOiWdmRgETmN8PHoKJSBCe8tUVKkNOVC0j3jY4QzI9iLUAn1ULmK0cO5G3tv9abvfbMXmMp+vCbCeS2wjmtkaNX9P2aaaQXB0NuJQkKCAOgQYDoBEQHXErAgur6bNWwb8pte2/mTK3VmLE6UNUx3QkqWVrR59u7dmxuHwsAxRCYAkHQPSLOSAh0/Kl/jbY9ttWKoTDeUn5f2ZMHFrVc3mdWLyPzWNL04BqSK5pkoRABMwEZkHB1wFUlLyxXWUZWXBa6bd+a2Nyafysd2PlgzqQbzcv6TSRV27KftQnd8QZyqjtPCKR896py32kdKQ7brbascDSS8hAoQrJZiRms4Utwcl8vuq/t2o7w2H5u7MAeNeSqXIdQLKFAQycJBd+kptJGdKcIphweKvTOT4EcKfhmqh/m16rYuYOnR/RdpgT0AyKk26yIBqlIFkD4mgxYbwXCe1/uEo8gp+oJSrekriK4oMnLURG/q9BpMlLN0hYtTBgJ34MTyOb0oVdKtJGmtrbLijWupzk8wiUpUAk6tcJ55T86+vSfSZXUef6cy5hijo4tvO/coH9ub796XIVoK';
-  const manifest={name:'SunStar Solutions',short_name:'SunStar',start_url:'./',display:'standalone',background_color:'#06091A',theme_color:'#EFA800',icons:[{src:logoB64,sizes:'72x72',type:'image/png'},{src:logoB64,sizes:'192x192',type:'image/png'}]};
+  // Generate a clean SunStar icon via Canvas (works reliably across browsers)
+  function makePwaIcon(size){
+    const c=document.createElement('canvas');
+    c.width=c.height=size;
+    const ctx=c.getContext('2d');
+    // Gold background
+    const grad=ctx.createLinearGradient(0,0,size,size);
+    grad.addColorStop(0,'#EFA800'); grad.addColorStop(1,'#C88A00');
+    ctx.fillStyle=grad;
+    const r=size*0.18;
+    ctx.beginPath();
+    ctx.moveTo(r,0); ctx.lineTo(size-r,0);
+    ctx.quadraticCurveTo(size,0,size,r);
+    ctx.lineTo(size,size-r);
+    ctx.quadraticCurveTo(size,size,size-r,size);
+    ctx.lineTo(r,size);
+    ctx.quadraticCurveTo(0,size,0,size-r);
+    ctx.lineTo(0,r);
+    ctx.quadraticCurveTo(0,0,r,0);
+    ctx.closePath(); ctx.fill();
+    // "SS" text
+    ctx.fillStyle='#06091A';
+    ctx.font=`bold ${size*0.38}px DM Sans,sans-serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('SS',size/2,size/2);
+    return c.toDataURL('image/png');
+  }
+  const icon192=makePwaIcon(192);
+  const icon512=makePwaIcon(512);
+  const manifest={
+    name:'SunStar Solutions',
+    short_name:'SunStar',
+    start_url:'./',
+    display:'standalone',
+    background_color:'#06091A',
+    theme_color:'#EFA800',
+    icons:[
+      {src:icon192,sizes:'192x192',type:'image/png',purpose:'any maskable'},
+      {src:icon512,sizes:'512x512',type:'image/png',purpose:'any maskable'}
+    ]
+  };
   const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
   const link=document.createElement('link');
-  link.rel='manifest'; link.href=url;
+  link.rel='manifest'; link.href=URL.createObjectURL(blob);
   document.head.appendChild(link);
+  // Apple touch icon
+  const appleLink=document.createElement('link');
+  appleLink.rel='apple-touch-icon'; appleLink.href=icon192;
+  document.head.appendChild(appleLink);
 })();
 </script>
 </body>
