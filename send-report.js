@@ -1,296 +1,345 @@
-// ══════════════════════════════════════════════════════════════
-// SunStar Solutions — Daily Email Report
-// GitHub Actions: runs at 18:30 UTC = 12:00 AM IST
-// Sends attendance + visit summary per company via Gmail/Nodemailer
-// ══════════════════════════════════════════════════════════════
+'use strict';
 
-const admin = require("firebase-admin");
-const nodemailer = require("nodemailer");
+/**
+ * SunStar Solutions — Daily Report Email
+ * Runs via GitHub Actions at 18:30 UTC (12:00 AM IST)
+ *
+ * EXIT CODES:
+ *   0 = Success OR intentional skip (mail not required / holiday / no employees)
+ *   1 = Unexpected fatal error (Firebase auth failure, etc.)
+ *
+ * KEY FIX: Always exit(0) on intentional skips so GitHub does NOT
+ * mark the run as failed and send failure notification emails.
+ */
 
-// ── Firebase init ──────────────────────────────────────────────
+const admin      = require('firebase-admin');
+const nodemailer = require('nodemailer');
+
+// ── Firebase init ──────────────────────────────────────────────────────────
 const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  databaseURL:
-    "https://sunstar-solutions-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL: serviceAccount.databaseURL ||
+    'https://sunstar-solutions-default-rtdb.asia-southeast1.firebasedatabase.app'
 });
 const db = admin.database();
 
-// ── Nodemailer transporter ─────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASS,
-  },
-});
-
-// ── Helpers ────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
 function todayIST() {
-  const now = new Date(Date.now() + 5.5 * 3600 * 1000); // UTC → IST
-  const y = now.getUTCFullYear();
-  const m = String(now.getUTCMonth() + 1).padStart(2, "0");
-  const d = String(now.getUTCDate()).padStart(2, "0");
+  // Returns "YYYY-MM-DD" in IST (UTC+5:30)
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000;
+  const ist = new Date(now.getTime() + istOffset);
+  const y = ist.getUTCFullYear();
+  const m = String(ist.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(ist.getUTCDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
 }
 
-function dayOfWeekIST() {
-  // 0=Sun,1=Mon,...,6=Sat
-  const now = new Date(Date.now() + 5.5 * 3600 * 1000);
-  return now.getUTCDay();
+function dayOfWeek(dateStr) {
+  // Returns 0=Sun … 6=Sat
+  return new Date(dateStr + 'T00:00:00').getDay();
 }
 
-function fmt(val) {
-  return val || "—";
+function isHoliday(dateStr, weeklyHols = [], customHols = []) {
+  const dow = dayOfWeek(dateStr);
+  if (weeklyHols.includes(dow)) return true;
+  if (customHols.some(h => h.date === dateStr)) return true;
+  return false;
 }
 
-// ── Build HTML email ───────────────────────────────────────────
-function buildEmailHtml(coName, date, salesRows, boRows, totalIn, totalOut, totalPending, totalVisits) {
-  const hasData = salesRows.length > 0 || boRows.length > 0;
+function fmt12(timeStr) {
+  // "HH:MM" or "HH:MM AM/PM" → "9:00 AM"
+  if (!timeStr) return '—';
+  const s = timeStr.trim();
+  const ampm = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (ampm) return s; // already formatted
+  const parts = s.split(':');
+  let h = parseInt(parts[0]), m = parseInt(parts[1] || '0');
+  const ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  return `${h}:${String(m).padStart(2, '0')} ${ap}`;
+}
 
-  const style = `
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
-    .wrap { max-width: 800px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.12); }
-    .header { background: linear-gradient(135deg, #06091A 0%, #0C1229 100%); padding: 28px 32px; border-bottom: 3px solid #EFA800; }
-    .header-logo { color: #EFA800; font-size: 22px; font-weight: 800; letter-spacing: 0.5px; }
-    .header-sub { color: #7A8DB8; font-size: 13px; margin-top: 4px; }
-    .header-co { color: #F0F4FF; font-size: 17px; font-weight: 700; margin-top: 8px; }
-    .summary { display: flex; gap: 0; border-bottom: 1px solid #e8eaf0; }
-    .card { flex: 1; padding: 18px 20px; text-align: center; border-right: 1px solid #e8eaf0; }
-    .card:last-child { border-right: none; }
-    .card-num { font-size: 28px; font-weight: 800; color: #06091A; }
-    .card-lbl { font-size: 11px; color: #7A8DB8; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 3px; }
-    .card-in .card-num { color: #1FD17A; }
-    .card-out .card-num { color: #4B9FFF; }
-    .card-pend .card-num { color: #FF9900; }
-    .card-vis .card-num { color: #EFA800; }
-    .section { padding: 0 24px 24px; }
-    .section-title { font-size: 14px; font-weight: 700; color: #06091A; padding: 18px 0 10px; border-bottom: 2px solid #EFA800; margin-bottom: 0; display: flex; align-items: center; gap: 8px; }
-    .section-title span { background: #EFA800; color: #06091A; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 10px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { background: #06091A; color: #EFA800; padding: 10px 12px; text-align: left; font-weight: 700; font-size: 12px; letter-spacing: 0.4px; }
-    td { padding: 9px 12px; border-bottom: 1px solid #f0f2f5; color: #2d3748; vertical-align: top; }
-    tr:last-child td { border-bottom: none; }
-    tr:nth-child(even) td { background: #f8f9fc; }
-    .status-in { color: #1FD17A; font-weight: 700; }
-    .status-out { color: #4B9FFF; font-weight: 700; }
-    .status-pend { color: #FF9900; font-weight: 700; }
-    .status-visit { color: #EFA800; font-weight: 700; }
-    .no-data { text-align: center; padding: 24px; color: #9ca3af; font-style: italic; font-size: 13px; }
-    .footer { background: #f8f9fc; padding: 16px 24px; text-align: center; color: #9ca3af; font-size: 11px; border-top: 1px solid #e8eaf0; }
-  `;
+function skip(reason) {
+  console.log(`[SKIP] ${reason}`);
+  process.exit(0); // IMPORTANT: exit 0 = not a failure
+}
 
-  const summaryCards = `
-    <div class="summary">
-      <div class="card card-in"><div class="card-num">${totalIn}</div><div class="card-lbl">✅ Checked In</div></div>
-      <div class="card card-out"><div class="card-num">${totalOut}</div><div class="card-lbl">🚪 Checked Out</div></div>
-      <div class="card card-pend"><div class="card-num">${totalPending}</div><div class="card-lbl">⚠️ Pending</div></div>
-      <div class="card card-vis"><div class="card-num">${totalVisits}</div><div class="card-lbl">📍 Total Visits</div></div>
-    </div>
-  `;
+function fatal(msg, err) {
+  console.error(`[FATAL] ${msg}`, err || '');
+  process.exit(1);
+}
 
-  function buildTable(rows, isSales) {
-    if (rows.length === 0) {
-      return `<div class="no-data">No records found</div>`;
+// ── Main ───────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    const today = todayIST();
+    console.log(`[INFO] Running for date: ${today}`);
+
+    // Load all companies
+    const coSnap = await db.ref('companies').get();
+    if (!coSnap.exists()) skip('No companies found in Firebase');
+
+    const companies = coSnap.val();
+    let emailsSent = 0;
+
+    for (const [coId, co] of Object.entries(companies)) {
+      try {
+        await processCompany(coId, co, today);
+        emailsSent++;
+      } catch (coErr) {
+        // Don't fail the entire run for one company error — log and continue
+        console.error(`[ERROR] Company ${co.name || coId}:`, coErr.message || coErr);
+      }
     }
-    const visitCols = isSales
-      ? `<th>Outlet</th><th>Remarks</th>`
-      : ``;
 
-    const headerRow = `<tr>
-      <th>#</th><th>Name</th><th>Status</th><th>Time</th>${visitCols}
-    </tr>`;
+    console.log(`[INFO] Done. Emails processed: ${emailsSent}`);
+    process.exit(0);
 
-    const bodyRows = rows.map((r, i) => {
-      let statusHtml = r.status;
-      if (r.status === "In") statusHtml = `<span class="status-in">✅ In</span>`;
-      else if (r.status === "Out") statusHtml = `<span class="status-out">🚪 Out</span>`;
-      else if (r.status === "Pending") statusHtml = `<span class="status-pend">⚠️ Pending</span>`;
-      else if (r.status === "Visit") statusHtml = `<span class="status-visit">📍 Visit</span>`;
+  } catch (err) {
+    fatal('Unexpected top-level error', err);
+  }
+})();
 
-      const extraCols = isSales
-        ? `<td>${fmt(r.outlet)}</td><td style="max-width:200px;">${fmt(r.remarks)}</td>`
-        : ``;
+async function processCompany(coId, co, today) {
+  const coName = co.name || coId;
 
-      return `<tr>
-        <td style="color:#9ca3af;font-size:11px;">${i + 1}</td>
-        <td style="font-weight:600;">${fmt(r.name)}</td>
-        <td>${statusHtml}</td>
-        <td style="white-space:nowrap;">${fmt(r.time)}</td>
-        ${extraCols}
-      </tr>`;
-    }).join("");
-
-    return `<table>${headerRow}${bodyRows}</table>`;
+  // ── 1. Check mail_required ──────────────────────────────────────────────
+  // Explicit false = skip. Undefined/null/true = send.
+  if (co.mail_required === false) {
+    console.log(`[SKIP] ${coName}: mail_required is false`);
+    return; // Not an error — just skip this company
   }
 
-  const salesSection = `
-    <div class="section-title">📊 Sales Employees <span>${salesRows.length} records</span></div>
-    ${buildTable(salesRows, true)}
-  `;
-
-  const boSection = `
-    <div class="section-title">🖥️ Back Office Employees <span>${boRows.length} records</span></div>
-    ${buildTable(boRows, false)}
-  `;
-
-  const noDataSection = `<div class="no-data" style="padding:36px;">No attendance or visit data recorded today.</div>`;
-
-  return `<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><style>${style}</style></head>
-<body>
-  <div class="wrap">
-    <div class="header">
-      <div class="header-logo">☀️ SunStar Solutions</div>
-      <div class="header-sub">Daily Field Force Report</div>
-      <div class="header-co">🏢 ${coName} &nbsp;|&nbsp; 📅 ${date}</div>
-    </div>
-    ${hasData ? summaryCards : ""}
-    <div class="section">
-      ${hasData ? salesSection + boSection : noDataSection}
-    </div>
-    <div class="footer">
-      Generated automatically by SunStar Solutions &bull; ${new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })} IST
-    </div>
-  </div>
-</body>
-</html>`;
-}
-
-// ── Main ───────────────────────────────────────────────────────
-async function main() {
-  const date = todayIST();
-  const dow = dayOfWeekIST(); // 0=Sun … 6=Sat
-
-  console.log(`[SunStar Report] Running for date: ${date}`);
-
-  // Load all companies
-  const coSnap = await db.ref("companies").get();
-  if (!coSnap.exists()) {
-    console.log("No companies found.");
+  // ── 2. Check holiday ───────────────────────────────────────────────────
+  const weeklyHols  = Array.isArray(co.holidays)        ? co.holidays        : [0];
+  const customHols  = Array.isArray(co.custom_holidays)  ? co.custom_holidays : [];
+  if (isHoliday(today, weeklyHols, customHols)) {
+    console.log(`[SKIP] ${coName}: today is a holiday`);
     return;
   }
-  const companies = coSnap.val();
 
-  for (const [coId, co] of Object.entries(companies)) {
-    const coName = co.name || coId;
-
-    // ── Skip if mail not required ──────────────────────────────
-    if (co.mail_required === false) {
-      console.log(`[${coName}] mail_required=false → skipping`);
-      continue;
-    }
-
-    // ── Skip if no CC emails configured ───────────────────────
-    const ccEmails = (co.cc_emails || []).filter(Boolean);
-    if (ccEmails.length === 0) {
-      console.log(`[${coName}] No CC emails configured → skipping`);
-      continue;
-    }
-
-    // ── Skip if today is a company holiday ────────────────────
-    const holidays = co.holidays || [];
-    if (holidays.includes(dow)) {
-      console.log(`[${coName}] Today (dow=${dow}) is a holiday → skipping`);
-      continue;
-    }
-
-    // ── Load employees ────────────────────────────────────────
-    const usersSnap = await db
-      .ref("users")
-      .orderByChild("company_id")
-      .equalTo(coId)
-      .get();
-    const users = {};
-    if (usersSnap.exists()) {
-      Object.entries(usersSnap.val()).forEach(([uid, u]) => {
-        if (u.status !== "deleted_by_admin") users[uid] = u;
-      });
-    }
-
-    // ── Load attendance ───────────────────────────────────────
-    const attSnap = await db.ref(`attendance/${coId}/${date}`).get();
-    const attendance = attSnap.exists() ? attSnap.val() : {};
-
-    // ── Load visits ───────────────────────────────────────────
-    const visSnap = await db.ref(`visits/${coId}/${date}`).get();
-    const visits = visSnap.exists() ? visSnap.val() : {};
-
-    // ── Build rows ────────────────────────────────────────────
-    const salesRows = [];
-    const boRows = [];
-    let totalIn = 0, totalOut = 0, totalPending = 0, totalVisits = 0;
-
-    // Attendance rows
-    for (const [uid, att] of Object.entries(attendance)) {
-      const u = users[uid];
-      if (!u) continue;
-      const isSales = u.emp_type !== "backoffice";
-      const target = isSales ? salesRows : boRows;
-      const name = u.name || "Unknown";
-
-      if (att.start_time) {
-        target.push({ name, status: "In", time: att.start_time, outlet: "—", remarks: "Day Started" });
-        totalIn++;
-      }
-      if (att.end_time) {
-        target.push({ name, status: "Out", time: att.end_time, outlet: "—", remarks: "Day Ended" });
-        totalOut++;
-      } else if (att.start_time) {
-        target.push({ name, status: "Pending", time: "—", outlet: "—", remarks: "Not Checked Out" });
-        totalPending++;
-      }
-    }
-
-    // Visit rows (Sales only)
-    for (const v of Object.values(visits)) {
-      const u = users[v.salesman_uid];
-      const name = (u && u.name) || v.salesman_name || "Unknown";
-      salesRows.push({
-        name,
-        status: "Visit",
-        time: v.time || "—",
-        outlet: v.outlet || "—",
-        remarks: v.remarks || "—",
-      });
-      totalVisits++;
-    }
-
-    // Sort by time within each group
-    const byTime = (a, b) => (a.time > b.time ? 1 : -1);
-    salesRows.sort(byTime);
-    boRows.sort(byTime);
-
-    // ── Build & send email ────────────────────────────────────
-    const html = buildEmailHtml(
-      coName, date, salesRows, boRows,
-      totalIn, totalOut, totalPending, totalVisits
-    );
-
-    const adminEmail = co.admin_uid ? null : null; // admin_uid is uid, not email
-    const toAddresses = ccEmails.join(", ");
-
-    const mailOptions = {
-      from: `"SunStar Solutions" <${process.env.GMAIL_USER}>`,
-      to: toAddresses,
-      subject: `📋 Daily Report — ${coName} — ${date}`,
-      html,
-    };
-
-    try {
-      await transporter.sendMail(mailOptions);
-      console.log(`[${coName}] ✅ Email sent to: ${toAddresses}`);
-    } catch (err) {
-      console.error(`[${coName}] ❌ Email failed:`, err.message);
-    }
+  // ── 3. Load employees ──────────────────────────────────────────────────
+  const usersSnap = await db.ref('users')
+    .orderByChild('company_id').equalTo(coId).get();
+  if (!usersSnap.exists()) {
+    console.log(`[SKIP] ${coName}: no employees`);
+    return;
+  }
+  const allUsers = usersSnap.val();
+  const employees = Object.entries(allUsers)
+    .filter(([, u]) => u.role === 'salesman' && u.status !== 'deleted_by_admin');
+  if (!employees.length) {
+    console.log(`[SKIP] ${coName}: no active employees`);
+    return;
   }
 
-  console.log("[SunStar Report] Done.");
-  process.exit(0);
+  // ── 4. Load today's attendance & visits ───────────────────────────────
+  const [attSnap, visSnap] = await Promise.all([
+    db.ref(`attendance/${coId}/${today}`).get(),
+    db.ref(`visits/${coId}/${today}`).get()
+  ]);
+  const attData = attSnap.exists()  ? attSnap.val()  : {};
+  const visData = visSnap.exists()  ? visSnap.val()  : {};
+
+  // Count visits per employee
+  const visitsByEmp = {};
+  Object.values(visData).forEach(v => {
+    visitsByEmp[v.salesman_uid] = (visitsByEmp[v.salesman_uid] || 0) + 1;
+  });
+
+  // Get default shift from templates or legacy fields
+  const defShift = (() => {
+    const templates = Array.isArray(co.shift_templates) ? co.shift_templates : [];
+    const def = templates.find(t => t.is_default) || templates[0];
+    if (def) return { shiftIn: def.shift_in, shiftOut: def.shift_out, grace: def.grace || 15 };
+    return { shiftIn: co.shift_in || '09:00', shiftOut: co.shift_out || '18:00', grace: co.greeting_period ?? 15 };
+  })();
+
+  // ── 5. Build report rows ──────────────────────────────────────────────
+  const salesRows = [];
+  const boRows    = [];
+
+  employees.sort(([,a],[,b]) => {
+    const na = parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999);
+    const nb = parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999);
+    return na - nb;
+  });
+
+  for (const [uid, u] of employees) {
+    const att    = attData[uid] || null;
+    const visits = visitsByEmp[uid] || 0;
+    const isBo   = u.emp_type === 'backoffice';
+
+    // Resolve employee shift (override → template → company default)
+    let shiftIn  = u.shift_in  || defShift.shiftIn;
+    let shiftOut = u.shift_out || defShift.shiftOut;
+    let grace    = u.greeting_period != null ? u.greeting_period : defShift.grace;
+
+    // If employee has a shift_template_name, look it up
+    if (u.shift_template_name && Array.isArray(co.shift_templates)) {
+      const tmpl = co.shift_templates.find(t => t.name === u.shift_template_name);
+      if (tmpl) { shiftIn = tmpl.shift_in; shiftOut = tmpl.shift_out; grace = tmpl.grace || 15; }
+    }
+
+    const row = {
+      empId   : u.emp_id || '—',
+      name    : u.name   || 'Unknown',
+      shiftIn, shiftOut, grace,
+      inTime  : att ? fmt12(att.start_time) : '—',
+      outTime : att && att.end_time ? fmt12(att.end_time) : '—',
+      status  : 'Absent',
+      remark  : '',
+      visits
+    };
+
+    if (att && att.start_time) {
+      const inMin     = parseTimeToMin(att.start_time);
+      const shInMin   = parseTimeToMin(shiftIn);
+      const shOutMin  = parseTimeToMin(shiftOut);
+      const lateMin   = Math.max(0, inMin - (shInMin + grace));
+
+      if (att.end_time) {
+        const outMin   = parseTimeToMin(att.end_time);
+        const workedMin = outMin - inMin;
+        const shDurMin  = shOutMin - shInMin;
+        const otMin     = Math.max(0, workedMin - shDurMin);
+        const earlyMin  = Math.max(0, shOutMin - outMin);
+
+        row.status = lateMin > 0 ? 'Late' : 'Present';
+        if (lateMin  > 0) row.remark += `⚠️ Late ${minsToHHMM(lateMin)}`;
+        if (otMin    > 0) row.remark += `${row.remark?' | ':''}OT +${minsToHHMM(otMin)}`;
+        if (earlyMin > 0) row.remark += `${row.remark?' | ':''}Early -${minsToHHMM(earlyMin)}`;
+        if (!row.remark)  row.remark  = 'On time ✅';
+      } else {
+        row.status = 'Pending';
+        row.remark = `⚠️ No checkout${lateMin > 0 ? ` | Late ${minsToHHMM(lateMin)}` : ''}`;
+      }
+    }
+
+    (isBo ? boRows : salesRows).push(row);
+  }
+
+  // ── 6. Build HTML email ──────────────────────────────────────────────
+  const html = buildHtml(coName, today, salesRows, boRows, defShift);
+
+  // ── 7. Send email ────────────────────────────────────────────────────
+  const gmailUser = process.env.GMAIL_USER;
+  const gmailPass = process.env.GMAIL_PASS;
+  if (!gmailUser || !gmailPass) {
+    console.error(`[ERROR] ${coName}: GMAIL_USER or GMAIL_PASS secret not set`);
+    return; // Don't throw — just log
+  }
+
+  const ccEmails = Array.isArray(co.cc_emails)
+    ? co.cc_emails.filter(Boolean).join(', ')
+    : '';
+
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: { user: gmailUser, pass: gmailPass }
+  });
+
+  await transporter.sendMail({
+    from    : `"SunStar Solutions" <${gmailUser}>`,
+    to      : gmailUser,
+    cc      : ccEmails || undefined,
+    subject : `📊 Daily Report — ${coName} — ${today}`,
+    html
+  });
+
+  console.log(`[OK] Email sent for ${coName}`);
 }
 
-main().catch((err) => {
-  console.error("Fatal error:", err);
-  process.exit(1);
-});
+// ── Time helpers ───────────────────────────────────────────────────────────
+function parseTimeToMin(t) {
+  if (!t || !t.includes(':')) return 0;
+  const s = t.trim();
+  const ampm = s.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (ampm) {
+    let h = parseInt(ampm[1]), m = parseInt(ampm[2]);
+    if (ampm[3].toUpperCase() === 'PM' && h !== 12) h += 12;
+    if (ampm[3].toUpperCase() === 'AM' && h === 12) h = 0;
+    return h * 60 + m;
+  }
+  const parts = s.split(':');
+  return parseInt(parts[0]) * 60 + (parseInt(parts[1]) || 0);
+}
+
+function minsToHHMM(m) {
+  const h = Math.floor(Math.abs(m) / 60), mm = Math.abs(m) % 60;
+  return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+}
+
+// ── HTML builder ───────────────────────────────────────────────────────────
+function buildHtml(coName, date, salesRows, boRows, defShift) {
+  const rowStyle = `style="border-bottom:1px solid #E5E7EB;font-size:13px;"`;
+  const th = (t, w='') => `<th style="background:#EFA800;color:#000;padding:8px 10px;text-align:left;font-size:12px;${w?'width:'+w+';':''}">${t}</th>`;
+  const td = (t, c='#1A2850', bold=false) => `<td style="padding:7px 10px;color:${c};${bold?'font-weight:700;':''}">${t}</td>`;
+
+  function buildSection(title, rows, showVisits) {
+    if (!rows.length) return `<p style="color:#6B7280;font-size:13px;">No ${title.toLowerCase()} employees found.</p>`;
+    const present  = rows.filter(r => r.status==='Present' || r.status==='Late').length;
+    const absent   = rows.filter(r => r.status==='Absent').length;
+    const pending  = rows.filter(r => r.status==='Pending').length;
+    const summary  = `<div style="display:flex;gap:12px;margin-bottom:12px;flex-wrap:wrap;">
+      <span style="background:#D1FAE5;color:#065F46;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">✅ Present: ${present}</span>
+      <span style="background:#FEE2E2;color:#991B1B;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">❌ Absent: ${absent}</span>
+      ${pending?`<span style="background:#FEF3C7;color:#92400E;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;">⚠️ Pending: ${pending}</span>`:''}
+    </div>`;
+    const tableRows = rows.map(r => {
+      const sc = r.status==='Present'?'#065F46':r.status==='Late'?'#B45309':r.status==='Pending'?'#92400E':'#991B1B';
+      return `<tr ${rowStyle}>
+        ${td(r.empId,'#1E40AF',true)}
+        ${td(r.name)}
+        ${td(`${fmt12(r.shiftIn)} – ${fmt12(r.shiftOut)}`,'#6B7280')}
+        ${td(r.inTime, r.status==='Absent'?'#D1D5DB':'#1A2850')}
+        ${td(r.outTime, r.status==='Absent'||r.outTime==='—'?'#D1D5DB':'#1A2850')}
+        ${td(`<b style="color:${sc};">${r.status}</b>`)}
+        ${showVisits ? td(r.visits>0?String(r.visits):'—', r.visits>0?'#1D4ED8':'#9CA3AF') : ''}
+        ${td(r.remark||'—','#6B7280')}
+      </tr>`;
+    }).join('');
+    return summary + `<table style="width:100%;border-collapse:collapse;">
+      <thead><tr>
+        ${th('Emp ID')}${th('Name','160px')}${th('Shift')}${th('In')}${th('Out')}${th('Status')}
+        ${showVisits?th('Visits','60px'):''}${th('Remarks')}
+      </tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>`;
+  }
+
+  const hasSales = salesRows.length > 0;
+  const hasBO    = boRows.length    > 0;
+
+  return `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#F3F4F6;font-family:'Segoe UI',Arial,sans-serif;">
+<div style="max-width:800px;margin:20px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.08);">
+  <!-- Header -->
+  <div style="background:#06091A;padding:24px 28px;display:flex;align-items:center;gap:16px;">
+    <div style="background:linear-gradient(145deg,#EFA800,#C88A00);width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">☀️</div>
+    <div>
+      <div style="color:#EFA800;font-size:20px;font-weight:800;letter-spacing:0.3px;">SunStar Solutions</div>
+      <div style="color:#7A8DB8;font-size:12px;margin-top:2px;">Daily Attendance Report</div>
+    </div>
+  </div>
+  <!-- Date bar -->
+  <div style="background:#EFA800;padding:10px 28px;display:flex;justify-content:space-between;align-items:center;">
+    <div style="font-size:15px;font-weight:800;color:#000;">📋 ${coName}</div>
+    <div style="font-size:13px;font-weight:700;color:#000;">📅 ${date}</div>
+  </div>
+  <!-- Body -->
+  <div style="padding:24px 28px;">
+    ${hasSales ? `<h3 style="color:#1D4ED8;font-size:15px;margin:0 0 14px;">📊 Sales Employees</h3>${buildSection('Sales',salesRows,true)}<br>` : ''}
+    ${hasBO    ? `<h3 style="color:#065F46;font-size:15px;margin:0 0 14px;">🏢 Back Office Employees</h3>${buildSection('Back Office',boRows,false)}` : ''}
+    ${!hasSales&&!hasBO ? '<p style="color:#6B7280;text-align:center;padding:20px;">No employee data for today.</p>' : ''}
+  </div>
+  <!-- Footer -->
+  <div style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:14px 28px;text-align:center;font-size:11px;color:#9CA3AF;">
+    Auto-generated by SunStar Solutions Field Force Management
+  </div>
+</div>
+</body></html>`;
+}
