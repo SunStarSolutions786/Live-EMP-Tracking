@@ -13,7 +13,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-/* ════════════════════════════════════════════════
    DESIGN TOKENS
 ════════════════════════════════════════════════ */
 :root {
@@ -41,13 +40,11 @@ body{background:var(--bg);color:var(--txt);font-family:'DM Sans',sans-serif;min-
 a{color:inherit;text-decoration:none;}
 button{font-family:'DM Sans',sans-serif;}
 
-/* ════ SCREENS ════ */
 .screen{display:none!important;}
 .screen.on{display:block!important;}
 .flex-screen{display:none!important;}
 .flex-screen.on{display:flex!important;}
 
-/* ════════════════════════════════════════════════
    SETUP WIZARD (first time)
 ════════════════════════════════════════════════ */
 #setupScreen{
@@ -102,7 +99,6 @@ button{font-family:'DM Sans',sans-serif;}
   color:var(--err);margin-bottom:20px;line-height:1.6;
 }
 
-/* ════════════════════════════════════════════════
    LOGIN
 ════════════════════════════════════════════════ */
 #loginScreen{
@@ -126,13 +122,7 @@ button{font-family:'DM Sans',sans-serif;}
 }
 @keyframes up{from{opacity:0;transform:translateY(28px);}to{opacity:1;transform:translateY(0);}}
 .login-logo{text-align:center;margin-bottom:40px;}
-.logo-sun{
-  width:68px;height:68px;
-  background:linear-gradient(145deg,var(--gold),#C88A00);
-  border-radius:18px;display:flex;align-items:center;justify-content:center;
-  margin:0 auto 16px;font-size:30px;
-  box-shadow:0 8px 28px rgba(239,168,0,0.35);
-}
+
 .logo-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--txt);}
 .logo-sub{font-size:11px;color:var(--txt-2);letter-spacing:2.5px;text-transform:uppercase;margin-top:5px;}
 .err-box{
@@ -176,7 +166,6 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .btn-danger:hover{background:rgba(255,68,102,0.22);}
 
-/* ════════════════════════════════════════════════
    NAV BAR
 ════════════════════════════════════════════════ */
 .nav{
@@ -185,11 +174,7 @@ button{font-family:'DM Sans',sans-serif;}
   position:sticky;top:0;z-index:200;
 }
 .nav-brand{display:flex;align-items:center;gap:11px;}
-.nav-sun{
-  width:36px;height:36px;background:linear-gradient(145deg,var(--gold),#C88A00);
-  border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;
-  box-shadow:0 4px 14px rgba(239,168,0,0.3);
-}
+
 .nav-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;}
 .nav-right{display:flex;align-items:center;gap:14px;}
 .user-pill{
@@ -210,7 +195,6 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .btn-out:hover{background:rgba(255,68,102,0.2);}
 
-/* ════════════════════════════════════════════════
    SALESMAN SCREEN — MOBILE APP STYLE
 ════════════════════════════════════════════════ */
 #salesmanScreen{display:none!important;min-height:100vh;}
@@ -304,7 +288,6 @@ button{font-family:'DM Sans',sans-serif;}
 .empty{text-align:center;padding:40px 16px;color:var(--txt-2);}
 .empty-icon{font-size:38px;margin-bottom:12px;opacity:.4;}
 
-/* ════════════════════════════════════════════════
    ADMIN SCREEN
 ════════════════════════════════════════════════ */
 #adminScreen{display:none!important;min-height:100vh;}
@@ -402,38 +385,8 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .tbl-name{font-weight:700;color:var(--txt)!important;}
 /* pill styles below */
-.pill-ok{
-  display:inline-flex;align-items:center;gap:4px;
-  background:rgba(31,209,122,0.1);border:1px solid rgba(31,209,122,0.2);
-  border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--ok);
-}
-.pill-no{
-  display:inline-flex;align-items:center;gap:4px;
-  background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.2);
-  border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;color:var(--err);
-}
-/* Attendance calendar */
-.att-cal{
-  display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:18px;
-}
-.att-dh{
-  text-align:center;font-size:10px;font-weight:700;color:var(--txt-3);
-  text-transform:uppercase;letter-spacing:1px;padding:7px 0;
-}
-.att-d{
-  aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;font-size:13px;font-weight:500;
-  border:1px solid transparent;transition:all .2s;
-}
-.att-d.emp{background:transparent;}
-.att-d.fut{background:rgba(255,255,255,0.02);color:var(--txt-3);}
-.att-d.present{background:rgba(31,209,122,0.1);border-color:rgba(31,209,122,0.22);color:var(--ok);}
-.att-d.absent{background:rgba(255,68,102,0.08);border-color:rgba(255,68,102,0.18);color:var(--err);}
-.att-dn{font-size:13px;font-weight:700;}
-.att-dv{font-size:9px;opacity:.75;margin-top:1px;}
-.att-sum{display:flex;gap:20px;margin-top:14px;flex-wrap:wrap;}
-.att-si{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt-2);}
-.att-dot{width:10px;height:10px;border-radius:50%;}
+
+
 /* Map */
 #visitMap{height:calc(100vh - 260px);min-height:420px;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;}
 /* Salesman management */
@@ -459,7 +412,6 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .btn-add:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(239,168,0,0.38);}
 
-/* ════════════════════════════════════════════════
    SUPER ADMIN SCREEN
 ════════════════════════════════════════════════ */
 #superScreen{display:none!important;min-height:100vh;}
@@ -501,7 +453,6 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .btn-sm-d:hover{background:rgba(255,68,102,0.18);}
 
-/* ════════════════════════════════════════════════
    MODAL
 ════════════════════════════════════════════════ */
 .modal-ov{
@@ -530,7 +481,6 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .btn-confirm:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(239,168,0,0.35);}
 
-/* ════════════════════════════════════════════════
    LOADING + TOAST
 ════════════════════════════════════════════════ */
 .load-ov{
@@ -555,7 +505,6 @@ button{font-family:'DM Sans',sans-serif;}
 @keyframes toastIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
 
 
-/* ════ MOBILE SALESMAN ════ */
 @media(max-width:600px){
   .sm-wrap{padding:14px 12px;}
   .greet{font-size:22px;}
@@ -570,26 +519,21 @@ button{font-family:'DM Sans',sans-serif;}
 }
 
 
-/* ════ EMPLOYEE TYPE TABS ════ */
-.emp-type-tabs{display:flex;gap:0;margin-bottom:18px;border-bottom:1px solid var(--border);}
 .emp-type-tab{flex:1;padding:11px;background:none;border:none;border-bottom:2px solid transparent;
   color:var(--txt-2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;
   cursor:pointer;transition:all .2s;letter-spacing:.3px;}
 .emp-type-tab.active{border-bottom-color:var(--gold);color:var(--gold);}
 .emp-type-tab:hover{color:var(--txt);}
 
-/* ════ HOLIDAY CELL ════ */
 .att-d.holiday{background:rgba(239,168,0,0.08);border-color:rgba(239,168,0,0.25);color:var(--gold);}
 .att-d.holiday .att-dn{opacity:.7;}
 
-/* ════ MODULE BADGE ════ */
 .mod-badge{display:inline-flex;align-items:center;gap:4px;
   border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:.3px;}
 .mod-sales{background:rgba(75,159,255,0.12);color:var(--info);border:1px solid rgba(75,159,255,0.25);}
 .mod-bo{background:rgba(31,209,122,0.1);color:var(--ok);border:1px solid rgba(31,209,122,0.25);}
 .mod-both{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(239,168,0,0.25);}
 
-/* ════ DEPT FILTER BAR ════ */
 .dept-filter{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
 .dept-btn{padding:7px 16px;border-radius:20px;font-family:'DM Sans',sans-serif;
   font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
@@ -597,7 +541,6 @@ button{font-family:'DM Sans',sans-serif;}
 .dept-btn.active{background:var(--gold-dim);border-color:rgba(239,168,0,0.35);color:var(--gold);}
 .dept-btn:hover{border-color:var(--border-lg);color:var(--txt);}
 
-/* ════ SETTINGS PANEL ════ */
 .settings-section{background:var(--bg-card);border:1px solid var(--border);
   border-radius:var(--r);padding:22px;margin-bottom:18px;}
 .settings-title{font-size:15px;font-weight:700;margin-bottom:16px;
@@ -610,7 +553,6 @@ button{font-family:'DM Sans',sans-serif;}
 .holiday-chip:hover{transform:translateY(-1px);}
 
 
-/* ════ PERFORMANCE SCORE ════ */
 .perf-card{
   background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
   padding:22px;margin-bottom:16px;transition:all .25s;
@@ -640,13 +582,11 @@ button{font-family:'DM Sans',sans-serif;}
   border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;
 }
 
-/* ════ SCROLLBAR ════ */
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border-lg);border-radius:3px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--gold);}
 
-/* ════ RESPONSIVE ════ */
 @media(max-width:768px){
   .sidebar{width:52px;}
   .sid-item span:not(.sid-icon){display:none;}
@@ -660,6 +600,9 @@ button{font-family:'DM Sans',sans-serif;}
   .login-card,.setup-card{padding:32px 24px;}
 }
 </style>
+<script>
+(function(){var d='data:image/png;base64,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';function a(){document.querySelectorAll('.ss-logo-img').forEach(function(i){i.src=d;});}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',a);else a();}());
+</script>
 </head>
 <body>
 
@@ -791,7 +734,7 @@ button{font-family:'DM Sans',sans-serif;}
 <div id="loginScreen" class="flex-screen">
   <div class="login-card">
     <div class="login-logo">
-      <div style="width:76px;height:76px;margin:0 auto 12px;"><img src="data:image/png;base64,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" style="width:100%;height:100%;object-fit:contain;" alt="SunStar"></div>
+      <div style="width:76px;height:76px;margin:0 auto 12px;"><img src="" class="ss-logo-img" style="width:100%;height:100%;object-fit:contain;" alt="SunStar"></div>
       <div class="logo-title">SunStar Solutions</div>
       <div class="logo-sub">Field Force Management</div>
     </div>
@@ -815,7 +758,7 @@ button{font-family:'DM Sans',sans-serif;}
   <!-- nav -->
   <div class="nav">
     <div class="nav-brand">
-      <div style="width:32px;height:32px;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAQdUlEQVR42u1aeZQV1Z3+7r21vKp6r/emu4GmQRaFZhNQicEBlxg1GsXk4TImxCSCwxwSCQbRQR+PGFA0xlFjAiQRcFTSnShRE7dE0CG4IKssQrM3TW/vdb+96lXVvXf+aJhwjJMTaAiZmf7OqfPq3HPq3fv77m/57q8K6EEPetCDHvSgB/9fwc7q7IQC5OwSQM/GpDLSNW+8buTFyefGXHTi2P8ZAj7LoP8em9T1y8SR6xE7fM3xtUiASPmXPnG2yDl14yHJX1u4DIMBBMkXC9YlFhW/DZBjY/8zkVJK8o9v+LHdy7zzxSpn9ajJxw04boT76jUXSVnHJEBk64xg6jdWoiMSapPPRAJSgsjtYS27buI4AJB1YMefc34/+qty23UVJ87xDxkChEDKOjDrn8a3ctJyh/3L3o+RKBPHiXBzW7+RePy7Mwkgk+t+NyHARaHq87LOgysuJAQyuf2dOf7+7ZNlBBRhCBJlIreq4qeebL4NvxnTLuvACIH8h88BhEQF+gcWBHqnZmUWl9Yl+l9fQKIQkjhtBsst3D5jRpDK7IWqKxD0JUE8NbpTTi0yRH6eaEQHiUIcfv7WoszPSl40SjN3kiolQqJR8b8jCe6AXBOBEhzd+L5N8L7VKxnWGtb9qWXuhHOEFjygW75RKVe/jmb6JbdJSzkpNS08Lcye+v1rWtbX/Szb27Jowjkl+9/4k1WcmZzJqW8ExzRvlWugzN9xencfOINVWEZAsyOqbjfdxM+dbQL5mOGiomyNpiSPZOPGS7R2xJa373y1pRwgI+65upJ4u4bryF6fF1Y5ySeu08tsTR+kIKeVhUO3HH6REJwRDyCnNwFK5P74uQuUTjurhz/eAUKQ/qm5P5iRA1J7zDpeXP39koc/OpL5yuArpJm+2A9hIDNBmI4WomjbaNG5G2KbEoGQefDugnMytyY19eOiWdmRgETmN8PHoKJSBCe8tUVKkNOVC0j3jY4QzI9iLUAn1ULmK0cO5G3tv9abvfbMXmMp+vCbCeS2wjmtkaNX9P2aaaQXB0NuJQkKCAOgQYDoBEQHXErAgur6bNWwb8pte2/mTK3VmLE6UNUx3QkqWVrR59u7dmxuHwsAxRCYAkHQPSLOSAh0/Kl/jbY9ttWKoTDeUn5f2ZMHFrVc3mdWLyPzWNL04BqSK5pkoRABMwEZkHB1wFUlLyxXWUZWXBa6bd+a2Nyafysd2PlgzqQbzcv6TSRV27KftQnd8QZyqjtPCKR896py32kdKQ7brbascDSS8hAoQrJZiRms4Utwcl8vuq/t2o7w2H5u7MAeNeSqXIdQLKFAQycJBd+kptJGdKcIphweKvTOT4EcKfhmqh/m16rYuYOnR/RdpgT0AyKk26yIBqlIFkD4mgxYbwXCe1/uEo8gp+oJSrekriK4oMnLURG/q9BpMlLN0hYtTBgJ34MTyOb0oVdKtJGmtrbLijWupzk8wiUpUAk6tcJ55T86+vSfSZXUef6cy5hijo4tvO/coH9ub796XIVoK/7AU9O1NJ4cKEuEimJto9T0dmJ3/CL/q/LdvnLhTbjxw6bIfNBo9OQT5WkJgfQHA2t1J/6I6uSvtg97CLQr6GgPri37cfxSKQXJjy+4WgmI33UUKBAB7hmWpNLSP9bKih42zMp3yT3vH8UJa5dLpqlk+lLvz2SHtVTnxhqYiVnBsvy/ZISxVPYdsqxQ37Yhk9FXhqbGp8oIFBKF/3fXAbIOLHTRvh3axPQ1tl8xFVawiQzgMAbR1YAEI0SO/cr63e9bo35Snk4eLBZcVShhhuKN1rz4C4nMJ9vSi4pfc56qnuuuOH8cQEGmL/Vk5NjhCCAkWu8WPrG/ofChxIxUJrC+oMCepijlfjaFJCV+CQCg9tRCoNsEkCngMgI6bdq3VPNLB1caQxJD9nUMezWD6l3hp7YH73/pQJH4ZKs/seze868a9ItfN3kDFpqOeFnLZXchk0wVaYnSYFHyKr0wvkhhBzZkny9/vXXlxEEkCoFIV2xLCSKnQQUIVMEHpmLqW77YeZ5VRgqFVfLE2a8C4TqG+in8oshL/ZvQ57K0WqVUsxbdCrC9VSWBD1dPHRbvf+3PbjpS0GeVr1ttiqm8N9xMHLhC35maZG3RR4Z2FVbrB8oRTA1GAUZ6LJRrwpixA6565xO5BgqehiT14PE5FY8HtPy1TnXVTMs68pJPrWXBW1tnSinpqQol0n0dESEEUdHr9pe+xSztQlZgpn1FKVUJXXY4+vn1JxI04oanxzarhYtzmnFZvrQKPGQC4A60QKNiqY0DQqkDU4r/M3Z/9cOjdL+teUfzjXcOn1LvAgTtsyofo4yPxoDiOpO1/FDoynLr9s7ZMiwY6k9dD5DuGR+mlNTz4I0rl6kq1WRNnxbf5ZdUGAg3LLyiCZEIxacOMRTA2JuWDmlhoYvtAmuiq2tf4CWlfWAwuJoJj+o+QoXbbi5757VV1391Xiwy5CLppO6UPsmbpdwnNP9lX7XmFc46slKGJSP14GcnBCIRSqNRYV33zHMQvNIaPXhlIu0tH2V4Az54+OqDiKxREL2UA5Cjpj5TlEzjuqkj+tdHo5c6n25K9vrOWw8mykruETr3oDNDlPeFHjtqbz56+/3FasegYMBlUshaSHE4IwbPLo+uP7omAuXSU8j6p4eAYy5d+eWfhzs9Vje6vzZukxt6S+XO0fzyKcP5xEiXvuhVSzFsh1+zpe8/xbi1hlJnh2UG6oMBZX2RQfcVm6FMu0cKD7n8gUxV79uELsHctK/a9qZLclvfe61kLk1qVWOb/RLZ10/OC0Ub1wICsg6MTOnezndPCLXtIARAJut8TRDdG1FT0br548xBzyw9v/iO1Td3LLth1Yl+33n5k9d6uuERqtR6MGqTnKIp44GkO8FVE1AJ9HjTpgIid5qxppa4y8qu6rv+C0vpV4c9G7gJ6/pP7ofJpHHJtLHqtCUbfUJOj/Gn7gETIwp5J+oXXfp4NEXLHgiy1Asjzuvz0PYs+66Ty12lE2zWvPw6jdJ9JvIt2XTu6YSnD/elK6iuZmhA79ACapumqY1UeM2Kl3WFLyptH0NtLVBLygq1UJmGtqIRANg32F29V3xryTR16Qni6Gwfhwkg8YXbHjU3HJDLssS8hfJcwlToStNSj3q6UaQoanEgoFHie57C4ORyeYW4TkZTVcKZZtmQvXKS9HUJBnHKKmVBMRCyIE1NcDNEKZio9hOzj0QnPs7rJMMUwnEG0G0dQAHUXL7wgoSn3eJJcrnvuqUK4RyUuApTBRRF+IBPGFNc1TrPZwFIhUGoCqihAhoFAjonhs6kGgAjCnTube6j8tm7fzBhDerqGKZMOSPGn4Z+gCRk/nxyvNRRAHzNGmXS8oNle5vaQqZumIJSn0HkaEGx06kYX8z57HaX0DEyYASh65AKBZUcVLo5lWgfBlW2/OUhO58fN326dzzZntGXU6fW9wdBGPR4DY6Eh2mv7p8gN26s4sBfb14yACNnvFrT7itDc75fSTWFhjSlsbw4uGvjgvFH+HE5s+QjFdPH+cDp7wOePu6o0nX9BY+SABGKyLELkgCSIFzHgL98wUHOrhUn2QIjAJaEC+zmtY+ButdLAqEyuo4X9b37/daPD0/qDUKmw5MAQQQMUXBEQABQ1EKu3QGyFmEaxQzxzxf1Md/KGD/MeGIKkVwwLbChnHj36jJ9yA70HVrAOxu2bumf6pp9LcXOdolh5QSYJBAlApE1XWW8dpLEDkhEyZntB3QJEMI7ZpcuCbHctKxqPgx4AY3RL/oFfSYX3L39k79tSgIJQcqWN0SzVun9Rjb2JHd9mxjW5GKVh8s1zd7jm7tH+YfHvHvr6M0nJlz5GTFBuhEnJyeEjvXlZdYf51DSWPj9DfPJgIHHpG0nkgsqvkHAqwseiP0g/oPe1SUG/14srT3CWH6crmrj3ZwLK+COaZO9V5F5O5eH0rlaaSM/uUp/aMUNQ45K4J4Fe/boC16Nv2BDk9tCwUWlT215rjwU+qBZsPs4+HmMsv2V1I42fG3o7orlu6MA2pM5cbHB0Nw5fehsEZH0ZDzh5PoBO7vqv1SLF1FOevuPjLCz/xpaF/tO9WQA8GPZW7zW7PcAQIk5vZHO3SWTdqUfdy8xneS9Iss/n4vL6qrs0WfknIpaH+WLlIydf26v3aQv3Lit9MH3v3754MGSZ92gTOWIsN2Qn/e0VDbbj3JZGoK32k1lxx9uzr7CpWTJ9sz0WJI+SVycg5zbwgGCnfUn5dUnRQCpB5cAKXvywK+bUT0051gL/DTvU5zpeDE+7bzP+a3ykNci4zIM5iR43j8kfZGgHo9zN76POqWPpSb68sorZasURxPm5+yZvT+a1LlpmBlvv1smM0jz4IqJ9/4hPFYRd6quippD+7+TnH3BLy7I84/0fc1v+w2xQfJQawdvT/b9oCFuoTmRVRob387fNXR8fNaoRwggT7Zs0pMtfwSQbXddUjXwZzv3Ff6yNbJpRXqwm4YvUsmr4amC+qyA1FNOSK+Q4hAoWcqJzRQv7mZlxKMKiwX8DBPFKSeLJ5Oll9SYmcSiS34kH544kjY3JZy4faPLRRFStvRUphEAf9jT8tu0nb9XSv4eMrlG1pHmNaFSTrKOIjrTTX5EUoS3a2e+JRYGlVIS2bz3PzLhklT7DSWvj55csjUgFYUS8zVQY0e5Ssvbbyh+XSYSq2ALxUnYGhwSVD1SSqIQRFCmC6YYToyTXXsWPLi5uNO645U36e2//VByrUgX8mUnkT4qkilyqAVLz5mx+g5i5wMikbVpe5opOX80cUUwkYhR5JxS6uTLSJQItNWLM09AfVfbSVHN+wm0ZzUhAyphDTG1ZHLpC/vfEzXDfxnnocU6FwpU88G2rPIEiBUH6BtCNR8FIcjA73Dz5AlPLdunMv4TS7r/rnBuaZDpUpn4dvznm5796NFrW0K88+s6pU052zNqK/SbdIV+lBf82gDDj1XuPtTSkvE0IR7VIX8FAJh0Zt4d/k0lDQAi3Wiwkr+znjk9UrjLfaQ4dk8AOXfu3NIAkbcVwV7lUdWUgdCVHVnnj71LS7nIZKy7otHtCxYsOL9Cp8SRXtuhuDsuaJmWr1hvq/CqWnJeaz+LXGPb9tqUx/IqvFGGFdjLuNnuifSteaH89kfKhCbsbD+W7CTp+rRI/t2YIwDk4sWLKwsLC8/1cp6ECjDGqO/7qebm5lYp5XwhxApKaT/GWM7zvGAwGDwCYIDv+89mMpmplmUFCSFv+L5fqWmaZdt2g2maY5xs1mOaBillqKOjY4Npmg8A2GNZ1k845/OEEL9buHDh6z9evHg81XVNCCEBwDRN4rru9pkzZ8ZPVhed0neCb775ZvaVV145knNyjblcrrGhoaFx5MiRLZWVlW48Hmee5+0DsIUxNiqfz6+tqqpqopQONQxjn5NOZwUQ3D1y97t9W0rclG03GYaR1DQt1ZlMbjcMY4SmaWsJIW2MsQ8ZY83l5eX7bdvWhBAH161b11ozYECroiiHHcdpdBynMZ1ON86ZMycXjUbRg7ONcDjMjn3SRj5939VMjtDj9ydkUfJZz0QiERqJROin/rcHPehBD3rQgx70oAc96EEPetBd/BdV3hHsokMrmQAAAABJRU5ErkJggg==" style="width:100%;height:100%;object-fit:contain;" alt="SunStar"></div>
+      <div style="width:32px;height:32px;"><img src="" class="ss-logo-img" style="width:100%;height:100%;object-fit:contain;" alt="SunStar"></div>
       <div class="nav-title">SunStar Solutions</div>
     </div>
     <div class="nav-right">
@@ -928,7 +871,7 @@ button{font-family:'DM Sans',sans-serif;}
     <!-- Summary cards -->
     <div class="stats-row" id="smRptSummary" style="display:none;">
       <div class="sc"><div class="sc-val" id="smRptPresent">0</div><div class="sc-lbl">Present</div></div>
-      <div class="sc"><div class="sc-val" id="smRptVisits">0</div><div class="sc-lbl">Visits</div></div>
+      <div class="sc" id="smRptVisitCard"><div class="sc-val" id="smRptVisits">0</div><div class="sc-lbl">Visits</div></div>
       <div class="sc"><div class="sc-val" id="smRptLate">0</div><div class="sc-lbl">Late Days</div></div>
     </div>
     <div id="smRptContent"><div class="empty" style="padding:30px 0;"><div class="empty-icon">📅</div>Select date range and search</div></div>
@@ -1004,7 +947,7 @@ button{font-family:'DM Sans',sans-serif;}
   <!-- nav -->
   <div class="nav">
     <div class="nav-brand">
-      <div style="width:32px;height:32px;"><img src="data:image/png;base64,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" style="width:100%;height:100%;object-fit:contain;" alt="SunStar"></div>
+      <div style="width:32px;height:32px;"><img src="" class="ss-logo-img" style="width:100%;height:100%;object-fit:contain;" alt="SunStar"></div>
       <div class="nav-title">SunStar Solutions</div>
     </div>
     <div class="nav-right">
@@ -1045,15 +988,18 @@ button{font-family:'DM Sans',sans-serif;}
           <div style="overflow-x:auto;">
           <table class="tbl" id="ovActivityTable">
             <thead><tr>
-              <th style="width:120px;">Employee</th>
+              <th style="width:88px;">Emp ID</th>
+              <th style="width:130px;">Name</th>
+              <th style="width:90px;">Type</th>
               <th style="width:90px;">Shift</th>
+              <th style="width:80px;">Status</th>
               <th style="width:72px;">In</th>
               <th style="width:72px;">Out</th>
               <th style="width:70px;">Duration</th>
               <th style="width:56px;">Visits</th>
               <th>Remarks</th>
             </tr></thead>
-            <tbody id="recentTbody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">No activity today yet</td></tr></tbody>
+            <tbody id="recentTbody"><tr><td colspan="10" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">No activity today yet</td></tr></tbody>
           </table>
           </div>
         </div>
@@ -1094,22 +1040,21 @@ button{font-family:'DM Sans',sans-serif;}
         <div class="tc">
           <div class="tc-hd">
             <div class="tc-title">History Records</div>
-            <div class="tc-acts">
-              <button class="btn-exp" onclick="exportHistoryExcel()">📊 Excel</button>
-            </div>
           </div>
           <div style="overflow-x:auto;">
             <table class="tbl" id="visitTable">
               <thead><tr>
                 <th style="width:90px;">Date</th>
-                <th style="width:88px;">Status</th>
-                <th style="width:90px;">Emp ID</th>
-                <th style="width:140px;">Name</th>
-                <th style="width:80px;">Time</th>
+                <th style="width:88px;">Emp ID</th>
+                <th style="width:130px;">Name</th>
+                <th style="width:90px;">Type</th>
+                <th style="width:90px;">Shift</th>
+                <th style="width:80px;">Status</th>
+                <th style="width:72px;">Time</th>
                 <th style="width:110px;">Outlet</th>
                 <th>Remarks</th>
               </tr></thead>
-              <tbody id="visitTbody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">Apply filter and search</td></tr></tbody>
+              <tbody id="visitTbody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">Apply filter and search</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1319,25 +1264,33 @@ button{font-family:'DM Sans',sans-serif;}
             <div style="font-size:11px;color:var(--txt-3);margin-top:8px;">These dates will be marked as Holiday in attendance — no absent, no email.</div>
           </div>
 
-          <!-- Shift Timing -->
+          <!-- Shift Templates -->
           <div class="tc" style="padding:22px;">
-            <div class="tc-hd" style="margin-bottom:4px;"><div class="tc-title">🕐 Default Shift Timing</div></div>
-            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Company-wide default. Can be overridden per employee in Edit Employee.</div>
-            <div style="display:flex;gap:14px;flex-wrap:wrap;">
-              <div class="fg" style="flex:1;min-width:160px;margin-bottom:0;">
-                <label class="fl">Shift In Time</label>
-                <input class="fi" type="time" id="adShiftIn" value="09:00">
+            <div class="tc-hd" style="margin-bottom:4px;"><div class="tc-title">🕐 Shift Templates</div></div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Add multiple shifts. One marked as Default will be used for employees with no shift assigned.</div>
+            <!-- Add new shift row -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;">
+              <div class="fg" style="flex:2;min-width:120px;margin-bottom:0;">
+                <label class="fl" style="font-size:11px;">Shift Name</label>
+                <input class="fi" type="text" id="adNewShiftName" placeholder="e.g. Morning Shift">
               </div>
-              <div class="fg" style="flex:1;min-width:160px;margin-bottom:0;">
-                <label class="fl">Shift Out Time</label>
-                <input class="fi" type="time" id="adShiftOut" value="18:00">
+              <div class="fg" style="flex:1;min-width:100px;margin-bottom:0;">
+                <label class="fl" style="font-size:11px;">Shift In</label>
+                <input class="fi" type="time" id="adNewShiftIn" value="09:00">
               </div>
-              <div class="fg" style="flex:1;min-width:160px;margin-bottom:0;">
-                <label class="fl">Grace Period (minutes)</label>
-                <input class="fi" type="number" id="adGreetingPeriod" value="15" min="0" max="60">
-                <div style="font-size:11px;color:var(--txt-3);margin-top:4px;">Late is counted only after grace period ends</div>
+              <div class="fg" style="flex:1;min-width:100px;margin-bottom:0;">
+                <label class="fl" style="font-size:11px;">Shift Out</label>
+                <input class="fi" type="time" id="adNewShiftOut" value="18:00">
               </div>
+              <div class="fg" style="flex:1;min-width:80px;margin-bottom:0;">
+                <label class="fl" style="font-size:11px;">Grace (min)</label>
+                <input class="fi" type="number" id="adNewShiftGrace" value="15" min="0" max="60" style="max-width:80px;">
+              </div>
+              <button class="btn-go" style="padding:9px 16px;font-size:13px;align-self:flex-end;" onclick="addShiftTemplate('ad')">➕ Add</button>
             </div>
+            <div id="adShiftTemplateList" style="display:flex;flex-direction:column;gap:8px;"></div>
+            <!-- Legacy hidden fields for backward compat -->
+            <input type="hidden" id="adShiftIn"><input type="hidden" id="adShiftOut"><input type="hidden" id="adGreetingPeriod">
           </div>
 
           <button class="btn" onclick="saveAdminSettings()" style="max-width:280px;">💾 Save Settings</button>
@@ -1354,7 +1307,7 @@ button{font-family:'DM Sans',sans-serif;}
 <div id="superScreen" class="screen">
   <div class="nav">
     <div class="nav-brand">
-      <div style="width:32px;height:32px;"><img src="data:image/png;base64,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" style="width:100%;height:100%;object-fit:contain;" alt="SunStar"></div>
+      <div style="width:32px;height:32px;"><img src="" class="ss-logo-img" style="width:100%;height:100%;object-fit:contain;" alt="SunStar"></div>
       <div class="nav-title">SunStar Solutions</div>
       <div style="margin-left:8px;background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:20px;padding:3px 12px;font-size:11px;color:var(--gold);font-weight:700;letter-spacing:1px;">SUPER ADMIN</div>
     </div>
@@ -1390,22 +1343,88 @@ button{font-family:'DM Sans',sans-serif;}
     <!-- All Reports Panel -->
     <div id="sa-panel-report" style="display:none;">
       <div class="super-hd">
-        <div><div class="pt">All Companies Report</div><div class="ps">Combined report across all companies</div></div>
+        <div><div class="pt">All Companies Reports</div><div class="ps">Export A/B/C reports across all companies — includes Company ID &amp; Name</div></div>
       </div>
-      <div class="fbar">
-        <div class="fg-sm"><label class="fl-sm">From Date</label><input class="fi-sm" type="date" id="saReportFrom"></div>
-        <div class="fg-sm"><label class="fl-sm">To Date</label><input class="fi-sm" type="date" id="saReportTo"></div>
+      <!-- Company filter — shared across all 3 reports -->
+      <div class="fbar" style="margin-bottom:24px;">
         <div class="fg-sm"><label class="fl-sm">Company</label>
           <select class="fsel-sm" id="saReportCompany"><option value="">All Companies</option></select>
         </div>
-        <button class="btn-go" onclick="loadSAReport()">🔍 Load</button>
-        <div class="fg-sm" style="margin-left:auto;"><label class="fl-sm">&nbsp;</label>
-          <div style="display:flex;gap:8px;">
-            <button class="btn-exp" onclick="exportSAReportExcel()">📊 Excel</button>
-          </div>
-        </div>
       </div>
-      <div id="saReportContent"><div class="empty"><div class="empty-icon">📊</div>Select date range and click Load</div></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;">
+
+        <!-- SA Report A — History -->
+        <div class="ov-card" style="cursor:default;">
+          <div class="ov-icon">📋</div>
+          <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">A — History Report</div>
+          <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">All In / Out / Visit events by date range</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
+              <select class="fsel-sm" id="saRptHistType" style="width:100%;min-width:unset;">
+                <option value="all">All Employees</option>
+                <option value="sales">Sales Only</option>
+                <option value="backoffice">Back Office Only</option>
+              </select>
+            </div>
+            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="saRptHistStart" style="width:100%;min-width:unset;"></div>
+            <div class="fg-sm" style="width:100%;"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="saRptHistEnd" style="width:100%;min-width:unset;"></div>
+          </div>
+          <button class="btn-exp" style="width:100%;justify-content:center;" onclick="exportSAHistExcel()">📊 Excel</button>
+        </div>
+
+        <!-- SA Report B — Attendance Summary -->
+        <div class="ov-card" style="cursor:default;">
+          <div class="ov-icon">📆</div>
+          <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">B — Attendance Summary</div>
+          <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Monthly Present/Absent/Holiday matrix per employee</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
+              <select class="fsel-sm" id="saRptSumType" style="width:100%;min-width:unset;">
+                <option value="all">All Employees</option>
+                <option value="sales">Sales Only</option>
+                <option value="backoffice">Back Office Only</option>
+              </select>
+            </div>
+            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Month</label>
+              <select class="fsel-sm" id="saRptSumMonth" style="width:100%;min-width:unset;">
+                <option value="1">January</option><option value="2">February</option>
+                <option value="3">March</option><option value="4">April</option>
+                <option value="5">May</option><option value="6">June</option>
+                <option value="7">July</option><option value="8">August</option>
+                <option value="9">September</option><option value="10">October</option>
+                <option value="11">November</option><option value="12">December</option>
+              </select>
+            </div>
+            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Year</label>
+              <input class="fi-sm" type="number" id="saRptSumYear" min="2020" max="2035" style="width:100%;min-width:unset;">
+            </div>
+          </div>
+          <button class="btn-exp" style="width:100%;justify-content:center;" onclick="exportSASumExcel()">📊 Excel</button>
+        </div>
+
+        <!-- SA Report C — Late & Overtime -->
+        <div class="ov-card" style="cursor:default;">
+          <div class="ov-icon">⏰</div>
+          <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">C — Late &amp; Overtime Report</div>
+          <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Check-in/out vs shift time — late, early out &amp; overtime</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
+              <select class="fsel-sm" id="saRptLateType" style="width:100%;min-width:unset;">
+                <option value="all">All Employees</option>
+                <option value="sales">Sales Only</option>
+                <option value="backoffice">Back Office Only</option>
+              </select>
+            </div>
+            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="saRptLateStart" style="width:100%;min-width:unset;"></div>
+            <div class="fg-sm" style="width:100%;"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="saRptLateEnd" style="width:100%;min-width:unset;"></div>
+          </div>
+          <button class="btn-exp" style="width:100%;justify-content:center;" onclick="exportSALateExcel()">📊 Excel</button>
+        </div>
+
+      </div><!-- end grid -->
+      <!-- hidden fields kept for initSAReport compat -->
+      <input type="hidden" id="saReportFrom"><input type="hidden" id="saReportTo">
+      <div id="saReportContent" style="display:none;"></div>
     </div>
   </div>
 </div>
@@ -1500,21 +1519,30 @@ button{font-family:'DM Sans',sans-serif;}
 
     <!-- Shift Timing -->
     <div class="settings-section">
-      <div class="settings-title">🕐 Default Shift Timing</div>
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <div class="fg" style="flex:1;min-width:140px;margin-bottom:0;">
+      <div class="settings-title">🕐 Shift Templates</div>
+      <div style="font-size:12px;color:var(--txt-2);margin-bottom:12px;">Add multiple shifts. One marked as Default will be used for employees with no shift assigned.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end;">
+        <div class="fg" style="flex:2;min-width:110px;margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Shift Name</label>
+          <input class="fi" type="text" id="csNewShiftName" placeholder="e.g. Morning Shift">
+        </div>
+        <div class="fg" style="flex:1;min-width:90px;margin-bottom:0;">
           <label class="fl" style="font-size:11px;">Shift In</label>
-          <input class="fi" type="time" id="csShiftIn" value="09:00">
+          <input class="fi" type="time" id="csNewShiftIn" value="09:00">
         </div>
-        <div class="fg" style="flex:1;min-width:140px;margin-bottom:0;">
+        <div class="fg" style="flex:1;min-width:90px;margin-bottom:0;">
           <label class="fl" style="font-size:11px;">Shift Out</label>
-          <input class="fi" type="time" id="csShiftOut" value="18:00">
+          <input class="fi" type="time" id="csNewShiftOut" value="18:00">
         </div>
-        <div class="fg" style="flex:1;min-width:140px;margin-bottom:0;">
-          <label class="fl" style="font-size:11px;">Grace Period (min)</label>
-          <input class="fi" type="number" id="csGreetingPeriod" value="15" min="0" max="60">
+        <div class="fg" style="flex:1;min-width:70px;margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Grace (min)</label>
+          <input class="fi" type="number" id="csNewShiftGrace" value="15" min="0" max="60" style="max-width:80px;">
         </div>
+        <button class="btn-go" style="padding:9px 16px;font-size:13px;align-self:flex-end;" onclick="addShiftTemplate('cs')">➕ Add</button>
       </div>
+      <div id="csShiftTemplateList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <!-- Legacy hidden fields -->
+      <input type="hidden" id="csShiftIn"><input type="hidden" id="csShiftOut"><input type="hidden" id="csGreetingPeriod">
     </div>
 
     <!-- Report Mail Required -->
@@ -1624,8 +1652,8 @@ button{font-family:'DM Sans',sans-serif;}
 <!-- Add Salesman Modal -->
 <div class="modal-ov" id="addSalesmanModal" style="align-items:flex-start;padding:20px;overflow-y:auto;">
   <div class="modal-box" style="max-width:500px;width:100%;margin:auto;">
-    <div class="modal-title">👤 Add New Salesman</div>
-    <div class="modal-sub">Enter salesman information and login details</div>
+    <div class="modal-title">👤 Add New Employee</div>
+    <div class="modal-sub">Enter employee information and login details</div>
     <div id="asErr" class="err-box"></div>
     <div class="fg"><label class="fl">Employee Name *</label><input class="fi" id="asName" placeholder="Employee's full name"></div>
     <div class="fg"><label class="fl">Email *</label><input class="fi" id="asEmail" type="email" placeholder="employee@email.com"></div>
@@ -1637,23 +1665,18 @@ button{font-family:'DM Sans',sans-serif;}
         <option value="backoffice">🏢 Back Office Employee</option>
       </select>
     </div>
-    <!-- Shift Override for new employee -->
+    <!-- Shift Template Selector -->
     <div style="background:rgba(75,159,255,0.06);border:1px solid rgba(75,159,255,0.2);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px;">
-      <div style="font-size:12px;font-weight:700;color:var(--info);margin-bottom:10px;">🕐 Shift (leave blank for company default)</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <div class="fg" style="flex:1;min-width:120px;margin-bottom:0;">
-          <label class="fl" style="font-size:11px;">Shift In</label>
-          <input class="fi" type="time" id="asShiftIn">
-        </div>
-        <div class="fg" style="flex:1;min-width:120px;margin-bottom:0;">
-          <label class="fl" style="font-size:11px;">Shift Out</label>
-          <input class="fi" type="time" id="asShiftOut">
-        </div>
-        <div class="fg" style="flex:1;min-width:120px;margin-bottom:0;">
-          <label class="fl" style="font-size:11px;">Grace Period (min)</label>
-          <input class="fi" type="number" id="asGreeting" placeholder="Company default" min="0" max="60">
-        </div>
+      <div style="font-size:12px;font-weight:700;color:var(--info);margin-bottom:10px;">🕐 Shift Assignment</div>
+      <div class="fg" style="margin-bottom:0;">
+        <label class="fl" style="font-size:11px;">Select Shift</label>
+        <select class="fsel" id="asShiftSelect" onchange="onShiftSelectChange('as')">
+          <option value="">— Use Company Default —</option>
+        </select>
       </div>
+      <div id="asShiftPreview" style="display:none;margin-top:10px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;color:var(--txt-2);"></div>
+      <!-- Hidden fields for JS compatibility -->
+      <input type="hidden" id="asShiftIn"><input type="hidden" id="asShiftOut"><input type="hidden" id="asGreeting">
     </div>
     <div class="modal-acts">
       <button class="btn-cancel" onclick="closeModal('addSalesmanModal')">Cancel</button>
@@ -1689,23 +1712,18 @@ button{font-family:'DM Sans',sans-serif;}
         <option value="backoffice">🏢 Back Office Employee</option>
       </select>
     </div>
-    <!-- Shift Override -->
+    <!-- Shift Template Selector -->
     <div style="background:rgba(75,159,255,0.06);border:1px solid rgba(75,159,255,0.2);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px;">
-      <div style="font-size:12px;font-weight:700;color:var(--info);margin-bottom:10px;">🕐 Shift Override (leave blank to use company default)</div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <div class="fg" style="flex:1;min-width:130px;margin-bottom:0;">
-          <label class="fl" style="font-size:11px;">Shift In</label>
-          <input class="fi" type="time" id="esShiftIn" placeholder="Company default">
-        </div>
-        <div class="fg" style="flex:1;min-width:130px;margin-bottom:0;">
-          <label class="fl" style="font-size:11px;">Shift Out</label>
-          <input class="fi" type="time" id="esShiftOut" placeholder="Company default">
-        </div>
-        <div class="fg" style="flex:1;min-width:130px;margin-bottom:0;">
-          <label class="fl" style="font-size:11px;">Grace Period (min)</label>
-          <input class="fi" type="number" id="esGreeting" placeholder="Company default" min="0" max="60">
-        </div>
+      <div style="font-size:12px;font-weight:700;color:var(--info);margin-bottom:10px;">🕐 Shift Assignment</div>
+      <div class="fg" style="margin-bottom:0;">
+        <label class="fl" style="font-size:11px;">Select Shift</label>
+        <select class="fsel" id="esShiftSelect" onchange="onShiftSelectChange('es')">
+          <option value="">— Use Company Default —</option>
+        </select>
       </div>
+      <div id="esShiftPreview" style="display:none;margin-top:10px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;color:var(--txt-2);"></div>
+      <!-- Hidden fields for JS compatibility -->
+      <input type="hidden" id="esShiftIn"><input type="hidden" id="esShiftOut"><input type="hidden" id="esGreeting">
     </div>
     <div class="modal-acts">
       <button class="btn-cancel" onclick="closeModal('editSalesmanModal')">Cancel</button>
@@ -1759,7 +1777,6 @@ async function ensureReportLibs(){
 </script>
 
 <script>
-/* ════════════════════════════════════════════════
    APP STATE & HELPERS
 ════════════════════════════════════════════════ */
 let APP = { user:null, userData:null, companyId:null, salesmen:{}, visitCache:{}, mapInstance:null, apiKey:'' };
@@ -1812,10 +1829,7 @@ function minToHHMM(m){ // total minutes → "HH:MM"
   const h=Math.floor(Math.abs(m)/60), mm=Math.abs(m)%60;
   return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
 }
-function minToHHMMSigned(m){ // with +/-
-  if(m===0) return '00:00';
-  return (m>0?'+':'-')+minToHHMM(m);
-}
+
 function fmt12hr(t){ // "HH:MM" or "HH:MM AM/PM" → display "09:00 AM"
   if(!t||t==='—') return '—';
   const min=parseTimeToMin(t);
@@ -1872,7 +1886,6 @@ async function generateEmpId(coId){
   return 'EMP-'+String(maxNum+1).padStart(4,'0');
 }
 
-/* ════════════════════════════════════════════════
    FIREBASE INIT
 ════════════════════════════════════════════════ */
 let db, auth, firebase_loaded=false;
@@ -1905,7 +1918,6 @@ function loadFirebase(config){
   });
 }
 
-/* ════════════════════════════════════════════════
    SETUP WIZARD
 ════════════════════════════════════════════════ */
 let currentStep=1;
@@ -1972,7 +1984,6 @@ async function createSuperAdmin(){
   }
 }
 
-/* ════════════════════════════════════════════════
    APP INIT
 ════════════════════════════════════════════════ */
 async function initApp(){
@@ -2047,7 +2058,6 @@ async function initApp(){
   });
 }
 
-/* ════════════════════════════════════════════════
    LOGIN / LOGOUT
 ════════════════════════════════════════════════ */
 async function doLogin(){
@@ -2086,7 +2096,6 @@ async function doLogout(){
   doneLoading();
 }
 
-/* ════ FIREBASE AUTH MANAGEMENT ════ */
 async function authAction(uid, action){
   // action: 'disable' | 'enable' | 'delete'
   // NOTE: disable/enable via Firebase REST API requires OAuth admin token — not supported here.
@@ -2104,7 +2113,6 @@ async function authAction(uid, action){
   // disable/enable: no-op here — DB status field is the source of truth
 }
 
-/* ════════════════════════════════════════════════
    CREATE USER VIA REST API (without sign-in)
 ════════════════════════════════════════════════ */
 async function createAuthUser(email,pass){
@@ -2120,7 +2128,6 @@ async function createAuthUser(email,pass){
   return data.localId;
 }
 
-/* ════════════════════════════════════════════════
    SUPER ADMIN
 ════════════════════════════════════════════════ */
 async function initSuperAdmin(){
@@ -2348,13 +2355,15 @@ async function saveSalesmanEdit(){
     if(pass) updates.password=pass;
     const empTypeEl=document.getElementById('esEmpType');
     if(empTypeEl) updates.emp_type=empTypeEl.value;
-    // Shift override (only save if filled)
-    const si=document.getElementById('esShiftIn')?.value;
-    const so=document.getElementById('esShiftOut')?.value;
-    const gp=document.getElementById('esGreeting')?.value;
-    if(si) updates.shift_in=si; else updates.shift_in=null;
-    if(so) updates.shift_out=so; else updates.shift_out=null;
-    if(gp!==''&&gp!=null) updates.greeting_period=parseInt(gp)||null; else updates.greeting_period=null;
+    // Shift from template dropdown
+    const selShift=document.getElementById('esShiftSelect')?.value;
+    if(selShift){
+      const tmpl=(APP.shiftTemplates||[]).find(t=>t.name===selShift);
+      if(tmpl){ updates.shift_in=tmpl.shift_in; updates.shift_out=tmpl.shift_out; updates.greeting_period=tmpl.grace; updates.shift_template_name=tmpl.name; }
+    } else {
+      // No template selected = use company default (clear overrides)
+      updates.shift_in=null; updates.shift_out=null; updates.greeting_period=null; updates.shift_template_name=null;
+    }
     // Remove nulls to keep DB clean
     Object.keys(updates).forEach(k=>{ if(updates[k]===null) delete updates[k]; });
     await db.ref(`users/${uid}`).update(updates);
@@ -2364,7 +2373,6 @@ async function saveSalesmanEdit(){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-/* ════ HOLIDAY & MODULE HELPERS ════ */
 function setMailRequired(val){
   const v=!!val;
   document.getElementById('csMailRequired').value=String(v);
@@ -2418,7 +2426,6 @@ function updateModLabel(labelId, checkbox){
   if(lbl) lbl.style.borderColor=checkbox.checked?'rgba(239,168,0,0.4)':'var(--border)';
 }
 
-/* ════ COMPANY SETTINGS (Super Admin) ════ */
 async function openCoSettings(coId, coName){
   loading('Loading settings...');
   try{
@@ -2433,10 +2440,12 @@ async function openCoSettings(coId, coName){
     // Custom holidays
     window._csCustomHolidays=co.custom_holidays?[...co.custom_holidays]:[];
     renderCSCustomHolidays();
-    // Shift timing
-    document.getElementById('csShiftIn').value=co.shift_in||'09:00';
-    document.getElementById('csShiftOut').value=co.shift_out||'18:00';
-    document.getElementById('csGreetingPeriod').value=co.greeting_period!=null?co.greeting_period:15;
+    // Shift templates
+    window._csShiftTemplates=co.shift_templates?JSON.parse(JSON.stringify(co.shift_templates)):[];
+    if(!window._csShiftTemplates.length && co.shift_in){
+      window._csShiftTemplates=[{name:'Default Shift',shift_in:co.shift_in,shift_out:co.shift_out||'18:00',grace:co.greeting_period??15,is_default:true}];
+    }
+    renderShiftTemplates('cs');
     // Mail required (default true)
     setMailRequired(co.mail_required!==false);
     // CC emails
@@ -2488,13 +2497,12 @@ async function saveCoSettings(){
   const mail_required=document.getElementById('csMailRequired').value==='true';
   const ccRaw=document.getElementById('csCcEmails').value.trim();
   const cc_emails=ccRaw?ccRaw.split(',').map(e=>e.trim()).filter(Boolean):[];
-  const shift_in=document.getElementById('csShiftIn').value||'09:00';
-  const shift_out=document.getElementById('csShiftOut').value||'18:00';
-  const greeting_period=parseInt(document.getElementById('csGreetingPeriod').value)||15;
+  const shift_templates=window._csShiftTemplates||[];
+  const defT=shift_templates.find(t=>t.is_default)||shift_templates[0]||{shift_in:'09:00',shift_out:'18:00',grace:15};
   const custom_holidays=window._csCustomHolidays||[];
   loading('Saving settings...');
   try{
-    await db.ref(`companies/${coId}`).update({holidays, mail_required, cc_emails, shift_in, shift_out, greeting_period, custom_holidays});
+    await db.ref(`companies/${coId}`).update({holidays, mail_required, cc_emails, shift_templates, shift_in:defT.shift_in, shift_out:defT.shift_out, greeting_period:defT.grace, custom_holidays});
     doneLoading(); toast('Settings saved! ✅');
     closeModal('coSettingsModal');
     await loadSuperDashboard();
@@ -2525,7 +2533,6 @@ async function loginAsCompany(){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-/* ════ SUPER ADMIN — COMPANY MANAGEMENT ════ */
 let SA_currentCoId='', SA_currentAdminUid='', SA_currentCoName='';
 
 async function openCoMgmt(coId,adminUid,coName){
@@ -2802,8 +2809,14 @@ async function initAdmin(){
     APP.companyShiftOut=co.shift_out||'18:00';
     APP.companyGreetingPeriod=co.greeting_period!=null?co.greeting_period:15;
     APP.companyCcEmails=co.cc_emails||[];
+    // Load shift templates for employee add/edit dropdowns
+    APP.shiftTemplates=co.shift_templates||[];
+    if(!APP.shiftTemplates.length && co.shift_in){
+      APP.shiftTemplates=[{name:'Default Shift',shift_in:co.shift_in,shift_out:co.shift_out||'18:00',grace:co.greeting_period??15,is_default:true}];
+    }
   }
   await loadOverview();
+  await loadHistory();
 }
 
 function adminPage(page,el){
@@ -2815,7 +2828,108 @@ function adminPage(page,el){
   if(page==='settings') loadAdminSettings();
 }
 
-/* ════ COMPANY ADMIN SETTINGS ════ */
+// APP.shiftTemplates used for company admin, window._csShiftTemplates for SA modal
+
+function getShiftTemplates(ctx){
+  return ctx==='cs' ? (window._csShiftTemplates||[]) : (APP.shiftTemplates||[]);
+}
+function setShiftTemplates(ctx, arr){
+  if(ctx==='cs') window._csShiftTemplates=arr;
+  else APP.shiftTemplates=arr;
+}
+
+function renderShiftTemplates(ctx){
+  const listId = ctx==='cs' ? 'csShiftTemplateList' : 'adShiftTemplateList';
+  const list = document.getElementById(listId);
+  if(!list) return;
+  const templates = getShiftTemplates(ctx);
+  if(!templates.length){
+    list.innerHTML='<div style="font-size:12px;color:var(--txt-3);padding:8px 0;">No shift templates added yet.</div>';
+    return;
+  }
+  list.innerHTML = templates.map((t,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border:1px solid ${t.is_default?'rgba(239,168,0,0.5)':'var(--border)'};border-radius:var(--r-sm);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:${t.is_default?'var(--gold)':'var(--txt)'};">
+          ${t.name} ${t.is_default?'<span style="font-size:10px;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(239,168,0,0.3);border-radius:10px;padding:1px 8px;margin-left:4px;">Default</span>':''}
+        </div>
+        <div style="font-size:11px;color:var(--txt-2);margin-top:3px;">
+          🕐 ${t.shift_in} – ${t.shift_out} &nbsp;|&nbsp; Grace: ${t.grace}min
+        </div>
+      </div>
+      ${!t.is_default?`<button onclick="setDefaultShift('${ctx}',${i})" style="background:none;border:1px solid rgba(239,168,0,0.3);border-radius:var(--r-sm);color:var(--gold);font-size:11px;font-weight:700;padding:4px 10px;cursor:pointer;">Set Default</button>`:''}
+      <button onclick="removeShiftTemplate('${ctx}',${i})" style="background:none;border:none;color:var(--err);cursor:pointer;font-size:16px;padding:2px 6px;line-height:1;">✕</button>
+    </div>`).join('');
+}
+
+function addShiftTemplate(ctx){
+  const prefix = ctx==='cs' ? 'csNew' : 'adNew';
+  const name = document.getElementById(prefix+'ShiftName')?.value.trim();
+  const shift_in = document.getElementById(prefix+'ShiftIn')?.value;
+  const shift_out = document.getElementById(prefix+'ShiftOut')?.value;
+  const grace = parseInt(document.getElementById(prefix+'ShiftGrace')?.value)||15;
+  if(!name){ toast('Enter a shift name','err'); return; }
+  if(!shift_in||!shift_out){ toast('Enter shift in and out times','err'); return; }
+  const templates = getShiftTemplates(ctx);
+  if(templates.some(t=>t.name===name)){ toast('Shift name already exists','err'); return; }
+  const is_default = templates.length===0; // first one auto-becomes default
+  templates.push({name, shift_in, shift_out, grace, is_default});
+  setShiftTemplates(ctx, templates);
+  renderShiftTemplates(ctx);
+  // Clear inputs
+  document.getElementById(prefix+'ShiftName').value='';
+  toast('Shift added ✅');
+}
+
+function removeShiftTemplate(ctx, idx){
+  const templates = getShiftTemplates(ctx);
+  const wasDefault = templates[idx].is_default;
+  templates.splice(idx,1);
+  if(wasDefault && templates.length) templates[0].is_default=true;
+  setShiftTemplates(ctx, templates);
+  renderShiftTemplates(ctx);
+  // Refresh shift dropdowns if in modals
+  populateShiftDropdown('asShiftSelect','');
+  populateShiftDropdown('esShiftSelect','');
+}
+
+function setDefaultShift(ctx, idx){
+  const templates = getShiftTemplates(ctx);
+  templates.forEach((t,i)=>t.is_default=(i===idx));
+  setShiftTemplates(ctx, templates);
+  renderShiftTemplates(ctx);
+  toast('Default shift updated ✅');
+}
+
+function populateShiftDropdown(selectId, currentValue){
+  const sel = document.getElementById(selectId);
+  if(!sel) return;
+  const templates = APP.shiftTemplates||[];
+  sel.innerHTML = '<option value="">— Use Company Default —</option>';
+  templates.forEach(t=>{
+    const opt = document.createElement('option');
+    opt.value = t.name;
+    opt.textContent = t.name + (t.is_default?' (Default)':'') + ' — '+t.shift_in+' to '+t.shift_out;
+    if(t.name===currentValue) opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
+
+function onShiftSelectChange(prefix){
+  const sel = document.getElementById(prefix+'ShiftSelect');
+  const prev = document.getElementById(prefix+'ShiftPreview');
+  const val = sel?.value;
+  if(!val){
+    if(prev) prev.style.display='none';
+    return;
+  }
+  const tmpl = (APP.shiftTemplates||[]).find(t=>t.name===val);
+  if(tmpl && prev){
+    prev.style.display='block';
+    prev.innerHTML=`🕐 ${tmpl.shift_in} – ${tmpl.shift_out} &nbsp;|&nbsp; Grace: ${tmpl.grace} min`;
+  }
+}
+
 async function loadAdminSettings(){
   try{
     const snap=await db.ref(`companies/${APP.companyId}`).get();
@@ -2823,10 +2937,13 @@ async function loadAdminSettings(){
     const co=snap.val();
     // Weekly holidays
     setHolidayChips('adHolidayChips', co.holidays||[0]);
-    // Shift timings
-    document.getElementById('adShiftIn').value=co.shift_in||'09:00';
-    document.getElementById('adShiftOut').value=co.shift_out||'18:00';
-    document.getElementById('adGreetingPeriod').value=co.greeting_period!=null?co.greeting_period:15;
+    // Shift templates
+    APP.shiftTemplates=co.shift_templates||[];
+    // Migrate legacy single shift to templates if none exist
+    if(!APP.shiftTemplates.length && co.shift_in){
+      APP.shiftTemplates=[{name:'Default Shift',shift_in:co.shift_in,shift_out:co.shift_out||'18:00',grace:co.greeting_period??15,is_default:true}];
+    }
+    renderShiftTemplates('ad');
     // Custom holidays
     APP.companyCustomHolidays=co.custom_holidays||[];
     renderAdminCustomHolidays();
@@ -2875,15 +2992,18 @@ async function saveAdminSettings(){
   loading('Saving settings...');
   try{
     const holidays=getSelectedHolidays('adHolidayChips');
-    const shift_in=document.getElementById('adShiftIn').value||'09:00';
-    const shift_out=document.getElementById('adShiftOut').value||'18:00';
-    const greeting_period=parseInt(document.getElementById('adGreetingPeriod').value)||15;
     const custom_holidays=APP.companyCustomHolidays||[];
-    await db.ref(`companies/${APP.companyId}`).update({holidays, shift_in, shift_out, greeting_period, custom_holidays});
+    const shift_templates=APP.shiftTemplates||[];
+    // Derive legacy fields from default template for backward compat
+    const defT=shift_templates.find(t=>t.is_default)||shift_templates[0]||{shift_in:'09:00',shift_out:'18:00',grace:15};
+    await db.ref(`companies/${APP.companyId}`).update({
+      holidays, custom_holidays, shift_templates,
+      shift_in:defT.shift_in, shift_out:defT.shift_out, greeting_period:defT.grace
+    });
     APP.companyHolidays=holidays;
-    APP.companyShiftIn=shift_in;
-    APP.companyShiftOut=shift_out;
-    APP.companyGreetingPeriod=greeting_period;
+    APP.companyShiftIn=defT.shift_in;
+    APP.companyShiftOut=defT.shift_out;
+    APP.companyGreetingPeriod=defT.grace;
     doneLoading(); toast('Settings saved! ✅');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -2900,7 +3020,7 @@ async function loadSalesmen(){
   // Only non-deleted salesmen in dropdowns/reports — sorted A-Z
   const activeOpts='<option value="">All</option>'+Object.entries(APP.salesmen)
     .filter(([,u])=>u.status!=='deleted_by_admin')
-    .sort(([,a],[,b])=>a.name.localeCompare(b.name))
+    .sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999); return na-nb; })
     .map(([uid,u])=>`<option value="${uid}">${u.name}${u.status==='inactive'?' (Inactive)':''}</option>`).join('');
   ['vSalesmanFilter','mapSalesmanFilter'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.innerHTML=activeOpts;
@@ -2913,8 +3033,8 @@ function renderSalesmanList(){
   const body=document.getElementById('smListBody');
   if(allEntries.length===0){ body.innerHTML='<div class="empty"><div class="empty-icon">👤</div>No salesman found. Add a new one.</div>'; return; }
 
-  const active=allEntries.filter(([,u])=>u.status!=='deleted_by_admin').sort(([,a],[,b])=>a.name.localeCompare(b.name));
-  const deleted=allEntries.filter(([,u])=>u.status==='deleted_by_admin').sort(([,a],[,b])=>a.name.localeCompare(b.name));
+  const active=allEntries.filter(([,u])=>u.status!=='deleted_by_admin').sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999); return na-nb; });
+  const deleted=allEntries.filter(([,u])=>u.status==='deleted_by_admin').sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999); return na-nb; });
 
   let html=active.map(([uid,u])=>{
     const isInactive=u.status==='inactive';
@@ -2960,7 +3080,6 @@ function renderSalesmanList(){
   body.innerHTML=html;
 }
 
-/* ════ EDIT SALESMAN (Company Admin) ════ */
 async function editSalesmanAdmin(uid){
   loading('Loading employee...');
   try{
@@ -2980,7 +3099,10 @@ async function editSalesmanAdmin(uid){
     const idDisp=document.getElementById('esEmpIdDisplay');
     const idVal=document.getElementById('esEmpIdVal');
     if(idDisp&&idVal){ if(u.emp_id){ idVal.textContent=u.emp_id; idDisp.style.display='block'; } else { idDisp.style.display='none'; } }
-    // Shift override fields
+    // Populate shift dropdown — match by shift_template_name stored on user, or detect by shift_in/out
+    populateShiftDropdown('esShiftSelect', u.shift_template_name||'');
+    onShiftSelectChange('es');
+    // Also set hidden fields for backward compat
     document.getElementById('esShiftIn').value=u.shift_in||'';
     document.getElementById('esShiftOut').value=u.shift_out||'';
     document.getElementById('esGreeting').value=u.greeting_period!=null?u.greeting_period:'';
@@ -3014,6 +3136,11 @@ async function openAddSalesmanModal(){
   // Always show both emp type options
   const wrap=document.getElementById('asEmpTypeWrap');
   if(wrap) wrap.style.display='block';
+  // Populate shift dropdown
+  populateShiftDropdown('asShiftSelect', '');
+  const prev=document.getElementById('asShiftPreview');
+  if(prev) prev.style.display='none';
+  ['asShiftIn','asShiftOut','asGreeting'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   openModal('addSalesmanModal');
 }
 
@@ -3033,19 +3160,18 @@ async function addSalesman(){
     const uid=await createAuthUser(email,pass);
     const emp_id=await generateEmpId(APP.companyId);
     const newEmp={ name, email, role:'salesman', emp_type:empType, emp_id, company_id:APP.companyId, password:pass, created_at:Date.now() };
-    const si=document.getElementById('asShiftIn')?.value;
-    const so=document.getElementById('asShiftOut')?.value;
-    const gp=document.getElementById('asGreeting')?.value;
-    if(si) newEmp.shift_in=si;
-    if(so) newEmp.shift_out=so;
-    if(gp!==''&&gp!=null) newEmp.greeting_period=parseInt(gp)||null;
+    // Shift from template dropdown
+    const selShift=document.getElementById('asShiftSelect')?.value;
+    if(selShift){
+      const tmpl=(APP.shiftTemplates||[]).find(t=>t.name===selShift);
+      if(tmpl){ newEmp.shift_in=tmpl.shift_in; newEmp.shift_out=tmpl.shift_out; newEmp.greeting_period=tmpl.grace; newEmp.shift_template_name=tmpl.name; }
+    }
     await db.ref(`users/${uid}`).set(newEmp);
     doneLoading(); toast(`"${name}" created as ${empType==='sales'?'Sales':'Back Office'} employee!`);
     await loadSalesmen();
     await loadOverview();
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
-
 
 
 let currentSmFilter='all';
@@ -3119,14 +3245,8 @@ async function loadOverview(){
     visitsByEmp[v.salesman_uid]=(visitsByEmp[v.salesman_uid]||0)+1;
   });
 
-  // Build rows for all employees who have any activity today
+  // Show ALL employees always (absent ones shown with Absent status)
   const seenUids=new Set([...Object.keys(attData),...Object.keys(visitsByEmp)]);
-  if(seenUids.size===0){
-    tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--txt-3);">No activity today yet</td></tr>';
-    return;
-  }
-
-  // Also include employees with no attendance (absent)
   const allEmpUids=new Set([...seenUids,...Object.keys(APP.salesmen)]);
   const rows=[];
 
@@ -3188,17 +3308,15 @@ async function loadOverview(){
 
   tbody.innerHTML=rows.map(r=>{
     const isBo=r.u.emp_type==='backoffice';
-    const empIdBadge=r.u.emp_id?`<span style="font-size:9px;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);padding:1px 5px;border-radius:4px;margin-right:4px;font-weight:800;">${r.u.emp_id}</span>`:'';
-    const boTag=isBo?'<span style="font-size:9px;color:var(--ok);background:rgba(31,209,122,0.1);padding:1px 4px;border-radius:4px;margin-left:3px;">BO</span>':'';
+    const typeLabel=isBo?'Back Office':'Sales';
+    const typeColor=isBo?'var(--ok)':'var(--info)';
+    const typeBg=isBo?'rgba(31,209,122,0.1)':'rgba(75,159,255,0.1)';
     return `<tr>
-      <td style="min-width:120px;">
-        <div style="display:flex;flex-direction:column;gap:2px;">
-          <div style="font-size:11px;">${empIdBadge}</div>
-          <div style="font-weight:600;font-size:12px;">${r.u.name}${boTag}</div>
-          <div style="font-size:10px;font-weight:700;color:${r.statusColor};">${r.status}</div>
-        </div>
-      </td>
+      <td style="font-size:11px;font-weight:800;color:var(--info);">${r.u.emp_id||'—'}</td>
+      <td style="font-weight:600;font-size:13px;">${r.u.name}</td>
+      <td><span style="font-size:11px;font-weight:700;color:${typeColor};background:${typeBg};padding:2px 7px;border-radius:8px;">${typeLabel}</span></td>
       <td style="font-size:11px;color:var(--txt-2);white-space:nowrap;">${r.shift}</td>
+      <td style="font-size:12px;font-weight:700;color:${r.statusColor};">${r.status}</td>
       <td style="font-size:12px;font-weight:600;color:${r.inTime!=='—'?'var(--ok)':'var(--txt-3)'};">${r.inTime}</td>
       <td style="font-size:12px;font-weight:600;color:${r.outTime!=='—'?'var(--err)':'var(--txt-3)'};">${r.outTime}</td>
       <td style="font-size:12px;color:var(--gold);font-weight:600;">${r.duration}</td>
@@ -3208,7 +3326,6 @@ async function loadOverview(){
   }).join('');
 }
 
-/* ════ HISTORY DEPT FILTER ════ */
 let currentHistDept='all', currentMapDept='all', currentPerfDept='all';
 
 function setHistDept(dept, btn){
@@ -3242,7 +3359,6 @@ function populateEmpFilter(selectId, dept){
   });
 }
 
-/* ════ HISTORY (combined In/Out/Visit) ════ */
 let lastHistoryData=[];
 async function loadHistory(){
   const startDate=document.getElementById('vStartDate').value;
@@ -3328,21 +3444,28 @@ async function loadHistory(){
         });
       }
     }
-    lastHistoryData.sort((a,b)=>a.sort_ts-b.sort_ts);
+    lastHistoryData.sort((a,b)=>b.sort_ts-a.sort_ts);
     const tbody=document.getElementById('visitTbody');
     if(lastHistoryData.length===0){
-      tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--txt-3);">No records found for this period</td></tr>';
+      tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--txt-3);">No records found for this period</td></tr>';
     } else {
       tbody.innerHTML=lastHistoryData.map(r=>{
         const statusColor=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
         const statusIcon=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
-        const fullTip=`${r.emp_id||''} ${r.name} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
-        const empIdBadge=r.emp_id&&r.emp_id!=='—'?`<span style="font-size:10px;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);padding:1px 6px;border-radius:6px;margin-right:5px;font-weight:800;">${r.emp_id}</span>`:'';
+        const fullTip=`${r.emp_id||''} ${r.name} | ${r.date} | ${r.time} | ${r.outlet} | ${r.remarks}`;
+        const isBo=r.emp_type==='backoffice';
+        const typeLabel=isBo?'Back Office':'Sales';
+        const typeColor=isBo?'var(--ok)':'var(--info)';
+        const typeBg=isBo?'rgba(31,209,122,0.1)':'rgba(75,159,255,0.1)';
+        const sh=getEmpShift(r.uid||'');
+        const shiftLabel=`${sh.shiftIn}–${sh.shiftOut}`;
         return `<tr title="${fullTip}">
           <td>${r.date}</td>
-          <td><span style="color:${statusColor};font-weight:700;">${statusIcon} ${r.status}</span></td>
           <td style="font-size:11px;font-weight:800;color:var(--info);">${r.emp_id&&r.emp_id!=='—'?r.emp_id:'—'}</td>
           <td class="tbl-name" title="${r.name}">${r.name}</td>
+          <td><span style="font-size:11px;font-weight:700;color:${typeColor};background:${typeBg};padding:2px 7px;border-radius:8px;">${typeLabel}</span></td>
+          <td style="font-size:11px;color:var(--txt-2);white-space:nowrap;">${shiftLabel}</td>
+          <td><span style="color:${statusColor};font-weight:700;">${statusIcon} ${r.status}</span></td>
           <td>${r.time}</td>
           <td style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
           <td class="c-rmk" title="${r.remarks}">${r.remarks}</td>
@@ -3353,34 +3476,7 @@ async function loadHistory(){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-/* ════ HISTORY EXPORT ════ */
-async function exportHistoryExcel(){
-  if(lastHistoryData.length===0){ toast('Load history data first','err'); return; }
-  loading('Generating Excel...');
-  await ensureReportLibs();
-  const co=getCompanyName();
-  const headers=['#','Emp ID','Type','Date','Status','Name','Shift','Location','Time','Outlet','Remarks'];
-  const data=lastHistoryData.map((r,i)=>{
-    const shift=getEmpShift(r.uid||'');
-    const shiftStr=`${shift.shiftIn}–${shift.shiftOut}`;
-    return [i+1,r.emp_id||'—',r.emp_type==='backoffice'?'Back Office':'Sales',r.date,r.status,r.name,shiftStr,r.location,r.time,r.outlet||'—',r.remarks];
-  });
-  const wb=new ExcelJS.Workbook();
-  xlsBuildSheet(wb,'History',`${co} — History Report`,`Records: ${data.length}`,headers,data,[4,12,12,12,12,20,14,26,10,20,45])
-    .then(ws=>{
-      ws.getColumn(11).alignment={wrapText:true,vertical:'top'}; // Remarks
-      ws.getColumn(10).alignment={wrapText:false,vertical:'middle'};
-      return xlsDownload(wb,`${co}_History_Report`);
-    })
-    .then(()=>{ doneLoading(); toast('Excel downloading!'); })
-    .catch(e=>{ doneLoading(); toast('Error: '+e.message,'err'); });
-}
 
-
-
-
-
-/* ════ MAP ════ */
 // Tile layer references
 let _streetLayer=null, _satLayer=null, _satLabelLayer=null, _currentTile='street';
 
@@ -3653,7 +3749,6 @@ async function loadMap(){
 }
 
 
-/* ════ PERFORMANCE SCORE ════ */
 let lastPerfData=[];
 
 function gradeInfo(score){
@@ -3865,15 +3960,8 @@ async function exportPerfExcel(){
 }
 
 
-
-/* ════ EXPORT ════ */
 /* ════ EXCELJS HELPERS ════ */
 
-function numToCol(n){
-  let s=''; n++;
-  while(n>0){ s=String.fromCharCode(65+(n-1)%26)+s; n=Math.floor((n-1)/26); }
-  return s;
-}
 
 /* Download ExcelJS workbook as xlsx */
 async function xlsDownload(wb, filename){
@@ -3969,7 +4057,6 @@ async function xlsBuildSheet(wb, sheetName, title, subtitle, headers, rows, colW
   return ws;
 }
 
-/* ════ SALESMAN SCREEN ════ */
 async function initSalesman(){
   show('salesmanScreen');
   smShowPage('home'); // start on home
@@ -3979,15 +4066,24 @@ async function initSalesman(){
   document.getElementById('smNm').textContent=APP.userData.name;
   document.getElementById('smGreet').textContent=APP.userData.name.split(' ')[0];
   document.getElementById('smDate').textContent='📅 '+new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // Cache company data once — used by profile, self-report, shift calculations
+  if(!APP.companyHolidays){
+    const _coSnap=await db.ref(`companies/${APP.companyId}`).get();
+    const _co=_coSnap.exists()?_coSnap.val():{};
+    APP.companyHolidays=_co.holidays||[0];
+    APP.companyCustomHolidays=_co.custom_holidays||[];
+    APP.companyShiftIn=_co.shift_in||'09:00';
+    APP.companyShiftOut=_co.shift_out||'18:00';
+    APP.companyGreetingPeriod=_co.greeting_period!=null?_co.greeting_period:15;
+    APP.shiftTemplates=_co.shift_templates||[];
+  }
   
   const isBo=APP.userData.emp_type==='backoffice';
   APP.isBackOffice=isBo;
   
-  // Show dept badge in nav
+  // Show only name in nav pill (no badge — prevents truncation)
   const nmEl=document.getElementById('smNm');
-  if(nmEl) nmEl.innerHTML=APP.userData.name
-    +` <span style="font-size:10px;padding:2px 7px;border-radius:10px;font-weight:700;background:${isBo?'rgba(31,209,122,0.1)':'rgba(75,159,255,0.1)'};color:${isBo?'var(--ok)':'var(--info)'};">${isBo?'Back Office':'Sales'}</span>`
-    +(APP.userData.emp_id?` <span style="font-size:10px;padding:2px 7px;border-radius:10px;font-weight:800;background:var(--gold-dim);color:var(--gold);border:1px solid rgba(239,168,0,0.25);">${APP.userData.emp_id}</span>`:'');
+  if(nmEl) nmEl.textContent=APP.userData.name;
   
   // Hide visit sections for Back Office employees
   const visitCard=document.getElementById('visitFormCard');
@@ -4010,8 +4106,11 @@ async function initSalesman(){
   }
   
   checkGPS();
-  await loadDayStatus();
-  await loadSalesmanStats();
+  // Run independent fetches in parallel for faster startup
+  await Promise.all([
+    loadDayStatus(),
+    loadSalesmanStats()
+  ]);
   if(!isBo) await loadTodayVisits();
   scheduleAutoEndDay();
   // Default report date range = current month
@@ -4023,7 +4122,6 @@ async function initSalesman(){
   const toEl=document.getElementById('smRptTo'); if(toEl) toEl.value=lastDay;
 }
 
-/* ════ EMPLOYEE PAGE NAVIGATION ════ */
 function smShowPage(page){
   ['home','report','profile'].forEach(p=>{
     const el=document.getElementById(`smPage${p.charAt(0).toUpperCase()+p.slice(1)}`);
@@ -4034,7 +4132,6 @@ function smShowPage(page){
   if(page==='profile') loadSmProfile();
 }
 
-/* ════ EMPLOYEE PROFILE ════ */
 async function loadSmProfile(){
   try{
     const u=APP.userData;
@@ -4047,26 +4144,22 @@ async function loadSmProfile(){
     const isBo=u.emp_type==='backoffice';
     document.getElementById('smProfTypeBadge').innerHTML=`<span style="font-size:11px;padding:3px 10px;border-radius:10px;font-weight:700;background:${isBo?'rgba(31,209,122,0.1)':'rgba(75,159,255,0.1)'};color:${isBo?'var(--ok)':'var(--info)'};">${isBo?'🏢 Back Office':'📊 Sales'}</span>`;
 
-    // Load company settings for holiday/shift info
-    const coSnap=await db.ref(`companies/${APP.companyId}`).get();
-    const co=coSnap.exists()?coSnap.val():{};
-
-    // Shift — employee override or company default
-    const shiftIn=u.shift_in||co.shift_in||'09:00';
-    const shiftOut=u.shift_out||co.shift_out||'18:00';
-    const grace=(u.greeting_period!=null?u.greeting_period:null)??(co.greeting_period!=null?co.greeting_period:15);
+    // Use cached company data for shift and holidays
+    const shiftIn=u.shift_in||APP.companyShiftIn||'09:00';
+    const shiftOut=u.shift_out||APP.companyShiftOut||'18:00';
+    const grace=(u.greeting_period!=null?u.greeting_period:null)??(APP.companyGreetingPeriod??15);
     const fmt12=t=>{ const[h,m]=t.split(':').map(Number); const ap=h>=12?'PM':'AM'; return `${h%12||12}:${String(m).padStart(2,'0')} ${ap}`; };
     document.getElementById('smProfShift').textContent=`${fmt12(shiftIn)} – ${fmt12(shiftOut)}`;
     document.getElementById('smProfGrace').textContent=`${grace} minutes`;
 
-    // Weekly holidays
+    // Weekly holidays — use cached data
     const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const hols=co.holidays||[0];
+    const hols=APP.companyHolidays||[0];
     const holContainer=document.getElementById('smProfHolidays');
     holContainer.innerHTML=hols.map(d=>`<span style="background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:16px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--gold);">${dayNames[d]}</span>`).join('');
 
-    // Custom holidays
-    const customHols=co.custom_holidays||[];
+    // Custom holidays — use cached data
+    const customHols=APP.companyCustomHolidays||[];
     const customSec=document.getElementById('smProfCustomHolSection');
     const customList=document.getElementById('smProfCustomHol');
     if(customHols.length>0){
@@ -4082,7 +4175,6 @@ async function loadSmProfile(){
   }catch(e){ toast('Error loading profile','err'); }
 }
 
-/* ════ EMPLOYEE SELF REPORT ════ */
 async function loadSmSelfReport(){
   const from=document.getElementById('smRptFrom').value;
   const to=document.getElementById('smRptTo').value;
@@ -4095,25 +4187,28 @@ async function loadSmSelfReport(){
     const end=new Date(to+'T00:00:00');
     while(cur<=end){ const y=cur.getFullYear(),m=String(cur.getMonth()+1).padStart(2,'0'),d=String(cur.getDate()).padStart(2,'0'); dates.push(`${y}-${m}-${d}`); cur.setDate(cur.getDate()+1); }
 
-    const coSnap=await db.ref(`companies/${APP.companyId}`).get();
-    const co=coSnap.exists()?coSnap.val():{};
-    const weeklyHols=co.holidays||[0];
-    const customHols=co.custom_holidays||[];
+    // Use cached company data — avoid extra Firebase round-trip
+    const weeklyHols=APP.companyHolidays||[0];
+    const customHols=APP.companyCustomHolidays||[];
     const shift={
-      shiftIn: APP.userData.shift_in||co.shift_in||'09:00',
-      shiftOut: APP.userData.shift_out||co.shift_out||'18:00',
-      greeting: (APP.userData.greeting_period!=null?APP.userData.greeting_period:null)??(co.greeting_period!=null?co.greeting_period:15)
+      shiftIn: APP.userData.shift_in||APP.companyShiftIn||'09:00',
+      shiftOut: APP.userData.shift_out||APP.companyShiftOut||'18:00',
+      greeting: (APP.userData.greeting_period!=null?APP.userData.greeting_period:null)??(APP.companyGreetingPeriod??15)
     };
 
     const rows=[];
     let presentCount=0,lateCount=0,visitCount=0;
 
-    for(const date of dates){
+    // Fetch all dates in parallel (massive speedup for 30-day range)
+    const fetches=dates.map(date=>Promise.all([
+      db.ref(`attendance/${APP.companyId}/${date}/${APP.user.uid}`).get(),
+      APP.isBackOffice?Promise.resolve(null):db.ref(`visits/${APP.companyId}/${date}`).orderByChild('salesman_uid').equalTo(APP.user.uid).get()
+    ]));
+    const results=await Promise.all(fetches);
+
+    dates.forEach((date,di)=>{
+      const [attSnap,vSnap]=results[di];
       const hol=isAnyHoliday(date,weeklyHols,customHols);
-      const [attSnap,vSnap]=await Promise.all([
-        db.ref(`attendance/${APP.companyId}/${date}/${APP.user.uid}`).get(),
-        APP.isBackOffice?Promise.resolve(null):db.ref(`visits/${APP.companyId}/${date}`).orderByChild('salesman_uid').equalTo(APP.user.uid).get()
-      ]);
       const att=attSnap.exists()?attSnap.val():null;
       const vCount=vSnap&&vSnap.exists()?Object.keys(vSnap.val()).length:0;
       visitCount+=vCount;
@@ -4133,15 +4228,17 @@ async function loadSmSelfReport(){
         else { status=att.end_time?'Present':'Present'; }
         if(!att.end_time) note='⚠️ No checkout';
       }
-
       rows.push({date,status,inT,outT,dur,lateStr,vCount,note,hol:!!hol});
-    }
+    });
 
     // Update summary
     document.getElementById('smRptSummary').style.display='flex';
     document.getElementById('smRptPresent').textContent=presentCount;
     document.getElementById('smRptVisits').textContent=visitCount;
     document.getElementById('smRptLate').textContent=lateCount;
+    // Hide Visits card for Back Office employees
+    const visitCardEl=document.getElementById('smRptVisitCard');
+    if(visitCardEl) visitCardEl.style.display=APP.isBackOffice?'none':'';
 
     // Render table - use fmt12hr which correctly handles AM/PM stored times
     content.innerHTML=`<div style="overflow-x:auto;"><table class="tbl">
@@ -4175,7 +4272,6 @@ async function loadSmSelfReport(){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
 }
 
-/* ════ ACCURATE GPS ════ */
 function getAccurateLocation(btnEl, btnOrigText){
   return new Promise((resolve, reject)=>{
     let best=null;
@@ -4212,7 +4308,6 @@ function getAccurateLocation(btnEl, btnOrigText){
   });
 }
 
-/* ════ DAY TRACKING ════ */
 let dayDurationInterval=null;
 
 async function loadDayStatus(){
@@ -4411,28 +4506,25 @@ async function loadSalesmanStats(){
     return;
   }
 
-  // Load today's visits
-  const tSnap=await db.ref(`visits/${APP.companyId}/${today}`).orderByChild('salesman_uid').equalTo(APP.user.uid).get();
+  // Load all three in parallel
+  const monthPrefix=`${yr}-${mo}`;
+  const [tSnap, attAllSnap, allVisitsSnap]=await Promise.all([
+    db.ref(`visits/${APP.companyId}/${today}`).orderByChild('salesman_uid').equalTo(APP.user.uid).get(),
+    db.ref(`attendance/${APP.companyId}`).get(),
+    db.ref(`visits/${APP.companyId}`).get()
+  ]);
   const todayCount=tSnap.exists()?Object.keys(tSnap.val()).length:0;
   document.getElementById('smTodayCount').textContent=todayCount;
-
-  // Load month visits + present days from attendance (not visit days)
-  const monthPrefix=`${yr}-${mo}`;
   let monthCount=0, presentDays=0;
-  // Count present days from attendance records (accurate)
-  const attAllSnap=await db.ref(`attendance/${APP.companyId}`).get();
   if(attAllSnap.exists()){
     Object.entries(attAllSnap.val()).forEach(([date,dayAtt])=>{
       if(date.startsWith(monthPrefix) && dayAtt[APP.user.uid]) presentDays++;
     });
   }
-  // Count month visits
-  const allVisitsSnap=await db.ref(`visits/${APP.companyId}`).get();
   if(allVisitsSnap.exists()){
     Object.entries(allVisitsSnap.val()).forEach(([date,dayVisits])=>{
       if(!date.startsWith(monthPrefix)) return;
-      const myVisits=Object.values(dayVisits).filter(v=>v.salesman_uid===APP.user.uid);
-      monthCount+=myVisits.length;
+      monthCount+=Object.values(dayVisits).filter(v=>v.salesman_uid===APP.user.uid).length;
     });
   }
   document.getElementById('smMonthCount').textContent=monthCount;
@@ -4494,7 +4586,6 @@ async function submitVisit(){
 }
 
 
-/* ════ SUPER ADMIN TABS ════ */
 function saTab(tab){
   ['companies','report'].forEach(t=>{
     const panel=document.getElementById(`sa-panel-${t}`);
@@ -4525,10 +4616,13 @@ async function initSAReport(){
         sel.innerHTML+=`<option value="${id}">${co.name}</option>`;
       });
     }
-    const dateEl=document.getElementById('saReportFrom');
-    if(dateEl&&!dateEl.value) dateEl.value=todayStr();
-    const dateTo=document.getElementById('saReportTo');
-    if(dateTo&&!dateTo.value) dateTo.value=todayStr();
+    const today2=todayStr();
+    ['saReportFrom','saReportTo','saRptHistStart','saRptHistEnd','saRptLateStart','saRptLateEnd'].forEach(id=>{
+      const el=document.getElementById(id); if(el&&!el.value) el.value=today2;
+    });
+    const now2=new Date();
+    const smEl=document.getElementById('saRptSumMonth'); if(smEl&&!smEl.value) smEl.value=String(now2.getMonth()+1);
+    const syEl=document.getElementById('saRptSumYear'); if(syEl&&!syEl.value) syEl.value=String(now2.getFullYear());
     doneLoading();
   }catch(e){ doneLoading(); toast('Error loading companies: '+e.message,'err'); }
 }
@@ -4656,33 +4750,467 @@ async function loadSAReport(){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-async function exportSAReportExcel(){
-  if(SA_reportData.length===0){ toast('Please load data first','err'); return; }
-  loading('Generating Excel...');
+// ── Helper: get companies to export (all or selected) ──
+async function getSACompanies(){
+  const coFilter=document.getElementById('saReportCompany').value;
+  if(coFilter && SA_companies_cache[coFilter]) return {[coFilter]:SA_companies_cache[coFilter]};
+  if(Object.keys(SA_companies_cache).length) return {...SA_companies_cache};
+  const snap=await db.ref('companies').get();
+  const result={};
+  if(snap.exists()) Object.entries(snap.val()).forEach(([id,co])=>{ if(co.status!=='inactive') result[id]=co; });
+  return result;
+}
+
+// ── Helper: get salesmen for a company ──
+async function getSASalesmen(coId, typeFilter){
+  const snap=await db.ref('users').orderByChild('company_id').equalTo(coId).get();
+  const salesmen={};
+  if(snap.exists()) Object.entries(snap.val()).forEach(([uid,u])=>{
+    if(u.role!=='salesman'||u.status==='deleted_by_admin') return;
+    if(typeFilter==='sales'&&u.emp_type==='backoffice') return;
+    if(typeFilter==='backoffice'&&u.emp_type!=='backoffice') return;
+    salesmen[uid]=u;
+  });
+  return salesmen;
+}
+
+// ── SA getEmpShift variant using company snap data ──
+function getSAEmpShift(u, coData){
+  return {
+    shiftIn:  u.shift_in  || coData.shift_in  || '09:00',
+    shiftOut: u.shift_out || coData.shift_out || '18:00',
+    greeting: (u.greeting_period!=null?u.greeting_period:null)??(coData.greeting_period??15)
+  };
+}
+
+// ══════════════════════════════════════════════
+// SA REPORT A — History (same as company A + Co ID + Co Name)
+// ══════════════════════════════════════════════
+async function exportSAHistExcel(){
+  const startDate=document.getElementById('saRptHistStart').value;
+  const endDate=document.getElementById('saRptHistEnd').value;
+  const typeFilter=document.getElementById('saRptHistType').value;
+  if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
+  loading('Building SA History report...');
   await ensureReportLibs();
-  const fromDate=document.getElementById('saReportFrom').value;
-  const toDate=document.getElementById('saReportTo').value;
-  const headers=['#','Company','Emp ID','Type','Date','Status','Name','Location','Time','Outlet','Remarks'];
-  const data=SA_reportData.map((r,i)=>[i+1,r.co,r.emp_id||'—',r.type,r.date,r.status,r.name,r.location,r.time,r.outlet||'—',r.remarks]);
   try{
+    const companies=await getSACompanies();
     const wb=new ExcelJS.Workbook();
-    await xlsBuildSheet(wb,'All Companies','SunStar Solutions — All Companies Report',`${fromDate} to ${toDate}  |  Total Records: ${data.length}`,headers,data,[4,22,12,12,12,12,20,26,10,20,45]);
-    const ws=wb.getWorksheet('All Companies');
-    ws.getColumn(11).alignment={wrapText:true,vertical:'top'};
-    await xlsDownload(wb,`SunStar_AllCompanies_${fromDate}_to_${toDate}`);
-    doneLoading(); toast('Excel downloading!');
-  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+    const ws=wb.addWorksheet('History');
+    const headers=['Sr.','Co ID','Company','Date','Emp ID','Name','Type','Shift','Status','Location','Time','Outlet','Remarks'];
+    const nc=headers.length;
+    const colWidths=[4,10,22,12,11,20,13,14,11,26,10,18,40];
+
+    // Title block
+    const titleDefs=[
+      {v:'SunStar Solutions',sz:18,bold:true,fg:'FFEFA800',bg:'FF06091A',h:30},
+      {v:'All Companies — History Report',sz:12,bold:true,fg:'FFF0F4FF',bg:'FF0C1229',h:22},
+      {v:`${startDate} to ${endDate}`,sz:10,bold:false,fg:'FF7A8DB8',bg:'FF0C1229',h:18},
+      {v:`Generated: ${new Date().toLocaleString('en-IN')}`,sz:9,bold:false,fg:'FF3E4E78',bg:'FF0C1229',h:14},
+    ];
+    titleDefs.forEach((td,ri)=>{
+      ws.getRow(ri+1).height=td.h;
+      const cell=ws.getCell(ri+1,1);
+      cell.value=td.v; xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+      ws.mergeCells(ri+1,1,ri+1,nc);
+    });
+    ws.getRow(5).height=22;
+    headers.forEach((h,ci)=>{
+      const cell=ws.getCell(5,ci+1);
+      cell.value=h;
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
+    });
+
+    let rowIdx=6, srNum=0;
+    for(const [coId,co] of Object.entries(companies)){
+      const salesmen=await getSASalesmen(coId, typeFilter);
+      const empUidSet=new Set(Object.keys(salesmen));
+
+      const dates=[];
+      let cur=new Date(startDate+'T00:00:00'), endD=new Date(endDate+'T00:00:00');
+      while(cur<=endD){ const y=cur.getFullYear(),m=String(cur.getMonth()+1).padStart(2,'0'),d=String(cur.getDate()).padStart(2,'0'); dates.push(`${y}-${m}-${d}`); cur.setDate(cur.getDate()+1); }
+
+      const coRows=[];
+      for(const date of dates){
+        const [attSnap,vSnap]=await Promise.all([
+          db.ref(`attendance/${coId}/${date}`).get(),
+          db.ref(`visits/${coId}/${date}`).get()
+        ]);
+        if(attSnap.exists()) Object.entries(attSnap.val()).forEach(([uid,att])=>{
+          if(!empUidSet.has(uid)) return;
+          const u=salesmen[uid]; const sh=getSAEmpShift(u,co);
+          const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}`:'—');
+          const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}`:'—');
+          const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+          const shLabel=`${sh.shiftIn}–${sh.shiftOut}`;
+          if(att.start_time) coRows.push({co:co.name,co_id:co.co_id||'—',uid,date,status:'In',name:u.name,emp_id:u.emp_id||'—',type,shift:shLabel,location:inLoc,time:att.start_time,outlet:'—',remarks:'Day Started',sort_ts:att.start_timestamp||0});
+          if(att.end_time) coRows.push({co:co.name,co_id:co.co_id||'—',uid,date,status:'Out',name:u.name,emp_id:u.emp_id||'—',type,shift:shLabel,location:outLoc,time:att.end_time,outlet:'—',remarks:'Day Ended',sort_ts:att.end_timestamp||0});
+          else if(att.start_time) coRows.push({co:co.name,co_id:co.co_id||'—',uid,date,status:'Pending',name:u.name,emp_id:u.emp_id||'—',type,shift:shLabel,location:'—',time:'—',outlet:'—',remarks:'⚠️ Not Checked Out',sort_ts:(att.start_timestamp||0)+1});
+        });
+        if(vSnap.exists()) Object.values(vSnap.val()).forEach(v=>{
+          if(!empUidSet.has(v.salesman_uid)) return;
+          const u=salesmen[v.salesman_uid]; const sh=getSAEmpShift(u,co);
+          const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+          coRows.push({co:co.name,co_id:co.co_id||'—',uid:v.salesman_uid,date,status:'Visit',name:u.name||v.salesman_name,emp_id:u.emp_id||'—',type,shift:`${sh.shiftIn}–${sh.shiftOut}`,location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',sort_ts:v.timestamp||0});
+        });
+      }
+      coRows.sort((a,b)=>a.sort_ts-b.sort_ts);
+
+      coRows.forEach((r,i)=>{
+        srNum++;
+        const altBg=i%2===0?'FFFFFFFF':'FFEEF2FF';
+        ws.getRow(rowIdx).height=16;
+        const timeSer=r.time&&r.time!=='—'?parseTimeToMin(r.time)/1440:null;
+        const vals=[srNum,r.co_id,r.co,r.date,r.emp_id,r.name,r.type,r.shift,r.status,r.location,timeSer,r.outlet,r.remarks];
+        vals.forEach((v,ci)=>{
+          const cell=ws.getCell(rowIdx,ci+1);
+          cell.value=v;
+          const leftAlign=ci===2||ci===5||ci===9||ci===12;
+          xlsStyle(cell,{bg:altBg,fg:'FF1A2850',sz:9,align:leftAlign?'left':'center'});
+          if(ci===10&&v!=null){ cell.numFmt='HH:MM'; cell.alignment={horizontal:'center',vertical:'middle'}; }
+          if(ci===8){
+            const sc=r.status==='In'?'FF065F46':r.status==='Out'?'FF991B1B':r.status==='Pending'?'FFCC6600':r.status==='Visit'?'FF1A5FA8':'FF3E4E78';
+            cell.font={name:'Calibri',size:9,bold:true,color:{argb:sc}};
+          }
+        });
+        rowIdx++;
+      });
+    }
+    ws.getRow(5).getCell(13).value=`Total: ${srNum} rows`;
+    colWidths.forEach((w,i)=>ws.getColumn(i+1).width=w);
+    ws.getColumn(13).alignment={wrapText:true,vertical:'top'};
+    ws.views=[{state:'frozen',xSplit:0,ySplit:5,topLeftCell:'A6',activeCell:'A6'}];
+    ws.autoFilter={from:{row:5,column:1},to:{row:5,column:nc}};
+    await xlsDownload(wb,`SunStar_AllCo_History_${startDate}_${endDate}`);
+    doneLoading(); toast('SA History Excel downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
 }
 
 
-
-/* ════ HELPER: get company name ════ */
 function getCompanyName(){ 
   const el=document.getElementById('adCompanyName'); 
   return el?el.textContent.replace(/\s+/g,' ').trim():'Company';
 }
 
-/* ════ REPORTS A — HISTORY ════ */
+// ══════════════════════════════════════════════
+// SA REPORT B — Attendance Summary (multi-company)
+// Sheet 1: matrix + totals | Sheet 2: daily detail
+// ══════════════════════════════════════════════
+async function exportSASumExcel(){
+  const month=parseInt(document.getElementById('saRptSumMonth').value);
+  const year=parseInt(document.getElementById('saRptSumYear').value);
+  const typeFilter=document.getElementById('saRptSumType').value;
+  if(!month||!year){ toast('Please select month and year','err'); return; }
+  loading('Building SA Attendance Summary...');
+  await ensureReportLibs();
+  try{
+    const companies=await getSACompanies();
+    const MONTHS_N=['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const monthName=MONTHS_N[month-1];
+    const wb=new ExcelJS.Workbook();
+    const today=new Date();
+
+    // Build date list for month
+    const daysInMonth=new Date(year,month,0).getDate();
+    const allDates=[];
+    for(let d=1;d<=daysInMonth;d++){
+      const ds=`${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      if(new Date(ds+'T00:00:00')<=today) allDates.push(ds);
+    }
+    const dateHdrs=allDates.map(d=>{ const p=d.split('-'); return p[2]+'/'+p[1]; });
+
+    // ── Sheet 1: Summary matrix ──
+    const ws1=wb.addWorksheet('Summary');
+    const fixedHdr=['Co ID','Company','Emp ID','Name','Type','Shift'];
+    const totHdrs=['Total Present','Total Late','Total Holiday','Total Absent','Grand Total'];
+    const allHdrs=[...fixedHdr,...dateHdrs,...totHdrs];
+    const nc1=allHdrs.length;
+
+    const titleDefs=[
+      {v:'SunStar Solutions',sz:18,bold:true,fg:'FFEFA800',bg:'FF06091A',h:30},
+      {v:'All Companies — Attendance Summary',sz:12,bold:true,fg:'FFF0F4FF',bg:'FF0C1229',h:22},
+      {v:`${monthName} ${year}`,sz:10,bold:false,fg:'FF7A8DB8',bg:'FF0C1229',h:18},
+      {v:`Generated: ${new Date().toLocaleString('en-IN')}`,sz:9,bold:false,fg:'FF3E4E78',bg:'FF0C1229',h:14},
+    ];
+    titleDefs.forEach((td,ri)=>{
+      ws1.getRow(ri+1).height=td.h;
+      const cell=ws1.getCell(ri+1,1);
+      cell.value=td.v; xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+      ws1.mergeCells(ri+1,1,ri+1,nc1);
+    });
+    ws1.getRow(5).height=22;
+    allHdrs.forEach((h,ci)=>{
+      const cell=ws1.getCell(5,ci+1);
+      cell.value=h;
+      const isTot=ci>=fixedHdr.length+dateHdrs.length;
+      cell.font={name:'Calibri',size:9,bold:true,color:{argb:'FF000000'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:isTot?'FFCC8800':'FFEFA800'}};
+      cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+      cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
+    });
+
+    function statusFg(v){ return v==='Present'?{argb:'FF065F46'}:v==='Late'?{argb:'FFB45309'}:v==='Holiday'?{argb:'FF7A4F00'}:v==='Absent'?{argb:'FF991B1B'}:{argb:'FF3E4E78'}; }
+    function statusBg(v,alt){ return v==='Present'?'FFD1FAE5':v==='Late'?'FFFEF3C7':v==='Holiday'?'FFFFF3CD':v==='Absent'?'FFFEE2E2':alt; }
+
+    // ── Sheet 2: Daily detail ──
+    const ws2=wb.addWorksheet('Daily Detail');
+    const hdr2=['Date','Co ID','Company','Emp ID','Name','Type','Shift','In','Out','Duration','Visit','Remarks'];
+    const nc2=hdr2.length;
+    titleDefs.forEach((td,ri)=>{
+      ws2.getRow(ri+1).height=td.h;
+      const cell=ws2.getCell(ri+1,1);
+      cell.value=ri===2?`${monthName} ${year} — Daily Detail`:td.v;
+      xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+      ws2.mergeCells(ri+1,1,ri+1,nc2);
+    });
+    ws2.getRow(5).height=22;
+    hdr2.forEach((h,ci)=>{
+      const cell=ws2.getCell(5,ci+1);
+      cell.value=h;
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
+    });
+
+    let s1Row=6, s2Row=6;
+
+    for(const [coId,co] of Object.entries(companies)){
+      const salesmen=await getSASalesmen(coId, typeFilter);
+      const empList=Object.entries(salesmen);
+      if(!empList.length) continue;
+
+      // Fetch all attendance for the month in parallel
+      const attSnaps=await Promise.all(allDates.map(ds=>db.ref(`attendance/${coId}/${ds}`).get()));
+      const attByDate={};
+      allDates.forEach((ds,i)=>{ if(attSnaps[i].exists()) attByDate[ds]=attSnaps[i].val(); });
+
+      const visSnaps=await Promise.all(allDates.map(ds=>db.ref(`visits/${coId}/${ds}`).get()));
+      const visByDate={};
+      allDates.forEach((ds,i)=>{
+        if(!visSnaps[i].exists()) return;
+        Object.values(visSnaps[i].val()).forEach(v=>{
+          if(!visByDate[ds]) visByDate[ds]={};
+          visByDate[ds][v.salesman_uid]=(visByDate[ds][v.salesman_uid]||0)+1;
+        });
+      });
+
+      const coHolidays=co.holidays||[0];
+      const coCustomHols=co.custom_holidays||[];
+
+      // Build matrix per employee
+      empList.forEach(([uid,u],ei)=>{
+        const sh=getSAEmpShift(u,co);
+        const shLabel=`${sh.shiftIn}–${sh.shiftOut}`;
+        const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+        const altBg=ei%2===0?'FFFFFFFF':'FFEEF2FF';
+        ws1.getRow(s1Row).height=16;
+        let totP=0,totL=0,totH=0,totA=0;
+
+        // Fixed cols
+        [co.co_id||'—',co.name,u.emp_id||'—',u.name,type,shLabel].forEach((v,ci)=>{
+          const cell=ws1.getCell(s1Row,ci+1);
+          cell.value=v; xlsStyle(cell,{bg:altBg,fg:'FF1A2850',sz:9,align:ci===1||ci===3?'left':'center'});
+        });
+
+        // Date cols
+        allDates.forEach((ds,di)=>{
+          const hol=isAnyHoliday(ds,coHolidays,coCustomHols);
+          const att=attByDate[ds]?attByDate[ds][uid]:null;
+          let v='Absent';
+          if(hol) v='Holiday';
+          else if(att&&att.start_time){
+            const inMin=parseTimeToMin(att.start_time);
+            const lateMin=inMin-(parseTimeToMin(sh.shiftIn)+sh.greeting);
+            v=lateMin>0?'Late':'Present';
+          }
+          if(v==='Present'||v==='Late') totP++;
+          if(v==='Late') totL++;
+          if(v==='Holiday') totH++;
+          if(v==='Absent') totA++;
+          const cell=ws1.getCell(s1Row,fixedHdr.length+di+1);
+          cell.value=v;
+          cell.font={name:'Calibri',size:9,bold:true,color:statusFg(v)};
+          cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:statusBg(v,altBg)}};
+          cell.alignment={horizontal:'center',vertical:'middle'};
+          cell.border={top:{style:'thin',color:{argb:'FFCBD5E1'}},bottom:{style:'thin',color:{argb:'FFCBD5E1'}},left:{style:'thin',color:{argb:'FFCBD5E1'}},right:{style:'thin',color:{argb:'FFCBD5E1'}}};
+        });
+
+        // Totals
+        const grand=totP+totH+totA;
+        [totP,totL,totH,totA,grand].forEach((v,ti)=>{
+          const cell=ws1.getCell(s1Row,fixedHdr.length+dateHdrs.length+ti+1);
+          cell.value=v;
+          cell.font={name:'Calibri',size:9,bold:true,color:{argb:ti===4?'FF000000':'FF1A2850'}};
+          cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:ti===4?'FFEFA800':altBg}};
+          cell.alignment={horizontal:'center',vertical:'middle'};
+          cell.border={top:{style:'thin',color:{argb:'FFCBD5E1'}},bottom:{style:'thin',color:{argb:'FFCBD5E1'}},left:{style:'medium',color:{argb:'FFC88A00'}},right:{style:'medium',color:{argb:'FFC88A00'}}};
+        });
+        s1Row++;
+      });
+
+      // Sheet 2 — daily rows for this company
+      allDates.forEach(ds=>{
+        const dayAtt=attByDate[ds]||{};
+        empList.forEach(([uid,u],ei)=>{
+          const sh=getSAEmpShift(u,co);
+          const shLabel=`${sh.shiftIn}–${sh.shiftOut}`;
+          const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+          const altBg=ei%2===0?'FFFFFFFF':'FFEEF2FF';
+          const att=dayAtt[uid]||null;
+          const visits=(visByDate[ds]&&visByDate[ds][uid])||0;
+          const hol=isAnyHoliday(ds,coHolidays,coCustomHols);
+          let remark='Absent';
+          if(hol) remark='Holiday';
+          else if(att&&att.start_time){
+            const lateMin=parseTimeToMin(att.start_time)-(parseTimeToMin(sh.shiftIn)+sh.greeting);
+            remark=lateMin>0?'Late':'Present';
+          }
+          const inMin=att&&att.start_time?parseTimeToMin(att.start_time):null;
+          const outMin=att&&att.end_time?parseTimeToMin(att.end_time):null;
+          const inSer=inMin!=null?inMin/1440:null;
+          const outSer=outMin!=null?outMin/1440:null;
+          const durSer=inMin!=null&&outMin!=null&&outMin>inMin?(outMin-inMin)/1440:null;
+          ws2.getRow(s2Row).height=16;
+          const vals2=[ds,co.co_id||'—',co.name,u.emp_id||'—',u.name,type,shLabel,inSer,outSer,durSer,visits||'—',remark];
+          vals2.forEach((v,ci)=>{
+            const cell=ws2.getCell(s2Row,ci+1);
+            cell.value=v;
+            const isT=ci>=7&&ci<=9; const leftA=ci===2||ci===4||ci===11;
+            xlsStyle(cell,{bg:hol?'FFFFF3CD':altBg,fg:'FF1A2850',sz:9,align:leftA?'left':'center'});
+            if(isT&&v!=null){ cell.numFmt=ci===9?'[h]:MM':'HH:MM'; cell.alignment={horizontal:'center',vertical:'middle'}; }
+            if(ci===11){ const fg=remark==='Present'?'FF065F46':remark==='Late'?'FFB45309':remark==='Holiday'?'FF7A4F00':'FF991B1B'; cell.font={name:'Calibri',size:9,bold:true,color:{argb:fg}}; }
+          });
+          s2Row++;
+        });
+      });
+    }// end for companies
+
+    // Col widths
+    [10,22,11,22,13,14,...allDates.map(()=>7),14,10,13,11,11].forEach((w,i)=>ws1.getColumn(i+1).width=w);
+    [12,10,22,11,20,13,14,9,9,10,7,11].forEach((w,i)=>ws2.getColumn(i+1).width=w);
+    ws1.views=[{state:'frozen',xSplit:6,ySplit:5,topLeftCell:'G6',activeCell:'G6'}];
+    ws2.views=[{state:'frozen',xSplit:0,ySplit:5,topLeftCell:'A6',activeCell:'A6'}];
+    ws1.autoFilter={from:{row:5,column:1},to:{row:5,column:fixedHdr.length+dateHdrs.length}};
+    ws2.autoFilter={from:{row:5,column:1},to:{row:5,column:nc2}};
+
+    await xlsDownload(wb,`SunStar_AllCo_AttSummary_${monthName}_${year}`);
+    doneLoading(); toast('SA Attendance Summary Excel downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
+}
+
+// ══════════════════════════════════════════════
+// SA REPORT C — Late & Overtime (multi-company)
+// ══════════════════════════════════════════════
+async function exportSALateExcel(){
+  const startDate=document.getElementById('saRptLateStart').value;
+  const endDate=document.getElementById('saRptLateEnd').value;
+  const typeFilter=document.getElementById('saRptLateType').value;
+  if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
+  loading('Building SA Late & Overtime report...');
+  await ensureReportLibs();
+  try{
+    const companies=await getSACompanies();
+    const wb=new ExcelJS.Workbook();
+    const ws=wb.addWorksheet('Late & Overtime');
+    const headers=['Sr.','Co ID','Company','Date','Emp ID','Name','Shift In','Shift Out','Grace(m)','Actual In','Actual Out','Late','Early Out','Overtime'];
+    const nc=headers.length;
+    const colWidths=[4,10,22,12,11,20,10,10,9,10,10,10,10,10];
+
+    const titleDefs=[
+      {v:'SunStar Solutions',sz:18,bold:true,fg:'FFEFA800',bg:'FF06091A',h:30},
+      {v:'All Companies — Late & Overtime Report',sz:12,bold:true,fg:'FFF0F4FF',bg:'FF0C1229',h:22},
+      {v:`${startDate} to ${endDate}`,sz:10,bold:false,fg:'FF7A8DB8',bg:'FF0C1229',h:18},
+      {v:`Generated: ${new Date().toLocaleString('en-IN')}`,sz:9,bold:false,fg:'FF3E4E78',bg:'FF0C1229',h:14},
+    ];
+    titleDefs.forEach((td,ri)=>{
+      ws.getRow(ri+1).height=td.h;
+      const cell=ws.getCell(ri+1,1);
+      cell.value=td.v; xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+      ws.mergeCells(ri+1,1,ri+1,nc);
+    });
+    ws.getRow(5).height=20;
+    headers.forEach((h,ci)=>{
+      const cell=ws.getCell(5,ci+1);
+      cell.value=h;
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
+    });
+
+    let rowIdx=6, srNum=0;
+    for(const [coId,co] of Object.entries(companies)){
+      const salesmen=await getSASalesmen(coId,typeFilter);
+      const empList=Object.entries(salesmen);
+      if(!empList.length) continue;
+
+      const coHolidays=co.holidays||[0]; const coCustomHols=co.custom_holidays||[];
+      const dates=[];
+      let cur=new Date(startDate+'T00:00:00'), endD=new Date(endDate+'T00:00:00');
+      while(cur<=endD){ const y=cur.getFullYear(),m=String(cur.getMonth()+1).padStart(2,'0'),d=String(cur.getDate()).padStart(2,'0'); dates.push(`${y}-${m}-${d}`); cur.setDate(cur.getDate()+1); }
+
+      for(const date of dates){
+        if(isAnyHoliday(date,coHolidays,coCustomHols)) continue;
+        const attSnap=await db.ref(`attendance/${coId}/${date}`).get();
+        if(!attSnap.exists()) continue;
+        const dayAtt=attSnap.val();
+        empList.forEach(([uid,u],ei)=>{
+          const att=dayAtt[uid]; if(!att||!att.start_time) return;
+          const sh=getSAEmpShift(u,co);
+          const inMin=parseTimeToMin(att.start_time);
+          const outMin=att.end_time?parseTimeToMin(att.end_time):null;
+          const shInMin=parseTimeToMin(sh.shiftIn), shOutMin=parseTimeToMin(sh.shiftOut);
+          const shDur=shOutMin-shInMin;
+          const lateMin=Math.max(0,inMin-(shInMin+sh.greeting));
+          const earlyMin=outMin!=null?Math.max(0,shOutMin-outMin):null;
+          const workedMin=outMin!=null?outMin-inMin:null;
+          const otMin=workedMin!=null?Math.max(0,workedMin-shDur):null;
+          const inSer=inMin/1440;
+          const outSer=outMin!=null?outMin/1440:null;
+          const lateSer=lateMin>0?lateMin/1440:null;
+          const earlySer=earlyMin!=null&&earlyMin>0?earlyMin/1440:null;
+          const otSer=otMin!=null&&otMin>0?otMin/1440:null;
+          const altBg=ei%2===0?'FFFFFFFF':'FFEEF2FF';
+          srNum++;
+          ws.getRow(rowIdx).height=16;
+          const vals=[srNum,co.co_id||'—',co.name,date,u.emp_id||'—',u.name,sh.shiftIn,sh.shiftOut,sh.greeting,inSer,outSer,lateSer,earlySer,otSer];
+          vals.forEach((v,ci)=>{
+            const cell=ws.getCell(rowIdx,ci+1);
+            cell.value=v;
+            const isActT=ci===9||ci===10; const isDur=ci===11||ci===12||ci===13; const leftA=ci===2||ci===5;
+            xlsStyle(cell,{bg:altBg,fg:'FF1A2850',sz:9,align:leftA?'left':'center'});
+            if(isActT&&v!=null){ cell.numFmt='HH:MM'; cell.alignment={horizontal:'center',vertical:'middle'}; }
+            if(isDur&&v!=null){ cell.numFmt='[h]:MM'; cell.alignment={horizontal:'center',vertical:'middle'}; }
+            if(v===null){ cell.value='—'; cell.font={name:'Calibri',size:9,color:{argb:'FFCBD5E1'}}; }
+            if(lateMin>0&&ci===9){ cell.font={name:'Calibri',size:9,bold:true,color:{argb:'FFFF4466'}}; }
+            if(ci===11&&v!=null){ cell.font={name:'Calibri',size:9,bold:true,color:{argb:'FFFF4466'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFE0E6'}}; }
+            if(ci===12&&v!=null){ cell.font={name:'Calibri',size:9,bold:true,color:{argb:'FFCC6600'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF3DC'}}; }
+            if(ci===13&&v!=null){ cell.font={name:'Calibri',size:9,bold:true,color:{argb:'FF1FD17A'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE0FBF0'}}; }
+          });
+          rowIdx++;
+        });
+      }
+    }
+    colWidths.forEach((w,i)=>ws.getColumn(i+1).width=w);
+    ws.views=[{state:'frozen',xSplit:0,ySplit:5,topLeftCell:'A6',activeCell:'A6'}];
+    ws.autoFilter={from:{row:5,column:1},to:{row:5,column:nc}};
+    await xlsDownload(wb,`SunStar_AllCo_LateOT_${startDate}_${endDate}`);
+    doneLoading(); toast('SA Late & Overtime Excel downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
+}
+
+// Convert "09:50 AM" / "13:10" → Excel time serial (fraction of 1 day)
+// Excel stores times as decimals: 0.5 = 12:00 PM. numFmt 'HH:MM' shows 24hr.
+function timeToExcelSerial(t){
+  if(!t||t==='—') return null;
+  const min=parseTimeToMin(t); // handles both AM/PM and 24hr
+  return min/1440; // 1440 = minutes in a day
+}
+
 async function exportRptHistExcel(){
   const startDate=document.getElementById('rptHistStart').value;
   const endDate=document.getElementById('rptHistEnd').value;
@@ -4694,20 +5222,102 @@ async function exportRptHistExcel(){
     const rows=await buildHistoryRows(startDate, endDate, typeFilter);
     if(!rows.length){ doneLoading(); toast('No records found','err'); return; }
     const co=getCompanyName();
-    const headers=['#','Emp ID','Type','Date','Status','Name','Shift','Location','Time','Outlet','Remarks'];
-    const data=rows.map((r,i)=>{
-      const sh=getEmpShift(r.uid||'');
-      return [i+1,r.emp_id||'—',r.type,r.date,r.status,r.name,`${sh.shiftIn}–${sh.shiftOut}`,r.location,r.time,r.outlet||'—',r.remarks];
-    });
+
+    // New column order per spec
+    const headers=['Sr.','Date','Emp ID','Name','Type','Shift','Status','Location','Time','Outlet','Remarks'];
+    // Col widths:       sr  date  empid  name  type  shift  status  loc  time  outlet  remarks
+    const colWidths=    [ 4,  12,   11,   22,   13,    14,    11,   28,   10,    18,     42];
+
     const wb=new ExcelJS.Workbook();
-    await xlsBuildSheet(wb,'History',`${co} — History Report`,`${startDate} to ${endDate}  |  Records: ${rows.length}`,headers,data,[4,12,12,12,12,20,14,26,10,20,45]);
-    const ws=wb.getWorksheet('History');
+    const ws=wb.addWorksheet('History');
+    const nc=headers.length;
+
+    // ── Title block (rows 1-4) ──
+    const titleDefs=[
+      {v:'SunStar Solutions',            sz:18,bold:true, fg:'FFEFA800',bg:'FF06091A',h:30},
+      {v:`${co} — History Report`,       sz:12,bold:true, fg:'FFF0F4FF',bg:'FF0C1229',h:22},
+      {v:`${startDate} to ${endDate}  |  Records: ${rows.length}`, sz:10,bold:false,fg:'FF7A8DB8',bg:'FF0C1229',h:18},
+      {v:`Generated: ${new Date().toLocaleString('en-IN')}`,        sz:9, bold:false,fg:'FF3E4E78',bg:'FF0C1229',h:14},
+    ];
+    titleDefs.forEach((td,ri)=>{
+      ws.getRow(ri+1).height=td.h;
+      const cell=ws.getCell(ri+1,1);
+      cell.value=td.v;
+      xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+      if(nc>1) ws.mergeCells(ri+1,1,ri+1,nc);
+    });
+
+    // ── Header row (row 5) ──
+    ws.getRow(5).height=22;
+    headers.forEach((h,ci)=>{
+      const cell=ws.getCell(5,ci+1);
+      cell.value=h;
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.border={
+        top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},
+        left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}
+      };
+    });
+
+    // ── Data rows ──
+    const TIME_COL=9; // 1-based: col 9 = Time
+    rows.forEach((r,i)=>{
+      const sh=getEmpShift(r.uid||'');
+      const shiftLabel=`${sh.shiftIn}–${sh.shiftOut}`;
+      const rowIdx=6+i;
+      const altBg=i%2===0?'FFFFFFFF':'FFEEF2FF';
+      ws.getRow(rowIdx).height=18;
+
+      // Time as Excel serial so calculations work
+      const timeSer=timeToExcelSerial(r.time);
+
+      const vals=[
+        i+1,           // Sr.
+        r.date,        // Date
+        r.emp_id||'—', // Emp ID
+        r.name,        // Name
+        r.type,        // Type
+        shiftLabel,    // Shift
+        r.status,      // Status
+        r.location,    // Location
+        timeSer,       // Time — Excel serial
+        r.outlet||'—', // Outlet
+        r.remarks      // Remarks
+      ];
+
+      vals.forEach((v,ci)=>{
+        const cell=ws.getCell(rowIdx,ci+1);
+        cell.value=v;
+        const isTime=ci===TIME_COL-1;
+        const colAlign=ci===3||ci===7||ci===10?'left':'center'; // Name, Location, Remarks left
+        xlsStyle(cell,{bg:altBg,fg:'FF1A2850',sz:10,align:colAlign});
+
+        if(isTime && v!=null){
+          cell.numFmt='HH:MM'; // display as 24hr, enables +- arithmetic
+          cell.alignment={horizontal:'center',vertical:'middle'};
+        }
+        // Status colour coding
+        if(ci===6){
+          const sc=r.status==='In'?'FF065F46':r.status==='Out'?'FF991B1B':r.status==='Pending'?'FFCC6600':r.status==='Visit'?'FF1A5FA8':'FF3E4E78';
+          cell.font={name:'Calibri',size:10,bold:true,color:{argb:sc}};
+        }
+      });
+    });
+
+    // Column widths
+    colWidths.forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
+    // Remarks wrap
     ws.getColumn(11).alignment={wrapText:true,vertical:'top'};
+    // Freeze header
+    ws.views=[{state:'frozen',xSplit:0,ySplit:5,topLeftCell:'A6',activeCell:'A6'}];
+    ws.autoFilter={from:{row:5,column:1},to:{row:5,column:nc}};
+
     await xlsDownload(wb,`${co}_History_${startDate}_${endDate}`);
     doneLoading(); toast('History Excel downloading!');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
-
 
 
 async function buildHistoryRows(startDate, endDate, typeFilter){
@@ -4753,7 +5363,6 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
   return rows;
 }
 
-/* ════ REPORTS B — ATTENDANCE SUMMARY (month/year) ════ */
 async function exportRptSumExcel(){
   const month=parseInt(document.getElementById('rptSumMonth').value);
   const year=parseInt(document.getElementById('rptSumYear').value);
@@ -4762,21 +5371,231 @@ async function exportRptSumExcel(){
   loading('Building Attendance Summary...');
   await ensureReportLibs();
   try{
-    const {matrix,co,dateLabel,empList,allDates}=await buildAttSummaryMatrix(month,year,typeFilter);
+    const {matrix,co,dateLabel,empList,allDates,attByDate}=await buildAttSummaryMatrix(month,year,typeFilter);
     if(!empList.length){ doneLoading(); toast('No employees found','err'); return; }
     const MONTHS_N=['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const headers=['Emp ID','Type','Name',...allDates.map(d=>d.split('-')[2]+'/'+d.split('-')[1])];
-    const data=empList.map(([uid,u])=>{
-      const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-      return [u.emp_id||'—',type,u.name,...allDates.map(ds=>(matrix[uid]&&matrix[uid][ds])||'—')];
-    });
+    const monthName=MONTHS_N[month-1];
     const wb=new ExcelJS.Workbook();
-    await xlsBuildSheet(wb,'Attendance Summary',`${co} — Attendance Summary`,dateLabel,headers,data,[12,14,22,...allDates.map(()=>10)]);
-    await xlsDownload(wb,`${co}_AttSummary_${MONTHS_N[month-1]}_${year}`);
-    doneLoading(); toast('Attendance Summary Excel downloading!');
-  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
-}
 
+    // ══════════════════════════════════════════════
+    // SHEET 1 — Attendance Matrix
+    // Cols: Emp ID | Name | Type | Shift | Date1 | Date2 … | Total Present | Total Late | Total Holiday | Total Absent | Grand Total
+    // ══════════════════════════════════════════════
+    const ws1=wb.addWorksheet('Summary');
+    const fixedHdr=['Emp ID','Name','Type','Shift'];
+    const dateHdrs=allDates.map(d=>{ const p=d.split('-'); return p[2]+'/'+p[1]; });
+    const totHdrs=['Total Present','Total Late','Total Holiday','Total Absent','Grand Total'];
+    const allHdrs=[...fixedHdr,...dateHdrs,...totHdrs];
+    const nc1=allHdrs.length;
+
+    // Title block
+    const titleDefs=[
+      {v:'SunStar Solutions',sz:18,bold:true,fg:'FFEFA800',bg:'FF06091A',h:30},
+      {v:`${co} — Attendance Summary`,sz:12,bold:true,fg:'FFF0F4FF',bg:'FF0C1229',h:22},
+      {v:`${monthName} ${year}`,sz:10,bold:false,fg:'FF7A8DB8',bg:'FF0C1229',h:18},
+      {v:`Generated: ${new Date().toLocaleString('en-IN')}`,sz:9,bold:false,fg:'FF3E4E78',bg:'FF0C1229',h:14},
+    ];
+    titleDefs.forEach((td,ri)=>{
+      ws1.getRow(ri+1).height=td.h;
+      const cell=ws1.getCell(ri+1,1);
+      cell.value=td.v;
+      xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+      if(nc1>1) ws1.mergeCells(ri+1,1,ri+1,nc1);
+    });
+
+    // Header row (row 5)
+    ws1.getRow(5).height=22;
+    allHdrs.forEach((h,ci)=>{
+      const cell=ws1.getCell(5,ci+1);
+      cell.value=h;
+      // Total columns get dark gold bg
+      const isTot=ci>=fixedHdr.length+dateHdrs.length;
+      cell.font={name:'Calibri',size:9,bold:true,color:{argb:'FF000000'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:isTot?'FFCC8800':'FFEFA800'}};
+      cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
+      cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
+    });
+
+    // Status → colour map
+    function statusFg(v){
+      if(v==='Present') return {argb:'FF065F46'};
+      if(v==='Late')    return {argb:'FFB45309'};
+      if(v==='Holiday') return {argb:'FF7A4F00'};
+      if(v==='Absent')  return {argb:'FF991B1B'};
+      return {argb:'FF3E4E78'};
+    }
+    function statusBg(v,alt){
+      if(v==='Present') return 'FFD1FAE5';
+      if(v==='Late')    return 'FFFEF3C7';
+      if(v==='Holiday') return 'FFFFF3CD';
+      if(v==='Absent')  return 'FFFEE2E2';
+      return alt;
+    }
+
+    // Data rows
+    empList.forEach(([uid,u],ri)=>{
+      const rowIdx=6+ri;
+      const altBg=ri%2===0?'FFFFFFFF':'FFEEF2FF';
+      ws1.getRow(rowIdx).height=16;
+      const sh=getEmpShift(uid);
+      const shiftLabel=`${sh.shiftIn}–${sh.shiftOut}`;
+      const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+
+      let totPresent=0,totLate=0,totHoliday=0,totAbsent=0;
+
+      // Fixed columns
+      const fixed=[u.emp_id||'—',u.name,type,shiftLabel];
+      fixed.forEach((v,ci)=>{
+        const cell=ws1.getCell(rowIdx,ci+1);
+        cell.value=v; xlsStyle(cell,{bg:altBg,fg:'FF1A2850',sz:9,align:ci===1?'left':'center'});
+      });
+
+      // Date columns
+      allDates.forEach((ds,di)=>{
+        const v=(matrix[uid]&&matrix[uid][ds])||'Absent';
+        if(v==='Present'||v==='Late') totPresent++;
+        if(v==='Late') totLate++;
+        if(v==='Holiday') totHoliday++;
+        if(v==='Absent') totAbsent++;
+        const cell=ws1.getCell(rowIdx,fixedHdr.length+di+1);
+        cell.value=v;
+        cell.font={name:'Calibri',size:9,bold:true,color:statusFg(v)};
+        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:statusBg(v,altBg)}};
+        cell.alignment={horizontal:'center',vertical:'middle'};
+        cell.border={top:{style:'thin',color:{argb:'FFCBD5E1'}},bottom:{style:'thin',color:{argb:'FFCBD5E1'}},left:{style:'thin',color:{argb:'FFCBD5E1'}},right:{style:'thin',color:{argb:'FFCBD5E1'}}};
+      });
+
+      // Totals columns
+      const grandTotal=totPresent+totHoliday+totAbsent;
+      [totPresent,totLate,totHoliday,totAbsent,grandTotal].forEach((v,ti)=>{
+        const cell=ws1.getCell(rowIdx,fixedHdr.length+dateHdrs.length+ti+1);
+        cell.value=v;
+        cell.font={name:'Calibri',size:9,bold:true,color:{argb:ti===4?'FF000000':'FF1A2850'}};
+        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:ti===4?'FFEFA800':altBg}};
+        cell.alignment={horizontal:'center',vertical:'middle'};
+        cell.border={top:{style:'thin',color:{argb:'FFCBD5E1'}},bottom:{style:'thin',color:{argb:'FFCBD5E1'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
+      });
+    });
+
+    // Column widths
+    const w1=[12,22,13,14,...allDates.map(()=>7),14,10,13,11,11];
+    w1.forEach((w,i)=>ws1.getColumn(i+1).width=w);
+    ws1.views=[{state:'frozen',xSplit:4,ySplit:5,topLeftCell:'E6',activeCell:'E6'}];
+    ws1.autoFilter={from:{row:5,column:1},to:{row:5,column:fixedHdr.length+dateHdrs.length}};
+
+    // ══════════════════════════════════════════════
+    // SHEET 2 — Daily Detail
+    // Cols: Date | Emp ID | Name | Type | Shift | In | Out | Duration | Visit | Remarks
+    // ══════════════════════════════════════════════
+    const ws2=wb.addWorksheet('Daily Detail');
+    const hdr2=['Date','Emp ID','Name','Type','Shift','In','Out','Duration','Visit','Remarks'];
+    const nc2=hdr2.length;
+
+    // Title block
+    titleDefs.forEach((td,ri)=>{
+      ws2.getRow(ri+1).height=td.h;
+      const cell=ws2.getCell(ri+1,1);
+      cell.value=ri===2?`${monthName} ${year} — Daily Detail`:td.v;
+      xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+      if(nc2>1) ws2.mergeCells(ri+1,1,ri+1,nc2);
+    });
+
+    // Header row
+    ws2.getRow(5).height=22;
+    hdr2.forEach((h,ci)=>{
+      const cell=ws2.getCell(5,ci+1);
+      cell.value=h;
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
+    });
+
+    // Fetch visit counts per employee per date
+    const visSnaps=await Promise.all(allDates.map(ds=>db.ref(`visits/${APP.companyId}/${ds}`).get()));
+    const visByDate={};
+    allDates.forEach((ds,i)=>{
+      if(visSnaps[i].exists()){
+        const dayV=visSnaps[i].val();
+        Object.values(dayV).forEach(v=>{
+          if(!visByDate[ds]) visByDate[ds]={};
+          visByDate[ds][v.salesman_uid]=(visByDate[ds][v.salesman_uid]||0)+1;
+        });
+      }
+    });
+
+    let rowIdx2=6;
+    allDates.forEach(ds=>{
+      const dayAtt=attByDate[ds]||{};
+      empList.forEach(([uid,u],ei)=>{
+        const altBg=ei%2===0?'FFFFFFFF':'FFEEF2FF';
+        ws2.getRow(rowIdx2).height=16;
+        const att=dayAtt[uid]||null;
+        const sh=getEmpShift(uid);
+        const shiftLabel=`${sh.shiftIn}–${sh.shiftOut}`;
+        const type=u.emp_type==='backoffice'?'Back Office':'Sales';
+        const visitCount=(visByDate[ds]&&visByDate[ds][uid])||0;
+
+        // Determine remark/status
+        let remark='Absent';
+        const hol=isAnyHoliday(ds,APP.companyHolidays||[0],APP.companyCustomHolidays||[]);
+        if(hol) remark='Holiday';
+        else if(att&&att.start_time){
+          const inMin=parseTimeToMin(att.start_time);
+          const lateMin=inMin-(parseTimeToMin(sh.shiftIn)+sh.greeting);
+          remark=lateMin>0?'Late':'Present';
+        }
+
+        // Time serials
+        const inSer=att&&att.start_time?att.start_time/1440:null; // will be calculated properly below
+        const inMin2=att&&att.start_time?parseTimeToMin(att.start_time):null;
+        const outMin2=att&&att.end_time?parseTimeToMin(att.end_time):null;
+        const inSerial=inMin2!=null?inMin2/1440:null;
+        const outSerial=outMin2!=null?outMin2/1440:null;
+        const durSerial=(inMin2!=null&&outMin2!=null&&outMin2>inMin2)?(outMin2-inMin2)/1440:null;
+
+        const vals2=[
+          ds,                      // Date
+          u.emp_id||'—',           // Emp ID
+          u.name,                  // Name
+          type,                    // Type
+          shiftLabel,              // Shift
+          inSerial,                // In (time serial)
+          outSerial,               // Out (time serial)
+          durSerial,               // Duration (time serial)
+          visitCount||'—',        // Visit
+          remark                   // Remarks
+        ];
+
+        vals2.forEach((v,ci)=>{
+          const cell=ws2.getCell(rowIdx2,ci+1);
+          cell.value=v;
+          const isTimeCol=ci>=5&&ci<=7; // In, Out, Duration
+          const leftAlign=ci===2||ci===9; // Name, Remarks
+          xlsStyle(cell,{bg:hol?'FFFFF3CD':altBg,fg:'FF1A2850',sz:9,align:leftAlign?'left':'center'});
+          if(isTimeCol&&v!=null){
+            cell.numFmt='HH:MM';
+            cell.alignment={horizontal:'center',vertical:'middle'};
+          }
+          // Remarks colour
+          if(ci===9){
+            const fg=remark==='Present'?'FF065F46':remark==='Late'?'FFB45309':remark==='Holiday'?'FF7A4F00':'FF991B1B';
+            cell.font={name:'Calibri',size:9,bold:true,color:{argb:fg}};
+          }
+        });
+        rowIdx2++;
+      });
+    });
+
+    // Col widths sheet 2
+    [12,11,22,13,14,9,9,10,7,11].forEach((w,i)=>ws2.getColumn(i+1).width=w);
+    ws2.views=[{state:'frozen',xSplit:0,ySplit:5,topLeftCell:'A6',activeCell:'A6'}];
+    ws2.autoFilter={from:{row:5,column:1},to:{row:5,column:nc2}};
+
+    await xlsDownload(wb,`${co}_AttSummary_${monthName}_${year}`);
+    doneLoading(); toast('Attendance Summary Excel downloading!');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
+}
 
 
 async function buildAttSummaryMatrix(month,year,typeFilter){
@@ -4818,15 +5637,14 @@ async function buildAttSummaryMatrix(month,year,typeFilter){
         const shiftInMin=parseTimeToMin(shift.shiftIn);
         const grace=shift.greeting;
         const lateMin=inMin-(shiftInMin+grace);
-        matrix[uid][ds]=lateMin>0?`Late(${minToHHMM(lateMin)})`:'Present';
+        matrix[uid][ds]=lateMin>0?'Late':'Present';
       }
       else matrix[uid][ds]='Absent';
     });
   });
-  return {matrix,co,dateLabel,empList,allDates,holidays,customHolidays};
+  return {matrix,co,dateLabel,empList,allDates,holidays,customHolidays,attByDate};
 }
 
-/* ════ REPORTS C — LATE & OVERTIME REPORT ════ */
 async function buildLateRows(startDate, endDate, typeFilter){
   const rows=[];
   const dates=[];
@@ -4915,73 +5733,115 @@ async function exportRptLateExcel(){
     const wb=new ExcelJS.Workbook();
     const ws=wb.addWorksheet('Late & Overtime');
 
-    // ── Title Block ──
-    ws.mergeCells('A1:L1');
-    ws.getCell('A1').value='SunStar Solutions — Late & Overtime Report';
-    ws.getCell('A1').font={name:'DM Sans',size:14,bold:true,color:{argb:'FF000000'}};
-    ws.getCell('A1').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
-    ws.getCell('A1').alignment={horizontal:'center',vertical:'middle'};
-    ws.getRow(1).height=24;
+    // New column order per spec:
+    // Sr. | Date | Emp ID | Name | Shift In | Shift Out | Grace(m) | Actual In | Actual Out | Late | Early Out | Overtime
+    const headers=['Sr.','Date','Emp ID','Name','Shift In','Shift Out','Grace(m)','Actual In','Actual Out','Late','Early Out','Overtime'];
+    const nc=headers.length;
+    // Col widths
+    const colWidths=[4,12,11,22,10,10,9,10,10,10,10,10];
 
-    ws.mergeCells('A2:L2');
-    ws.getCell('A2').value=`${co}`;
-    ws.getCell('A2').font={size:11,bold:true,color:{argb:'FFF0F4FF'}};
-    ws.getCell('A2').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF0C1229'}};
-    ws.getCell('A2').alignment={horizontal:'center'};
+    // ── Title block (rows 1-4) ──
+    const titleDefs=[
+      {v:'SunStar Solutions',sz:18,bold:true,fg:'FFEFA800',bg:'FF06091A',h:30},
+      {v:`${co} — Late & Overtime Report`,sz:12,bold:true,fg:'FFF0F4FF',bg:'FF0C1229',h:22},
+      {v:`${startDate} to ${endDate}  |  Records: ${rows.length}`,sz:10,bold:false,fg:'FF7A8DB8',bg:'FF0C1229',h:18},
+      {v:`Generated: ${new Date().toLocaleString('en-IN')}`,sz:9,bold:false,fg:'FF3E4E78',bg:'FF0C1229',h:14},
+    ];
+    titleDefs.forEach((td,ri)=>{
+      ws.getRow(ri+1).height=td.h;
+      const cell=ws.getCell(ri+1,1);
+      cell.value=td.v;
+      xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+      if(nc>1) ws.mergeCells(ri+1,1,ri+1,nc);
+    });
 
-    ws.mergeCells('A3:L3');
-    ws.getCell('A3').value=`${startDate} to ${endDate}  |  Records: ${rows.length}`;
-    ws.getCell('A3').font={size:10,color:{argb:'FF7A8DB8'}};
-    ws.getCell('A3').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FF06091A'}};
-    ws.getCell('A3').alignment={horizontal:'center'};
-
-    ws.mergeCells('A4:L4'); ws.getRow(4).height=6;
-    ws.getCell('A4').fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
-
-    // ── Headers ──
-    const headers=['#','Emp ID','Name','Date','Shift In','Shift Out','Grace(m)','Actual In','Actual Out','Late','Early Out','Overtime'];
-    const hRow=ws.getRow(5);
-    headers.forEach((h,i)=>{
-      const cell=hRow.getCell(i+1);
+    // ── Header row (row 5) ──
+    ws.getRow(5).height=20;
+    headers.forEach((h,ci)=>{
+      const cell=ws.getCell(5,ci+1);
       cell.value=h;
-      cell.font={bold:true,color:{argb:'FF000000'},size:10};
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};
       cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
       cell.alignment={horizontal:'center',vertical:'middle'};
-      cell.border={bottom:{style:'medium',color:{argb:'FFEFA800'}}};
+      cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
     });
-    hRow.height=18;
-    ws.views=[{state:'frozen',ySplit:5}];
-    ws.autoFilter={from:'A5',to:'L5'};
-    const colWidths=[4,12,22,12,10,10,9,10,10,12,12,12];
-    colWidths.forEach((w,i)=>{ ws.getColumn(i+1).width=w; });
 
-    // ── Data Rows ──
+    // ── Data rows ──
+    // Actual In = col index 7 (0-based), Actual Out = 8
+    // Late=9, Early Out=10, Overtime=11
     rows.forEach((r,i)=>{
       const rowNum=6+i;
       const dRow=ws.getRow(rowNum);
-      const bg=i%2===0?'FFFFFFFF':'FFE8EDFA';
-      const lateStr=r.late_min>0?minToHHMM(r.late_min):'—';
-      const earlyStr=r.early_out_min!=null&&r.early_out_min>0?minToHHMM(r.early_out_min):'—';
-      const otStr=r.overtime_min!=null&&r.overtime_min>0?minToHHMM(r.overtime_min):'—';
-      const vals=[i+1,r.emp_id,r.name,r.date,r.shift_in,r.shift_out,r.grace,r.in_time,r.out_time||'—',lateStr,earlyStr,otStr];
+      const bg=i%2===0?'FFFFFFFF':'FFEEF2FF';
+      dRow.height=16;
+
+      // Convert actual times to 24hr Excel serials
+      const inSerial=r.in_time?parseTimeToMin(r.in_time)/1440:null;
+      const outSerial=r.out_time?parseTimeToMin(r.out_time)/1440:null;
+
+      // Late / Early Out / OT as duration serials (minutes/1440)
+      const lateSer=r.late_min>0?r.late_min/1440:null;
+      const earlySer=r.early_out_min!=null&&r.early_out_min>0?r.early_out_min/1440:null;
+      const otSer=r.overtime_min!=null&&r.overtime_min>0?r.overtime_min/1440:null;
+
+      const vals=[
+        i+1,            // Sr.
+        r.date,         // Date
+        r.emp_id,       // Emp ID
+        r.name,         // Name
+        r.shift_in,     // Shift In (text — company setting, not a clock time to calc)
+        r.shift_out,    // Shift Out
+        r.grace,        // Grace(m)
+        inSerial,       // Actual In — Excel time serial → 24hr display
+        outSerial,      // Actual Out
+        lateSer,        // Late — duration serial → [h]:MM display
+        earlySer,       // Early Out
+        otSer           // Overtime
+      ];
+
       vals.forEach((v,ci)=>{
         const cell=dRow.getCell(ci+1);
         cell.value=v;
-        cell.font={size:9,color:{argb:'FF1A2850'}};
-        cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:bg}};
-        cell.alignment={horizontal:ci===2?'left':'center',vertical:'middle'};
-        // Highlight late
-        if(r.is_late){
-          if(ci===7){ cell.font={size:9,bold:true,color:{argb:'FFFF4466'}}; } // Actual In
-          if(ci===9){ cell.font={size:9,bold:true,color:{argb:'FFFF4466'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFE0E6'}}; } // Late col
+        const isActualTime=ci===7||ci===8;     // Actual In / Out — clock time
+        const isDuration=ci===9||ci===10||ci===11; // Late, Early, OT — duration
+        const leftAlign=ci===3;                 // Name left
+        xlsStyle(cell,{bg,fg:'FF1A2850',sz:10,align:leftAlign?'left':'center'});
+
+        if(isActualTime && v!=null){
+          cell.numFmt='HH:MM';  // 24hr clock time, enables arithmetic
+          cell.alignment={horizontal:'center',vertical:'middle'};
         }
-        // Highlight overtime green
-        if(r.overtime_min>0&&ci===11){ cell.font={size:9,bold:true,color:{argb:'FF1FD17A'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE0FBF0'}}; }
-        // Highlight early out orange
-        if(r.early_out_min>0&&ci===10){ cell.font={size:9,bold:true,color:{argb:'FFFF9900'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF3DC'}}; }
+        if(isDuration && v!=null){
+          cell.numFmt='[h]:MM'; // duration format — allows >24h, shows 01:30 etc
+          cell.alignment={horizontal:'center',vertical:'middle'};
+        }
+        if(v===null){
+          cell.value='—';
+          cell.font={name:'Calibri',size:10,color:{argb:'FFCBD5E1'}};
+        }
+
+        // Colour highlights
+        if(r.is_late&&ci===7){  // Actual In red when late
+          cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFFF4466'}};
+        }
+        if(ci===9&&v!=null){    // Late col — red bg
+          cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFFF4466'}};
+          cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFE0E6'}};
+        }
+        if(ci===10&&v!=null){   // Early out — orange bg
+          cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFCC6600'}};
+          cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFF3DC'}};
+        }
+        if(ci===11&&v!=null){   // Overtime — green bg
+          cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF1FD17A'}};
+          cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE0FBF0'}};
+        }
       });
-      dRow.height=15;
     });
+
+    colWidths.forEach((w,i)=>ws.getColumn(i+1).width=w);
+    ws.views=[{state:'frozen',xSplit:0,ySplit:5,topLeftCell:'A6',activeCell:'A6'}];
+    ws.autoFilter={from:{row:5,column:1},to:{row:5,column:nc}};
 
     await xlsDownload(wb,`${co}_Late_Overtime_${startDate}_${endDate}`);
     doneLoading(); toast('Late & Overtime Excel downloading!');
@@ -4989,8 +5849,6 @@ async function exportRptLateExcel(){
 }
 
 
-
-/* ════ PWA INSTALL ════ */
 let deferredPrompt=null;
 window.addEventListener('beforeinstallprompt',(e)=>{
   e.preventDefault();
@@ -5014,7 +5872,6 @@ window.addEventListener('appinstalled',()=>{
   if(btn) btn.style.display='none';
 });
 
-/* ════════════════════════════════════════════════
    START
 ════════════════════════════════════════════════ */
 window.addEventListener('load',initApp);
