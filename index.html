@@ -13,7 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
-   DESIGN TOKENS
+/* DESIGN TOKENS
 ════════════════════════════════════════════════ */
 :root {
   --bg:          #06091A;
@@ -45,7 +45,7 @@ button{font-family:'DM Sans',sans-serif;}
 .flex-screen{display:none!important;}
 .flex-screen.on{display:flex!important;}
 
-   SETUP WIZARD (first time)
+/* SETUP WIZARD (first time)
 ════════════════════════════════════════════════ */
 #setupScreen{
   min-height:100vh;align-items:center;justify-content:center;
@@ -99,7 +99,7 @@ button{font-family:'DM Sans',sans-serif;}
   color:var(--err);margin-bottom:20px;line-height:1.6;
 }
 
-   LOGIN
+/* LOGIN
 ════════════════════════════════════════════════ */
 #loginScreen{
   min-height:100vh;align-items:center;justify-content:center;
@@ -166,7 +166,7 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .btn-danger:hover{background:rgba(255,68,102,0.22);}
 
-   NAV BAR
+/* NAV BAR
 ════════════════════════════════════════════════ */
 .nav{
   height:62px;background:var(--bg-card);border-bottom:1px solid var(--border);
@@ -195,7 +195,7 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .btn-out:hover{background:rgba(255,68,102,0.2);}
 
-   SALESMAN SCREEN — MOBILE APP STYLE
+/* SALESMAN SCREEN — MOBILE APP STYLE
 ════════════════════════════════════════════════ */
 #salesmanScreen{display:none!important;min-height:100vh;}
 #salesmanScreen.on{display:flex!important;flex-direction:column;}
@@ -288,7 +288,7 @@ button{font-family:'DM Sans',sans-serif;}
 .empty{text-align:center;padding:40px 16px;color:var(--txt-2);}
 .empty-icon{font-size:38px;margin-bottom:12px;opacity:.4;}
 
-   ADMIN SCREEN
+/* ADMIN SCREEN
 ════════════════════════════════════════════════ */
 #adminScreen{display:none!important;min-height:100vh;}
 #adminScreen.on{display:flex!important;flex-direction:column;}
@@ -412,7 +412,7 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .btn-add:hover{transform:translateY(-2px);box-shadow:0 6px 22px rgba(239,168,0,0.38);}
 
-   SUPER ADMIN SCREEN
+/* SUPER ADMIN SCREEN
 ════════════════════════════════════════════════ */
 #superScreen{display:none!important;min-height:100vh;}
 #superScreen.on{display:block!important;}
@@ -453,7 +453,7 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .btn-sm-d:hover{background:rgba(255,68,102,0.18);}
 
-   MODAL
+/* MODAL
 ════════════════════════════════════════════════ */
 .modal-ov{
   position:fixed;inset:0;background:rgba(6,9,26,0.88);
@@ -481,7 +481,7 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .btn-confirm:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(239,168,0,0.35);}
 
-   LOADING + TOAST
+/* LOADING + TOAST
 ════════════════════════════════════════════════ */
 .load-ov{
   position:fixed;inset:0;background:rgba(6,9,26,0.8);z-index:9999;
@@ -1777,7 +1777,7 @@ async function ensureReportLibs(){
 </script>
 
 <script>
-   APP STATE & HELPERS
+/* APP STATE & HELPERS
 ════════════════════════════════════════════════ */
 let APP = { user:null, userData:null, companyId:null, salesmen:{}, visitCache:{}, mapInstance:null, apiKey:'' };
 
@@ -1886,7 +1886,7 @@ async function generateEmpId(coId){
   return 'EMP-'+String(maxNum+1).padStart(4,'0');
 }
 
-   FIREBASE INIT
+/* FIREBASE INIT
 ════════════════════════════════════════════════ */
 let db, auth, firebase_loaded=false;
 
@@ -1918,7 +1918,7 @@ function loadFirebase(config){
   });
 }
 
-   SETUP WIZARD
+/* SETUP WIZARD
 ════════════════════════════════════════════════ */
 let currentStep=1;
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -1984,7 +1984,7 @@ async function createSuperAdmin(){
   }
 }
 
-   APP INIT
+/* APP INIT
 ════════════════════════════════════════════════ */
 async function initApp(){
   const cfg=JSON.stringify({
@@ -2058,7 +2058,7 @@ async function initApp(){
   });
 }
 
-   LOGIN / LOGOUT
+/* LOGIN / LOGOUT
 ════════════════════════════════════════════════ */
 async function doLogin(){
   const email=document.getElementById('loginEmail').value.trim();
@@ -2113,7 +2113,7 @@ async function authAction(uid, action){
   // disable/enable: no-op here — DB status field is the source of truth
 }
 
-   CREATE USER VIA REST API (without sign-in)
+/* CREATE USER VIA REST API (without sign-in)
 ════════════════════════════════════════════════ */
 async function createAuthUser(email,pass){
   const cfg=JSON.parse(localStorage.getItem('ss_config'));
@@ -2128,7 +2128,7 @@ async function createAuthUser(email,pass){
   return data.localId;
 }
 
-   SUPER ADMIN
+/* SUPER ADMIN
 ════════════════════════════════════════════════ */
 async function initSuperAdmin(){
   try{
@@ -5872,7 +5872,7 @@ window.addEventListener('appinstalled',()=>{
   if(btn) btn.style.display='none';
 });
 
-   START
+/* START
 ════════════════════════════════════════════════ */
 window.addEventListener('load',initApp);
 
