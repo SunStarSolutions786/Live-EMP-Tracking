@@ -1269,24 +1269,26 @@ button{font-family:'DM Sans',sans-serif;}
             <div class="tc-hd" style="margin-bottom:4px;"><div class="tc-title">🕐 Shift Templates</div></div>
             <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Add multiple shifts. One marked as Default will be used for employees with no shift assigned.</div>
             <!-- Add new shift row -->
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:flex-end;">
-              <div class="fg" style="flex:2;min-width:120px;margin-bottom:0;">
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+              <div class="fg" style="margin-bottom:0;">
                 <label class="fl" style="font-size:11px;">Shift Name</label>
                 <input class="fi" type="text" id="adNewShiftName" placeholder="e.g. Morning Shift">
               </div>
-              <div class="fg" style="flex:1;min-width:100px;margin-bottom:0;">
-                <label class="fl" style="font-size:11px;">Shift In</label>
-                <input class="fi" type="time" id="adNewShiftIn" value="09:00">
+              <div style="display:flex;gap:10px;">
+                <div class="fg" style="flex:1;margin-bottom:0;">
+                  <label class="fl" style="font-size:11px;">Shift In</label>
+                  <input class="fi" type="time" id="adNewShiftIn" value="09:00">
+                </div>
+                <div class="fg" style="flex:1;margin-bottom:0;">
+                  <label class="fl" style="font-size:11px;">Shift Out</label>
+                  <input class="fi" type="time" id="adNewShiftOut" value="18:00">
+                </div>
+                <div class="fg" style="flex:0 0 90px;margin-bottom:0;">
+                  <label class="fl" style="font-size:11px;">Grace (min)</label>
+                  <input class="fi" type="number" id="adNewShiftGrace" value="15" min="0" max="60">
+                </div>
               </div>
-              <div class="fg" style="flex:1;min-width:100px;margin-bottom:0;">
-                <label class="fl" style="font-size:11px;">Shift Out</label>
-                <input class="fi" type="time" id="adNewShiftOut" value="18:00">
-              </div>
-              <div class="fg" style="flex:1;min-width:80px;margin-bottom:0;">
-                <label class="fl" style="font-size:11px;">Grace (min)</label>
-                <input class="fi" type="number" id="adNewShiftGrace" value="15" min="0" max="60" style="max-width:80px;">
-              </div>
-              <button class="btn-go" style="padding:9px 16px;font-size:13px;align-self:flex-end;" onclick="addShiftTemplate('ad')">➕ Add</button>
+              <button class="btn-go" style="padding:9px 16px;font-size:13px;align-self:flex-start;" onclick="addShiftTemplate('ad')">➕ Add Shift</button>
             </div>
             <div id="adShiftTemplateList" style="display:flex;flex-direction:column;gap:8px;"></div>
             <!-- Legacy hidden fields for backward compat -->
@@ -1521,24 +1523,26 @@ button{font-family:'DM Sans',sans-serif;}
     <div class="settings-section">
       <div class="settings-title">🕐 Shift Templates</div>
       <div style="font-size:12px;color:var(--txt-2);margin-bottom:12px;">Add multiple shifts. One marked as Default will be used for employees with no shift assigned.</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:flex-end;">
-        <div class="fg" style="flex:2;min-width:110px;margin-bottom:0;">
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">
+        <div class="fg" style="margin-bottom:0;">
           <label class="fl" style="font-size:11px;">Shift Name</label>
           <input class="fi" type="text" id="csNewShiftName" placeholder="e.g. Morning Shift">
         </div>
-        <div class="fg" style="flex:1;min-width:90px;margin-bottom:0;">
-          <label class="fl" style="font-size:11px;">Shift In</label>
-          <input class="fi" type="time" id="csNewShiftIn" value="09:00">
+        <div style="display:flex;gap:10px;">
+          <div class="fg" style="flex:1;margin-bottom:0;">
+            <label class="fl" style="font-size:11px;">Shift In</label>
+            <input class="fi" type="time" id="csNewShiftIn" value="09:00">
+          </div>
+          <div class="fg" style="flex:1;margin-bottom:0;">
+            <label class="fl" style="font-size:11px;">Shift Out</label>
+            <input class="fi" type="time" id="csNewShiftOut" value="18:00">
+          </div>
+          <div class="fg" style="flex:0 0 90px;margin-bottom:0;">
+            <label class="fl" style="font-size:11px;">Grace (min)</label>
+            <input class="fi" type="number" id="csNewShiftGrace" value="15" min="0" max="60">
+          </div>
         </div>
-        <div class="fg" style="flex:1;min-width:90px;margin-bottom:0;">
-          <label class="fl" style="font-size:11px;">Shift Out</label>
-          <input class="fi" type="time" id="csNewShiftOut" value="18:00">
-        </div>
-        <div class="fg" style="flex:1;min-width:70px;margin-bottom:0;">
-          <label class="fl" style="font-size:11px;">Grace (min)</label>
-          <input class="fi" type="number" id="csNewShiftGrace" value="15" min="0" max="60" style="max-width:80px;">
-        </div>
-        <button class="btn-go" style="padding:9px 16px;font-size:13px;align-self:flex-end;" onclick="addShiftTemplate('cs')">➕ Add</button>
+        <button class="btn-go" style="padding:9px 16px;font-size:13px;align-self:flex-start;" onclick="addShiftTemplate('cs')">➕ Add Shift</button>
       </div>
       <div id="csShiftTemplateList" style="display:flex;flex-direction:column;gap:8px;"></div>
       <!-- Legacy hidden fields -->
@@ -1590,6 +1594,13 @@ button{font-family:'DM Sans',sans-serif;}
         <option value="sales">📊 Sales Employee</option>
         <option value="backoffice">🏢 Back Office Employee</option>
       </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Shift Template</label>
+      <select class="fsel" id="asShiftSelectSA" onchange="onShiftSelectChangeSA()">
+        <option value="">— Use Company Default —</option>
+      </select>
+      <div id="asShiftPreviewSA" style="display:none;margin-top:7px;font-size:12px;color:var(--info);background:rgba(75,159,255,0.08);border:1px solid rgba(75,159,255,0.2);border-radius:var(--r-sm);padding:8px 12px;"></div>
     </div>
     <div class="modal-acts">
       <button class="btn-cancel" onclick="closeModal('addSmSAModal')">Cancel</button>
@@ -2468,7 +2479,7 @@ function renderCSCustomHolidays(){
     </div>`).join('');
 }
 
-async function addCSCustomHoliday(){
+function addCSCustomHoliday(){
   const name=document.getElementById('csCHName').value.trim();
   const date=document.getElementById('csCHDate').value;
   if(!name||!date){ toast('Enter holiday name and date','err'); return; }
@@ -2478,17 +2489,13 @@ async function addCSCustomHoliday(){
   document.getElementById('csCHName').value='';
   document.getElementById('csCHDate').value='';
   renderCSCustomHolidays();
-  const coId=document.getElementById('csCoId').value;
-  try{ await db.ref(`companies/${coId}`).update({custom_holidays:window._csCustomHolidays}); toast('Holiday saved ✅'); }
-  catch(e){ toast('Save failed','err'); }
+  toast('Holiday added — click Save Settings to save ✅');
 }
 
-async function removeCSCustomHoliday(idx){
+function removeCSCustomHoliday(idx){
   window._csCustomHolidays.splice(idx,1);
   renderCSCustomHolidays();
-  const coId=document.getElementById('csCoId').value;
-  try{ await db.ref(`companies/${coId}`).update({custom_holidays:window._csCustomHolidays}); toast('Holiday removed'); }
-  catch(e){ toast('Save failed','err'); }
+  toast('Holiday removed — click Save Settings to save');
 }
 
 async function saveCoSettings(){
@@ -2712,6 +2719,30 @@ async function openAddSalesmanFromSA(){
   const sel=document.getElementById('asEmpTypeSA');
   wrap.style.display='block';
   sel.innerHTML='<option value="sales">📊 Sales Employee</option><option value="backoffice">🏢 Back Office Employee</option>';
+  // Populate shift dropdown from this company's templates
+  const shiftSel=document.getElementById('asShiftSelectSA');
+  const prev=document.getElementById('asShiftPreviewSA');
+  if(shiftSel){
+    shiftSel.innerHTML='<option value="">— Use Company Default —</option>';
+    try{
+      const coSnap=await db.ref(`companies/${SA_currentCoId}`).get();
+      const coTemplates=(coSnap.exists()&&coSnap.val().shift_templates)||[];
+      // fallback: build single template from legacy fields
+      let templates=coTemplates;
+      if(!templates.length && coSnap.exists() && coSnap.val().shift_in){
+        const c=coSnap.val();
+        templates=[{name:'Default Shift',shift_in:c.shift_in,shift_out:c.shift_out||'18:00',grace:c.greeting_period??15,is_default:true}];
+      }
+      window._saAddSmTemplates=templates;
+      templates.forEach(t=>{
+        const opt=document.createElement('option');
+        opt.value=t.name;
+        opt.textContent=t.name+(t.is_default?' (Default)':'')+' — '+t.shift_in+' to '+t.shift_out;
+        shiftSel.appendChild(opt);
+      });
+    }catch(e){ window._saAddSmTemplates=[]; }
+  }
+  if(prev) prev.style.display='none';
   openModal('addSmSAModal');
 }
 
@@ -2729,7 +2760,14 @@ async function addSalesmanFromSA(){
     const empTypeSA=document.getElementById('asEmpTypeSA')?.value||'sales';
     const uid=await createAuthUser(email,pass);
     const emp_id=await generateEmpId(coId);
-    await db.ref(`users/${uid}`).set({name,email,role:'salesman',emp_type:empTypeSA,emp_id,company_id:coId,password:pass,created_at:Date.now()});
+    const newEmp={name,email,role:'salesman',emp_type:empTypeSA,emp_id,company_id:coId,password:pass,created_at:Date.now()};
+    // Apply shift template if selected
+    const selShift=document.getElementById('asShiftSelectSA')?.value;
+    if(selShift){
+      const tmpl=(window._saAddSmTemplates||[]).find(t=>t.name===selShift);
+      if(tmpl){ newEmp.shift_in=tmpl.shift_in; newEmp.shift_out=tmpl.shift_out; newEmp.greeting_period=tmpl.grace; newEmp.shift_template_name=tmpl.name; }
+    }
+    await db.ref(`users/${uid}`).set(newEmp);
     doneLoading(); toast(`"${name}" created as ${empTypeSA==='sales'?'Sales':'Back Office'} employee!`);
     await loadCoMgmtSalesmen(); await loadSuperDashboard();
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
@@ -2815,8 +2853,8 @@ async function initAdmin(){
       APP.shiftTemplates=[{name:'Default Shift',shift_in:co.shift_in,shift_out:co.shift_out||'18:00',grace:co.greeting_period??15,is_default:true}];
     }
   }
-  await loadOverview();
-  await loadHistory();
+  // Run Overview + History in parallel — both load today's data independently
+  await Promise.all([loadOverview(), loadHistory()]);
 }
 
 function adminPage(page,el){
@@ -2930,6 +2968,18 @@ function onShiftSelectChange(prefix){
   }
 }
 
+function onShiftSelectChangeSA(){
+  const sel=document.getElementById('asShiftSelectSA');
+  const prev=document.getElementById('asShiftPreviewSA');
+  const val=sel?.value;
+  if(!val){ if(prev) prev.style.display='none'; return; }
+  const tmpl=(window._saAddSmTemplates||[]).find(t=>t.name===val);
+  if(tmpl&&prev){
+    prev.style.display='block';
+    prev.innerHTML=`🕐 ${tmpl.shift_in} – ${tmpl.shift_out} &nbsp;|&nbsp; Grace: ${tmpl.grace} min`;
+  }
+}
+
 async function loadAdminSettings(){
   try{
     const snap=await db.ref(`companies/${APP.companyId}`).get();
@@ -2966,7 +3016,7 @@ function renderAdminCustomHolidays(){
     </div>`).join('');
 }
 
-async function addAdminCustomHoliday(){
+function addAdminCustomHoliday(){
   const name=document.getElementById('adCHName').value.trim();
   const date=document.getElementById('adCHDate').value;
   if(!name||!date){ toast('Enter holiday name and date','err'); return; }
@@ -2976,16 +3026,13 @@ async function addAdminCustomHoliday(){
   document.getElementById('adCHName').value='';
   document.getElementById('adCHDate').value='';
   renderAdminCustomHolidays();
-  // Auto-save to Firebase
-  try{ await db.ref(`companies/${APP.companyId}`).update({custom_holidays:APP.companyCustomHolidays}); toast('Holiday saved ✅'); }
-  catch(e){ toast('Save failed: '+e.message,'err'); }
+  toast('Holiday added — click Save Settings to save ✅');
 }
 
-async function removeAdminCustomHoliday(idx){
+function removeAdminCustomHoliday(idx){
   APP.companyCustomHolidays.splice(idx,1);
   renderAdminCustomHolidays();
-  try{ await db.ref(`companies/${APP.companyId}`).update({custom_holidays:APP.companyCustomHolidays}); toast('Holiday removed'); }
-  catch(e){ toast('Save failed: '+e.message,'err'); }
+  toast('Holiday removed — click Save Settings to save');
 }
 
 async function saveAdminSettings(){
@@ -3208,10 +3255,13 @@ async function loadOverview(){
   document.getElementById('ov-salesmen').title=`Sales: ${salesCount} | Back Office: ${boCount}`;
   const today=todayStr();
 
-  // Load visits + attendance in parallel
-  const [vSnap,attSnap]=await Promise.all([
+  // Load today visits + attendance + month visits all in parallel
+  const now=new Date();
+  const monthPrefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const [vSnap,attSnap,allVisSnap]=await Promise.all([
     db.ref(`visits/${APP.companyId}/${today}`).get(),
-    db.ref(`attendance/${APP.companyId}/${today}`).get()
+    db.ref(`attendance/${APP.companyId}/${today}`).get(),
+    db.ref(`visits/${APP.companyId}`).get()
   ]);
 
   // Count totals
@@ -3222,11 +3272,8 @@ async function loadOverview(){
   document.getElementById('ov-today').textContent=todayTotal;
   document.getElementById('ov-present').textContent=presentSet.size;
 
-  // Month count
-  const now=new Date();
-  const monthPrefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  // Month count — from already-fetched allVisSnap
   let monthTotal=0;
-  const allVisSnap=await db.ref(`visits/${APP.companyId}`).get();
   if(allVisSnap.exists()){
     Object.entries(allVisSnap.val()).forEach(([date,dayV])=>{
       if(date.startsWith(monthPrefix)) monthTotal+=Object.keys(dayV).length;
@@ -3304,7 +3351,13 @@ async function loadOverview(){
   }
 
   // Sort: In/Pending first, then Present, then Absent; within group A-Z
-  rows.sort((a,b)=>a.sortKey-b.sortKey||a.u.name.localeCompare(b.u.name));
+  rows.sort((a,b)=>{
+    if(a.sortKey!==b.sortKey) return a.sortKey-b.sortKey;
+    // Within same status group: sort by EMP ID numerically
+    const na=parseInt((a.u.emp_id||'EMP-9999').split('-')[1]||9999);
+    const nb=parseInt((b.u.emp_id||'EMP-9999').split('-')[1]||9999);
+    return na-nb;
+  });
 
   tbody.innerHTML=rows.map(r=>{
     const isBo=r.u.emp_type==='backoffice';
@@ -3384,12 +3437,14 @@ async function loadHistory(){
     });
     const empUidSet=new Set(activeEmp.map(([uid])=>uid));
 
-    for(const date of dates){
-      // Load attendance + visits in parallel
-      const [attSnap,vSnap]=await Promise.all([
-        db.ref(`attendance/${APP.companyId}/${date}`).get(),
-        db.ref(`visits/${APP.companyId}/${date}`).get()
-      ]);
+    // Fetch ALL dates in parallel — massive speedup for large ranges
+    const histFetches=await Promise.all(dates.map(date=>Promise.all([
+      db.ref(`attendance/${APP.companyId}/${date}`).get(),
+      db.ref(`visits/${APP.companyId}/${date}`).get()
+    ])));
+
+    dates.forEach((date,di)=>{
+      const [attSnap,vSnap]=histFetches[di];
       // Attendance: In events
       if(attSnap.exists()){
         Object.entries(attSnap.val()).forEach(([uid,att])=>{
@@ -3443,7 +3498,7 @@ async function loadHistory(){
           });
         });
       }
-    }
+    }); // end dates.forEach
     lastHistoryData.sort((a,b)=>b.sort_ts-a.sort_ts);
     const tbody=document.getElementById('visitTbody');
     if(lastHistoryData.length===0){
@@ -3508,9 +3563,10 @@ function initMap(){
     _satLayer=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
       attribution:'© Esri, Maxar, Earthstar Geographics',maxZoom:19
     });
-    // Satellite label overlay (place names on top of satellite)
-    _satLabelLayer=L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png',{
-      attribution:'',maxZoom:19,subdomains:'abcd',pane:'overlayPane'
+    // Satellite label overlay — OpenStreetMap labels (reliable globally)
+    _satLabelLayer=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+      attribution:'© OpenStreetMap contributors',maxZoom:19,subdomains:'abc',
+      opacity:0.55,pane:'overlayPane'
     });
   }
 }
@@ -3788,31 +3844,46 @@ async function loadPerformance(){
       if(dept==='backoffice'&&!isBO) return false;
       return true;
     });
+    // Build date list for the month (only past/today dates)
+    const perfDates=[];
+    for(let d=1;d<=daysInMonth;d++){
+      if(new Date(year,month,d)>today) break;
+      perfDates.push(`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+    }
+    // Pre-fetch ALL attendance + visits for the month in parallel (shared across all employees)
+    const [allAttSnaps, allVisSnaps]=await Promise.all([
+      Promise.all(perfDates.map(ds=>db.ref(`attendance/${APP.companyId}/${ds}`).get())),
+      Promise.all(perfDates.map(ds=>db.ref(`visits/${APP.companyId}/${ds}`).get()))
+    ]);
+    const perfAttByDate={}, perfVisByDate={};
+    perfDates.forEach((ds,i)=>{
+      if(allAttSnaps[i].exists()) perfAttByDate[ds]=allAttSnaps[i].val();
+      if(allVisSnaps[i].exists()) perfVisByDate[ds]=allVisSnaps[i].val();
+    });
+
     const results=await Promise.all(activeSM.map(async([uid,u])=>{
       let presentDays=0, totalVisits=0, totalDurationMs=0, durationDays=0;
 
-      for(let d=1;d<=daysInMonth;d++){
-        const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-        if(new Date(year,month,d)>today) continue;
-
-        // Attendance
-        const attSnap=await db.ref(`attendance/${APP.companyId}/${ds}/${uid}`).get();
-        if(attSnap.exists()){
+      for(const ds of perfDates){
+        // Attendance — from pre-fetched cache
+        const dayAtt=perfAttByDate[ds];
+        const att=dayAtt?dayAtt[uid]:null;
+        if(att){
           presentDays++;
-          const att=attSnap.val();
           if(att.start_timestamp&&att.end_timestamp){
             totalDurationMs+=(att.end_timestamp-att.start_timestamp);
             durationDays++;
           }
         }
-
-        // Visits
-        const vSnap=await db.ref(`visits/${APP.companyId}/${ds}`).orderByChild('salesman_uid').equalTo(uid).get();
-        if(vSnap.exists()) totalVisits+=Object.keys(vSnap.val()).length;
+        // Visits — from pre-fetched cache
+        const dayVis=perfVisByDate[ds];
+        if(dayVis){
+          totalVisits+=Object.values(dayVis).filter(v=>v.salesman_uid===uid).length;
+        }
       }
 
-      // Working days so far this month
-      const workingDays=Math.min(daysInMonth, today.getMonth()===month&&today.getFullYear()===year ? today.getDate() : daysInMonth);
+      // Working days so far this month (perfDates already excludes future dates)
+      const workingDays=perfDates.length;
 
       const isBO=u.emp_type==='backoffice';
 
@@ -4776,10 +4847,23 @@ async function getSASalesmen(coId, typeFilter){
 
 // ── SA getEmpShift variant using company snap data ──
 function getSAEmpShift(u, coData){
+  // Priority: employee direct override → template by name → company default
+  if(u.shift_in && u.shift_out){
+    return { shiftIn:u.shift_in, shiftOut:u.shift_out, greeting:(u.greeting_period!=null?u.greeting_period:null)??(coData.greeting_period??15) };
+  }
+  if(u.shift_template_name && coData.shift_templates){
+    const tmpl=coData.shift_templates.find(t=>t.name===u.shift_template_name);
+    if(tmpl) return { shiftIn:tmpl.shift_in, shiftOut:tmpl.shift_out, greeting:tmpl.grace??15 };
+  }
+  // Company default template
+  if(coData.shift_templates&&coData.shift_templates.length){
+    const def=coData.shift_templates.find(t=>t.is_default)||coData.shift_templates[0];
+    return { shiftIn:def.shift_in, shiftOut:def.shift_out, greeting:def.grace??15 };
+  }
   return {
-    shiftIn:  u.shift_in  || coData.shift_in  || '09:00',
-    shiftOut: u.shift_out || coData.shift_out || '18:00',
-    greeting: (u.greeting_period!=null?u.greeting_period:null)??(coData.greeting_period??15)
+    shiftIn:  coData.shift_in  || '09:00',
+    shiftOut: coData.shift_out || '18:00',
+    greeting: (coData.greeting_period??15)
   };
 }
 
@@ -4824,21 +4908,24 @@ async function exportSAHistExcel(){
       cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
     });
 
-    let rowIdx=6, srNum=0;
-    for(const [coId,co] of Object.entries(companies)){
-      const salesmen=await getSASalesmen(coId, typeFilter);
+    // Build date list once
+    const saHistDates=[];
+    let saHCur=new Date(startDate+'T00:00:00'), saHEnd=new Date(endDate+'T00:00:00');
+    while(saHCur<=saHEnd){ const y=saHCur.getFullYear(),m=String(saHCur.getMonth()+1).padStart(2,'0'),d=String(saHCur.getDate()).padStart(2,'0'); saHistDates.push(`${y}-${m}-${d}`); saHCur.setDate(saHCur.getDate()+1); }
+
+    // Fetch all companies in parallel, then all dates per company in parallel
+    const saHistCoEntries=Object.entries(companies);
+    const saHistCoData=await Promise.all(saHistCoEntries.map(async([coId,co])=>{
+      const salesmen=await getSASalesmen(coId,typeFilter);
       const empUidSet=new Set(Object.keys(salesmen));
-
-      const dates=[];
-      let cur=new Date(startDate+'T00:00:00'), endD=new Date(endDate+'T00:00:00');
-      while(cur<=endD){ const y=cur.getFullYear(),m=String(cur.getMonth()+1).padStart(2,'0'),d=String(cur.getDate()).padStart(2,'0'); dates.push(`${y}-${m}-${d}`); cur.setDate(cur.getDate()+1); }
-
+      if(!empUidSet.size) return null;
+      const fetches=await Promise.all(saHistDates.map(date=>Promise.all([
+        db.ref(`attendance/${coId}/${date}`).get(),
+        db.ref(`visits/${coId}/${date}`).get()
+      ])));
       const coRows=[];
-      for(const date of dates){
-        const [attSnap,vSnap]=await Promise.all([
-          db.ref(`attendance/${coId}/${date}`).get(),
-          db.ref(`visits/${coId}/${date}`).get()
-        ]);
+      saHistDates.forEach((date,di)=>{
+        const [attSnap,vSnap]=fetches[di];
         if(attSnap.exists()) Object.entries(attSnap.val()).forEach(([uid,att])=>{
           if(!empUidSet.has(uid)) return;
           const u=salesmen[uid]; const sh=getSAEmpShift(u,co);
@@ -4856,8 +4943,14 @@ async function exportSAHistExcel(){
           const type=u.emp_type==='backoffice'?'Back Office':'Sales';
           coRows.push({co:co.name,co_id:co.co_id||'—',uid:v.salesman_uid,date,status:'Visit',name:u.name||v.salesman_name,emp_id:u.emp_id||'—',type,shift:`${sh.shiftIn}–${sh.shiftOut}`,location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',sort_ts:v.timestamp||0});
         });
-      }
+      });
       coRows.sort((a,b)=>a.sort_ts-b.sort_ts);
+      return coRows;
+    }));
+
+    let rowIdx=6, srNum=0;
+    for(const coRows of saHistCoData){
+      if(!coRows||!coRows.length) continue;
 
       coRows.forEach((r,i)=>{
         srNum++;
@@ -4976,28 +5069,34 @@ async function exportSASumExcel(){
       cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
     });
 
-    let s1Row=6, s2Row=6;
-
-    for(const [coId,co] of Object.entries(companies)){
+    // Fetch all companies' salesmen + data in parallel
+    const coEntries=Object.entries(companies);
+    const coDataArr=await Promise.all(coEntries.map(async([coId,co])=>{
       const salesmen=await getSASalesmen(coId, typeFilter);
       const empList=Object.entries(salesmen);
-      if(!empList.length) continue;
-
-      // Fetch all attendance for the month in parallel
-      const attSnaps=await Promise.all(allDates.map(ds=>db.ref(`attendance/${coId}/${ds}`).get()));
+      if(!empList.length) return null;
+      const [attSnapsArr, visSnapsArr]=await Promise.all([
+        Promise.all(allDates.map(ds=>db.ref(`attendance/${coId}/${ds}`).get())),
+        Promise.all(allDates.map(ds=>db.ref(`visits/${coId}/${ds}`).get()))
+      ]);
       const attByDate={};
-      allDates.forEach((ds,i)=>{ if(attSnaps[i].exists()) attByDate[ds]=attSnaps[i].val(); });
-
-      const visSnaps=await Promise.all(allDates.map(ds=>db.ref(`visits/${coId}/${ds}`).get()));
+      allDates.forEach((ds,i)=>{ if(attSnapsArr[i].exists()) attByDate[ds]=attSnapsArr[i].val(); });
       const visByDate={};
       allDates.forEach((ds,i)=>{
-        if(!visSnaps[i].exists()) return;
-        Object.values(visSnaps[i].val()).forEach(v=>{
+        if(!visSnapsArr[i].exists()) return;
+        Object.values(visSnapsArr[i].val()).forEach(v=>{
           if(!visByDate[ds]) visByDate[ds]={};
           visByDate[ds][v.salesman_uid]=(visByDate[ds][v.salesman_uid]||0)+1;
         });
       });
+      return {coId,co,salesmen,empList,attByDate,visByDate};
+    }));
 
+    let s1Row=6, s2Row=6;
+
+    for(const coData of coDataArr){
+      if(!coData) continue;
+      const {co,empList,attByDate,visByDate}=coData;
       const coHolidays=co.holidays||[0];
       const coCustomHols=co.custom_holidays||[];
 
@@ -5087,7 +5186,7 @@ async function exportSASumExcel(){
           s2Row++;
         });
       });
-    }// end for companies
+    }// end for coDataArr
 
     // Col widths
     [10,22,11,22,13,14,...allDates.map(()=>7),14,10,13,11,11].forEach((w,i)=>ws1.getColumn(i+1).width=w);
@@ -5142,22 +5241,33 @@ async function exportSALateExcel(){
       cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
     });
 
-    let rowIdx=6, srNum=0;
-    for(const [coId,co] of Object.entries(companies)){
+    // Build date list once
+    const cDates=[];
+    let cCur=new Date(startDate+'T00:00:00'), cEnd=new Date(endDate+'T00:00:00');
+    while(cCur<=cEnd){ const y=cCur.getFullYear(),m=String(cCur.getMonth()+1).padStart(2,'0'),d=String(cCur.getDate()).padStart(2,'0'); cDates.push(`${y}-${m}-${d}`); cCur.setDate(cCur.getDate()+1); }
+
+    // Fetch all companies' data in parallel
+    const lateCoEntries=Object.entries(companies);
+    const lateCoDataArr=await Promise.all(lateCoEntries.map(async([coId,co])=>{
       const salesmen=await getSASalesmen(coId,typeFilter);
       const empList=Object.entries(salesmen);
-      if(!empList.length) continue;
-
+      if(!empList.length) return null;
       const coHolidays=co.holidays||[0]; const coCustomHols=co.custom_holidays||[];
-      const dates=[];
-      let cur=new Date(startDate+'T00:00:00'), endD=new Date(endDate+'T00:00:00');
-      while(cur<=endD){ const y=cur.getFullYear(),m=String(cur.getMonth()+1).padStart(2,'0'),d=String(cur.getDate()).padStart(2,'0'); dates.push(`${y}-${m}-${d}`); cur.setDate(cur.getDate()+1); }
+      const nonHolDates=cDates.filter(d=>!isAnyHoliday(d,coHolidays,coCustomHols));
+      const lateAttSnaps=await Promise.all(nonHolDates.map(d=>db.ref(`attendance/${coId}/${d}`).get()));
+      const lateAttByDate={};
+      nonHolDates.forEach((d,i)=>{ if(lateAttSnaps[i].exists()) lateAttByDate[d]=lateAttSnaps[i].val(); });
+      return {co,coId,empList,nonHolDates,lateAttByDate};
+    }));
 
-      for(const date of dates){
-        if(isAnyHoliday(date,coHolidays,coCustomHols)) continue;
-        const attSnap=await db.ref(`attendance/${coId}/${date}`).get();
-        if(!attSnap.exists()) continue;
-        const dayAtt=attSnap.val();
+    let rowIdx=6, srNum=0;
+    for(const coData of lateCoDataArr){
+      if(!coData) continue;
+      const {co,empList,nonHolDates,lateAttByDate}=coData;
+
+      for(const date of nonHolDates){
+        const dayAtt=lateAttByDate[date];
+        if(!dayAtt) continue;
         empList.forEach(([uid,u],ei)=>{
           const att=dayAtt[uid]; if(!att||!att.start_time) return;
           const sh=getSAEmpShift(u,co);
@@ -5333,11 +5443,13 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
     return true;
   });
   const empUidSet=new Set(empList.map(([uid])=>uid));
-  for(const date of dates){
-    const [attSnap,vSnap]=await Promise.all([
-      db.ref(`attendance/${APP.companyId}/${date}`).get(),
-      db.ref(`visits/${APP.companyId}/${date}`).get()
-    ]);
+  // Fetch ALL dates in parallel
+  const bhrFetches=await Promise.all(dates.map(date=>Promise.all([
+    db.ref(`attendance/${APP.companyId}/${date}`).get(),
+    db.ref(`visits/${APP.companyId}/${date}`).get()
+  ])));
+  dates.forEach((date,di)=>{
+    const [attSnap,vSnap]=bhrFetches[di];
     if(attSnap.exists()){
       Object.entries(attSnap.val()).forEach(([uid,att])=>{
         if(!empUidSet.has(uid)) return;
@@ -5358,7 +5470,7 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
         rows.push({uid:v.salesman_uid,date,status:'Visit',name:u.name||v.salesman_name||'—',emp_id:u.emp_id||'—',location:v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—',time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',type,sort_ts:v.timestamp||0});
       });
     }
-  }
+  });
   rows.sort((a,b)=>a.sort_ts-b.sort_ts);
   return rows;
 }
@@ -5878,31 +5990,62 @@ window.addEventListener('load',initApp);
 
 // ── PWA Manifest with canvas-generated icon ──
 (function(){
-  // Generate a clean SunStar icon via Canvas (works reliably across browsers)
+  // Generate a branded SunStar icon via Canvas — gold sun with rays
   function makePwaIcon(size){
     const c=document.createElement('canvas');
     c.width=c.height=size;
     const ctx=c.getContext('2d');
-    // Gold background
-    const grad=ctx.createLinearGradient(0,0,size,size);
-    grad.addColorStop(0,'#EFA800'); grad.addColorStop(1,'#C88A00');
-    ctx.fillStyle=grad;
-    const r=size*0.18;
+    const s=size, cx=s/2, cy=s/2;
+
+    // Rounded square background — dark navy
+    const r=s*0.18;
+    ctx.fillStyle='#06091A';
     ctx.beginPath();
-    ctx.moveTo(r,0); ctx.lineTo(size-r,0);
-    ctx.quadraticCurveTo(size,0,size,r);
-    ctx.lineTo(size,size-r);
-    ctx.quadraticCurveTo(size,size,size-r,size);
-    ctx.lineTo(r,size);
-    ctx.quadraticCurveTo(0,size,0,size-r);
+    ctx.moveTo(r,0); ctx.lineTo(s-r,0);
+    ctx.quadraticCurveTo(s,0,s,r);
+    ctx.lineTo(s,s-r);
+    ctx.quadraticCurveTo(s,s,s-r,s);
+    ctx.lineTo(r,s);
+    ctx.quadraticCurveTo(0,s,0,s-r);
     ctx.lineTo(0,r);
     ctx.quadraticCurveTo(0,0,r,0);
     ctx.closePath(); ctx.fill();
-    // "SS" text
+
+    // Gold radial glow
+    const glow=ctx.createRadialGradient(cx,cy,s*0.05,cx,cy,s*0.42);
+    glow.addColorStop(0,'rgba(255,208,96,0.22)');
+    glow.addColorStop(1,'rgba(239,168,0,0)');
+    ctx.fillStyle=glow;
+    ctx.beginPath(); ctx.arc(cx,cy,s*0.48,0,Math.PI*2); ctx.fill();
+
+    // Sun rays — 8 rays
+    ctx.save();
+    ctx.translate(cx,cy);
+    for(let i=0;i<8;i++){
+      ctx.rotate(Math.PI/4);
+      ctx.fillStyle='#EFA800';
+      const rw=s*0.045, rl=s*0.13, ro=s*0.23;
+      ctx.beginPath();
+      ctx.moveTo(-rw,ro);
+      ctx.lineTo(0,ro+rl);
+      ctx.lineTo(rw,ro);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+
+    // Sun circle — gold gradient
+    const sunGrad=ctx.createRadialGradient(cx,cy-s*0.02,s*0.04,cx,cy,s*0.21);
+    sunGrad.addColorStop(0,'#FFD060');
+    sunGrad.addColorStop(1,'#C88A00');
+    ctx.fillStyle=sunGrad;
+    ctx.beginPath(); ctx.arc(cx,cy,s*0.21,0,Math.PI*2); ctx.fill();
+
+    // "SS" text in sun
     ctx.fillStyle='#06091A';
-    ctx.font=`bold ${size*0.38}px DM Sans,sans-serif`;
+    ctx.font=`bold ${s*0.19}px DM Sans,Arial,sans-serif`;
     ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('SS',size/2,size/2);
+    ctx.fillText('SS',cx,cy+s*0.01);
+
     return c.toDataURL('image/png');
   }
   const icon192=makePwaIcon(192);
