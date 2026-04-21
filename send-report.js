@@ -152,14 +152,23 @@ async function processCompany(coId, co, today) {
     return false;
   }
 
-  // ── 3. Load employees ──────────────────────────────────────────────────
+  // ── 3. Load employees + find company admin email ──────────────────────
   const usersSnap = await db.ref('users')
     .orderByChild('company_id').equalTo(coId).get();
   if (!usersSnap.exists()) {
-    console.log(`[SKIP] ${coName}: no employees`);
+    console.log(`[SKIP] ${coName}: no users found`);
     return false;
   }
   const allUsers = usersSnap.val();
+
+  // Get company admin email from users table
+  const adminUser = Object.values(allUsers).find(u => u.role === 'company_admin');
+  const adminEmail = adminUser ? adminUser.email : null;
+  if (!adminEmail) {
+    console.log(`[SKIP] ${coName}: company admin email not found`);
+    return false;
+  }
+
   const employees = Object.entries(allUsers)
     .filter(([, u]) => u.role === 'salesman' && u.status !== 'deleted_by_admin');
   if (!employees.length) {
@@ -275,10 +284,9 @@ async function processCompany(coId, co, today) {
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: { user: gmailUser, pass: gmailPass },
-    pool: false // Don't pool connections — close after each send
+    pool: false
   });
 
-  // Catch any transporter-level errors to prevent unhandled 'error' events
   transporter.on('error', (err) => {
     console.error(`[WARN] Transporter error for ${coName}:`, err.message);
   });
@@ -286,14 +294,13 @@ async function processCompany(coId, co, today) {
   try {
     await transporter.sendMail({
       from   : `"SunStar Solutions" <${gmailUser}>`,
-      to     : gmailUser,
-      cc     : ccEmails || undefined,
+      to     : adminEmail,          // Company admin receives the report
+      cc     : ccEmails || undefined, // CC list from company settings
       subject: `📊 Daily Report — ${coName} — ${today}`,
       html
     });
-    console.log(`[OK] Email sent for ${coName}`);
+    console.log(`[OK] Email sent for ${coName} → ${adminEmail}`);
   } finally {
-    // Always close transporter to free connections
     transporter.close();
   }
 
