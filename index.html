@@ -415,7 +415,7 @@ button{font-family:'DM Sans',sans-serif;}
 /* SUPER ADMIN SCREEN
 ════════════════════════════════════════════════ */
 #superScreen{display:none!important;min-height:100vh;}
-#superScreen.on{display:block!important;}
+#superScreen.on{display:flex!important;flex-direction:column;}
 .super-wrap{max-width:960px;margin:0 auto;padding:32px 22px;}
 .super-hd{
   display:flex;justify-content:space-between;align-items:flex-end;
@@ -1009,15 +1009,27 @@ button{font-family:'DM Sans',sans-serif;}
       <div class="admin-page" id="page-salesman">
         <div class="ph" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;">
           <div><div class="pt">Employees</div><div class="ps">Add and manage your field & office employees</div></div>
-          <button class="btn-add" onclick="openAddSalesmanModal()">➕ New Employee</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn-ghost" style="font-size:13px;padding:9px 16px;color:var(--ok);border-color:rgba(31,209,122,0.3);" onclick="exportEmpListExcel()">📥 Export Excel</button>
+            <button class="btn-add" onclick="openAddSalesmanModal()">➕ New Employee</button>
+          </div>
         </div>
-        <div class="dept-filter" id="smDeptFilter">
-          <button class="dept-btn active" onclick="filterSmList('all',this)">👥 All</button>
-          <button class="dept-btn" onclick="filterSmList('sales',this)" id="smFilterSales">📊 Sales</button>
-          <button class="dept-btn" onclick="filterSmList('backoffice',this)" id="smFilterBo">🏢 Back Office</button>
+        <!-- Search + Dept filter row -->
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px;">
+          <div style="flex:1;min-width:200px;position:relative;">
+            <input class="fi" id="smSearchInput" placeholder="🔍  Search by Name, Emp ID or Email..."
+              oninput="searchSmList()"
+              style="padding-left:14px;font-size:14px;height:42px;">
+          </div>
+          <div class="dept-filter" id="smDeptFilter" style="margin-bottom:0;">
+            <button class="dept-btn active" onclick="filterSmList('all',this)">👥 All</button>
+            <button class="dept-btn" onclick="filterSmList('sales',this)" id="smFilterSales">📊 Sales</button>
+            <button class="dept-btn" onclick="filterSmList('backoffice',this)" id="smFilterBo">🏢 Back Office</button>
+          </div>
         </div>
         <div class="tc" id="smListCard">
           <div id="smListBody"><div class="empty"><div class="empty-icon">👤</div>No employees found. Add a new one.</div></div>
+          <div id="smSearchNoResult" style="display:none;text-align:center;padding:30px;color:var(--txt-3);font-size:14px;">🔍 No employees match your search</div>
         </div>
       </div>
 
@@ -1306,7 +1318,8 @@ button{font-family:'DM Sans',sans-serif;}
 <!-- ══════════════════════════════════════════════
      SUPER ADMIN SCREEN
 ══════════════════════════════════════════════ -->
-<div id="superScreen" class="screen">
+<div id="superScreen">
+  <!-- Nav -->
   <div class="nav">
     <div class="nav-brand">
       <div style="width:32px;height:32px;"><img src="" class="ss-logo-img" style="width:100%;height:100%;object-fit:contain;" alt="SunStar"></div>
@@ -1321,114 +1334,145 @@ button{font-family:'DM Sans',sans-serif;}
       <button class="btn-out" onclick="doLogout()">Logout</button>
     </div>
   </div>
-  <div class="super-wrap">
-    <!-- Super Admin Tab Bar -->
-    <div style="display:flex;gap:0;margin-bottom:24px;border-bottom:1px solid var(--border);">
-      <button class="sa-tab active" id="sa-tab-companies" onclick="saTab('companies')" style="padding:12px 20px;background:none;border:none;border-bottom:2px solid var(--gold);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;">🏢 Companies</button>
-      <button class="sa-tab" id="sa-tab-report" onclick="saTab('report')" style="padding:12px 20px;background:none;border:none;border-bottom:2px solid transparent;color:var(--txt-2);font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.3px;">📊 All Reports</button>
+  <!-- Sidebar layout — same as Company Admin -->
+  <div class="admin-body">
+    <div class="sidebar">
+      <div class="sid-item active" id="sa-sid-overview" onclick="saPage('overview',this)"><span class="sid-icon">📊</span><span>Overview</span></div>
+      <div class="sid-item" id="sa-sid-companies" onclick="saPage('companies',this)"><span class="sid-icon">🏢</span><span>Companies</span></div>
+      <div class="sid-item" id="sa-sid-reports" onclick="saPage('reports',this)"><span class="sid-icon">📥</span><span>Reports</span></div>
     </div>
+    <div class="admin-main">
 
-    <!-- Companies Panel -->
-    <div id="sa-panel-companies">
-    <div class="super-hd">
-      <div><div class="pt">Companies</div><div class="ps">View and manage all companies</div></div>
-      <button class="btn-add" onclick="openAddCompanyModal()">➕ New Company</button>
-    </div>
-    <div class="ov-grid" style="margin-bottom:28px;">
-      <div class="ov-card"><div class="ov-icon">🏢</div><div class="ov-val" id="sa-companies">0</div><div class="ov-lbl">Total Companies</div></div>
-      <div class="ov-card"><div class="ov-icon">👥</div><div class="ov-val" id="sa-salesmen">0</div><div class="ov-lbl">Total Employees</div></div>
-      <div class="ov-card"><div class="ov-icon">✅</div><div class="ov-val" id="sa-today">0</div><div class="ov-lbl">Present Today</div></div>
-    </div>
-    <div class="co-grid" id="coGrid"><div class="empty"><div class="empty-icon">🏢</div>No companies found.</div></div>
-    </div><!-- end sa-panel-companies -->
-
-    <!-- All Reports Panel -->
-    <div id="sa-panel-report" style="display:none;">
-      <div class="super-hd">
-        <div><div class="pt">All Companies Reports</div><div class="ps">Export A/B/C reports across all companies — includes Company ID &amp; Name</div></div>
+      <!-- ── OVERVIEW PAGE ── -->
+      <div class="admin-page active" id="sa-page-overview">
+        <div class="ph"><div class="pt">Overview</div><div class="ps">Today's snapshot across all companies</div></div>
+        <!-- Summary cards -->
+        <div class="ov-grid" style="margin-bottom:28px;">
+          <div class="ov-card"><div class="ov-icon">🏢</div><div class="ov-val" id="sa-ov-companies">0</div><div class="ov-lbl">Total Companies</div></div>
+          <div class="ov-card"><div class="ov-icon">👥</div><div class="ov-val" id="sa-ov-employees">0</div><div class="ov-lbl">Total Employees</div></div>
+          <div class="ov-card"><div class="ov-icon">✅</div><div class="ov-val" id="sa-ov-present">0</div><div class="ov-lbl">Present Today</div></div>
+          <div class="ov-card"><div class="ov-icon">📍</div><div class="ov-val" id="sa-ov-visits">0</div><div class="ov-lbl">Visits Today</div></div>
+        </div>
+        <!-- Per-company activity table -->
+        <div class="tc">
+          <div class="tc-hd" style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="tc-title">Today's Company Activity</div>
+            <div style="font-size:12px;color:var(--txt-3);" id="sa-ov-date"></div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="tbl" id="sa-ov-table">
+              <thead><tr>
+                <th style="width:90px;">CO ID</th>
+                <th>Company</th>
+                <th style="width:110px;">Employees</th>
+                <th style="width:110px;">Present</th>
+                <th style="width:90px;">Visits</th>
+                <th style="width:100px;">Status</th>
+              </tr></thead>
+              <tbody id="sa-ov-tbody">
+                <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--txt-3);">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
-      <!-- Company filter — shared across all 3 reports -->
-      <div class="fbar" style="margin-bottom:24px;">
-        <div class="fg-sm"><label class="fl-sm">Company</label>
-          <select class="fsel-sm" id="saReportCompany"><option value="">All Companies</option></select>
+
+      <!-- ── COMPANIES PAGE ── -->
+      <div class="admin-page" id="sa-page-companies">
+        <div class="ph" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:14px;">
+          <div><div class="pt">Companies</div><div class="ps">Manage all registered companies</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn-ghost" style="font-size:13px;padding:9px 16px;color:var(--ok);border-color:rgba(31,209,122,0.3);" onclick="exportCompanyListExcel()">📥 Export Excel</button>
+            <button class="btn-add" onclick="openAddCompanyModal()">➕ New Company</button>
+          </div>
+        </div>
+        <!-- Search bar -->
+        <div style="margin-bottom:14px;">
+          <input class="fi" id="saCoSearchInput" placeholder="🔍  Search by Company Name, CO ID or Admin..."
+            oninput="searchCoList()" style="font-size:14px;height:42px;">
+        </div>
+        <!-- Company list table -->
+        <div class="tc" id="saCoListCard">
+          <div id="saCoListBody"><div class="empty"><div class="empty-icon">🏢</div>No companies found.</div></div>
+          <div id="saCoSearchNoResult" style="display:none;text-align:center;padding:30px;color:var(--txt-3);font-size:14px;">🔍 No companies match your search</div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;">
 
-        <!-- SA Report A — History -->
-        <div class="ov-card" style="cursor:default;">
-          <div class="ov-icon">📋</div>
-          <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">A — History Report</div>
-          <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">All In / Out / Visit events by date range</div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
-            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
-              <select class="fsel-sm" id="saRptHistType" style="width:100%;min-width:unset;">
-                <option value="all">All Employees</option>
-                <option value="sales">Sales Only</option>
-                <option value="backoffice">Back Office Only</option>
-              </select>
-            </div>
-            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="saRptHistStart" style="width:100%;min-width:unset;"></div>
-            <div class="fg-sm" style="width:100%;"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="saRptHistEnd" style="width:100%;min-width:unset;"></div>
-          </div>
-          <button class="btn-exp" style="width:100%;justify-content:center;" onclick="exportSAHistExcel()">📊 Excel</button>
+      <!-- ── REPORTS PAGE ── -->
+      <div class="admin-page" id="sa-page-reports">
+        <div class="ph">
+          <div class="pt">All Reports</div>
+          <div class="ps">Export A / B / C reports across all companies</div>
         </div>
-
-        <!-- SA Report B — Attendance Summary -->
-        <div class="ov-card" style="cursor:default;">
-          <div class="ov-icon">📆</div>
-          <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">B — Attendance Summary</div>
-          <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Monthly Present/Absent/Holiday matrix per employee</div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
-            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
-              <select class="fsel-sm" id="saRptSumType" style="width:100%;min-width:unset;">
-                <option value="all">All Employees</option>
-                <option value="sales">Sales Only</option>
-                <option value="backoffice">Back Office Only</option>
-              </select>
-            </div>
-            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Month</label>
-              <select class="fsel-sm" id="saRptSumMonth" style="width:100%;min-width:unset;">
-                <option value="1">January</option><option value="2">February</option>
-                <option value="3">March</option><option value="4">April</option>
-                <option value="5">May</option><option value="6">June</option>
-                <option value="7">July</option><option value="8">August</option>
-                <option value="9">September</option><option value="10">October</option>
-                <option value="11">November</option><option value="12">December</option>
-              </select>
-            </div>
-            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Year</label>
-              <input class="fi-sm" type="number" id="saRptSumYear" min="2020" max="2035" style="width:100%;min-width:unset;">
-            </div>
+        <!-- Company filter -->
+        <div class="fbar" style="margin-bottom:24px;">
+          <div class="fg-sm"><label class="fl-sm">Filter by Company</label>
+            <select class="fsel-sm" id="saReportCompany"><option value="">All Companies</option></select>
           </div>
-          <button class="btn-exp" style="width:100%;justify-content:center;" onclick="exportSASumExcel()">📊 Excel</button>
         </div>
-
-        <!-- SA Report C — Late & Overtime -->
-        <div class="ov-card" style="cursor:default;">
-          <div class="ov-icon">⏰</div>
-          <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">C — Late &amp; Overtime Report</div>
-          <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Check-in/out vs shift time — late, early out &amp; overtime</div>
-          <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
-            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
-              <select class="fsel-sm" id="saRptLateType" style="width:100%;min-width:unset;">
-                <option value="all">All Employees</option>
-                <option value="sales">Sales Only</option>
-                <option value="backoffice">Back Office Only</option>
-              </select>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px;">
+          <!-- SA Report A -->
+          <div class="ov-card" style="cursor:default;">
+            <div class="ov-icon">📋</div>
+            <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">A — History Report</div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">All In / Out / Visit events by date range</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
+                <select class="fsel-sm" id="saRptHistType" style="width:100%;min-width:unset;">
+                  <option value="all">All Employees</option><option value="sales">Sales Only</option><option value="backoffice">Back Office Only</option>
+                </select>
+              </div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="saRptHistStart" style="width:100%;min-width:unset;"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="saRptHistEnd" style="width:100%;min-width:unset;"></div>
             </div>
-            <div class="fg-sm" style="width:100%;"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="saRptLateStart" style="width:100%;min-width:unset;"></div>
-            <div class="fg-sm" style="width:100%;"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="saRptLateEnd" style="width:100%;min-width:unset;"></div>
+            <button class="btn-exp" style="width:100%;justify-content:center;" onclick="exportSAHistExcel()">📊 Excel</button>
           </div>
-          <button class="btn-exp" style="width:100%;justify-content:center;" onclick="exportSALateExcel()">📊 Excel</button>
+          <!-- SA Report B -->
+          <div class="ov-card" style="cursor:default;">
+            <div class="ov-icon">📆</div>
+            <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">B — Attendance Summary</div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Monthly Present/Absent/Holiday matrix per employee</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
+                <select class="fsel-sm" id="saRptSumType" style="width:100%;min-width:unset;">
+                  <option value="all">All Employees</option><option value="sales">Sales Only</option><option value="backoffice">Back Office Only</option>
+                </select>
+              </div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Month</label>
+                <select class="fsel-sm" id="saRptSumMonth" style="width:100%;min-width:unset;">
+                  <option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option>
+                  <option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option>
+                  <option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                </select>
+              </div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="saRptSumYear" min="2020" max="2035" style="width:100%;min-width:unset;"></div>
+            </div>
+            <button class="btn-exp" style="width:100%;justify-content:center;" onclick="exportSASumExcel()">📊 Excel</button>
+          </div>
+          <!-- SA Report C -->
+          <div class="ov-card" style="cursor:default;">
+            <div class="ov-icon">⏰</div>
+            <div style="font-size:17px;font-weight:700;margin:12px 0 4px;">C — Late &amp; Overtime</div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Check-in/out vs shift — late, early out &amp; overtime</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Type</label>
+                <select class="fsel-sm" id="saRptLateType" style="width:100%;min-width:unset;">
+                  <option value="all">All Employees</option><option value="sales">Sales Only</option><option value="backoffice">Back Office Only</option>
+                </select>
+              </div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="saRptLateStart" style="width:100%;min-width:unset;"></div>
+              <div class="fg-sm" style="width:100%;"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="saRptLateEnd" style="width:100%;min-width:unset;"></div>
+            </div>
+            <button class="btn-exp" style="width:100%;justify-content:center;" onclick="exportSALateExcel()">📊 Excel</button>
+          </div>
         </div>
+        <!-- hidden compat fields -->
+        <input type="hidden" id="saReportFrom"><input type="hidden" id="saReportTo">
+        <div id="saReportContent" style="display:none;"></div>
+      </div>
 
-      </div><!-- end grid -->
-      <!-- hidden fields kept for initSAReport compat -->
-      <input type="hidden" id="saReportFrom"><input type="hidden" id="saReportTo">
-      <div id="saReportContent" style="display:none;"></div>
-    </div>
-  </div>
+    </div><!-- end admin-main -->
+  </div><!-- end admin-body -->
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -2146,81 +2190,220 @@ async function initSuperAdmin(){
     show('superScreen');
     document.getElementById('saAvNav').textContent=APP.userData.name[0].toUpperCase();
     document.getElementById('saNmNav').textContent=APP.userData.name;
-    document.getElementById('coGrid').innerHTML='<div class="empty"><div class="empty-icon">⏳</div>Loading companies...</div>';
+    // Set default dates for reports
     const today=todayStr();
-    const fromEl=document.getElementById('saReportFrom');
-    const toEl=document.getElementById('saReportTo');
-    if(fromEl&&!fromEl.value) fromEl.value=today;
-    if(toEl&&!toEl.value) toEl.value=today;
-    await loadSuperDashboard();
+    ['saReportFrom','saReportTo','saRptHistStart','saRptHistEnd','saRptLateStart','saRptLateEnd'].forEach(id=>{
+      const el=document.getElementById(id); if(el&&!el.value) el.value=today;
+    });
+    const now2=new Date();
+    const smEl=document.getElementById('saRptSumMonth'); if(smEl&&!smEl.value) smEl.value=String(now2.getMonth()+1);
+    const syEl=document.getElementById('saRptSumYear');  if(syEl&&!syEl.value) syEl.value=String(now2.getFullYear());
+    document.getElementById('sa-ov-date').textContent=today;
+    // Load Overview first (default page)
+    await loadSAOverview();
   }catch(e){
-    console.error('Super admin init error:',e);
     show('superScreen');
     toast('Error loading dashboard: '+e.message,'err');
   }
 }
 
-async function loadSuperDashboard(){
-  loading('Loading companies...');
+// Cache for company list data
+let SA_coDetails=[];
+
+async function loadSAOverview(){
+  loading('Loading overview...');
   try{
     const coSnap=await db.ref('companies').get();
     const companies=coSnap.exists()?coSnap.val():{};
     const ids=Object.keys(companies);
-    document.getElementById('sa-companies').textContent=ids.length;
     const today=todayStr();
-    const grid=document.getElementById('coGrid');
-    if(ids.length===0){ grid.innerHTML='<div class="empty"><div class="empty-icon">🏢</div>No companies found. Add a new one.</div>'; doneLoading(); return; }
 
-    // Load all company data in parallel for speed
+    if(!ids.length){
+      document.getElementById('sa-ov-companies').textContent='0';
+      document.getElementById('sa-ov-employees').textContent='0';
+      document.getElementById('sa-ov-present').textContent='0';
+      document.getElementById('sa-ov-visits').textContent='0';
+      document.getElementById('sa-ov-tbody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--txt-3);">No companies found. Add one to get started.</td></tr>';
+      doneLoading(); return;
+    }
+
+    // Load all companies in parallel
     const details=await Promise.all(ids.map(async id=>{
       const co=companies[id];
-      const [smSnap, attSnap]=await Promise.all([
+      const [smSnap,attSnap,visSnap]=await Promise.all([
         db.ref('users').orderByChild('company_id').equalTo(id).get(),
-        db.ref(`attendance/${id}/${today}`).get()
+        db.ref(`attendance/${id}/${today}`).get(),
+        db.ref(`visits/${id}/${today}`).get()
       ]);
-      const smCount=smSnap.exists()?Object.values(smSnap.val()).filter(u=>u.role==='salesman'&&u.status!=='deleted_by_admin').length:0;
-      // Count employees who checked in today (present)
+      const emps=smSnap.exists()?Object.values(smSnap.val()).filter(u=>u.role==='salesman'&&u.status!=='deleted_by_admin'):[];
       const presentToday=attSnap.exists()?Object.keys(attSnap.val()).length:0;
-      return {id, ...co, smCount, presentToday};
+      const visitsToday=visSnap.exists()?Object.keys(visSnap.val()).length:0;
+      return {id,co_id:co.co_id||'—',name:co.name||id,admin_name:co.admin_name||'—',
+              modules:co.modules||{sales:true},status:co.status||'active',
+              admin_uid:co.admin_uid,holidays:co.holidays||[0],
+              smCount:emps.length,presentToday,visitsToday};
     }));
+    SA_coDetails=details;
 
-    let totalSalesmen=0, totalPresent=0;
-    details.forEach(co=>{ totalSalesmen+=co.smCount; totalPresent+=co.presentToday; });
-    document.getElementById('sa-salesmen').textContent=totalSalesmen;
-    document.getElementById('sa-today').textContent=totalPresent;
+    // Update summary cards
+    const totalEmp=details.reduce((s,c)=>s+c.smCount,0);
+    const totalPresent=details.reduce((s,c)=>s+c.presentToday,0);
+    const totalVisits=details.reduce((s,c)=>s+c.visitsToday,0);
+    document.getElementById('sa-ov-companies').textContent=ids.length;
+    // Also keep old IDs in sync for any references
+    const saCoEl=document.getElementById('sa-companies'); if(saCoEl) saCoEl.textContent=ids.length;
+    const saSMEl=document.getElementById('sa-salesmen'); if(saSMEl) saSMEl.textContent=totalEmp;
+    const saTdEl=document.getElementById('sa-today');    if(saTdEl) saTdEl.textContent=totalPresent;
+    document.getElementById('sa-ov-employees').textContent=totalEmp;
+    document.getElementById('sa-ov-present').textContent=totalPresent;
+    document.getElementById('sa-ov-visits').textContent=totalVisits;
 
-    grid.innerHTML=details.map(co=>{
-      const mods=co.modules||{sales:true};
-      const modBadge=mods.sales&&mods.backoffice?'<span class="mod-badge mod-both">Sales + Back Office</span>':
-        mods.sales?'<span class="mod-badge mod-sales">Sales</span>':
-        '<span class="mod-badge mod-bo">Back Office</span>';
-      const holidays=co.holidays||[0];
-      const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-      const holidayText=holidays.map(d=>dayNames[d]).join(', ');
-      return `
-      <div class="co-card" style="${co.status==='inactive'?'opacity:.7;':''}">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;">
-          <div class="co-nm">${co.name}${co.status==='inactive'?' <span style="font-size:12px;color:var(--err);">● Inactive</span>':''}</div>
-          ${co.co_id?`<span style="font-size:10px;font-weight:800;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:8px;padding:2px 8px;white-space:nowrap;flex-shrink:0;">${co.co_id}</span>`:''}
-        </div>
-        <div style="margin-bottom:8px;">${modBadge}</div>
-        <div class="co-meta">${co.co_id?`<span style="font-weight:800;color:var(--gold);">${co.co_id}</span> &nbsp;|&nbsp; `:''}Admin: ${co.admin_name||'—'} &nbsp;|&nbsp; 🏖 ${holidayText}</div>
-        <div class="co-stats">
-          <div><div class="co-sv">${co.smCount}</div><div class="co-sl">Employees</div></div>
-          <div><div class="co-sv" style="color:var(--ok);">${co.presentToday}</div><div class="co-sl">Present Today</div></div>
-        </div>
-        <div class="co-acts">
-          <button class="btn-sm-g" onclick="openCoMgmt('${co.id}','${co.admin_uid}','${co.name.replace(/'/g,"\\'")}')">⚙️ Manage</button>
-          <button class="btn-sm-g" onclick="openCoSettings('${co.id}','${co.name.replace(/'/g,"\\'")}')">🔧 Settings</button>
-          <button class="btn-sm-g" style="${co.status==='inactive'?'color:var(--ok);border-color:rgba(31,209,122,0.3);':''}"
-            onclick="toggleCompanyStatus('${co.id}','${co.name.replace(/'/g,"\\'")}','${co.admin_uid}','${co.status==='inactive'?'active':'inactive'}')">
-            ${co.status==='inactive'?'✅':'🚫'}</button>
-          <button class="btn-sm-d" onclick="deleteCompanyConfirm('${co.id}','${co.name.replace(/'/g,"\\'")}')">🗑</button>
-        </div>
-      </div>`;
+    // Overview table
+    const tbody=document.getElementById('sa-ov-tbody');
+    tbody.innerHTML=details.map(co=>{
+      const isInactive=co.status==='inactive';
+      const statusBadge=isInactive
+        ?'<span style="color:var(--err);font-size:11px;font-weight:700;">● Inactive</span>'
+        :'<span style="color:var(--ok);font-size:11px;font-weight:700;">● Active</span>';
+      const mods=co.modules;
+      const modText=mods.sales&&mods.backoffice?'Sales + BO':mods.sales?'Sales':'Back Office';
+      return `<tr style="opacity:${isInactive?0.7:1};">
+        <td style="font-size:11px;font-weight:800;color:var(--gold);">${co.co_id}</td>
+        <td>
+          <div style="font-weight:700;font-size:13px;">${co.name}</div>
+          <div style="font-size:11px;color:var(--txt-2);">Admin: ${co.admin_name} &nbsp;|&nbsp; ${modText}</div>
+        </td>
+        <td style="text-align:center;font-weight:700;font-size:14px;">${co.smCount}</td>
+        <td style="text-align:center;font-weight:700;font-size:14px;color:var(--ok);">${co.presentToday}</td>
+        <td style="text-align:center;font-weight:700;font-size:14px;color:var(--info);">${co.visitsToday}</td>
+        <td style="text-align:center;">${statusBadge}</td>
+      </tr>`;
     }).join('');
+
+    // Also render the Companies list (so it's ready when user switches)
+    renderCoList();
     doneLoading();
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
+}
+
+// Keep old loadSuperDashboard as alias for compatibility (modals call it)
+async function loadSuperDashboard(){ await loadSAOverview(); }
+
+function renderCoList(){
+  const body=document.getElementById('saCoListBody');
+  if(!body) return;
+  const srch=document.getElementById('saCoSearchInput'); if(srch) srch.value='';
+  if(!SA_coDetails.length){
+    body.innerHTML='<div class="empty"><div class="empty-icon">🏢</div>No companies found. Add one to get started.</div>';
+    return;
+  }
+  body.innerHTML=SA_coDetails.map(co=>{
+    const isInactive=co.status==='inactive';
+    const mods=co.modules||{sales:true};
+    const modBadge=mods.sales&&mods.backoffice
+      ?'<span class="mod-badge mod-both">Sales + Back Office</span>'
+      :mods.sales?'<span class="mod-badge mod-sales">Sales</span>'
+      :'<span class="mod-badge mod-bo">Back Office</span>';
+    const searchStr=((co.co_id||'')+' '+(co.name||'')+' '+(co.admin_name||'')).toLowerCase();
+    return `<div class="sm-list-item" data-search="${searchStr}" style="opacity:${isInactive?0.7:1};flex-wrap:wrap;gap:10px;">
+      <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:200px;">
+        <div class="sm-av" style="background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${(co.name||'?')[0].toUpperCase()}</div>
+        <div style="min-width:0;">
+          <div class="sm-nm" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;">
+            ${co.co_id&&co.co_id!=='—'?`<span style="font-size:10px;font-weight:800;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:6px;padding:1px 7px;">${co.co_id}</span>`:''}
+            ${co.name}
+            ${isInactive?'<span style="font-size:10px;color:var(--err);font-weight:600;background:rgba(255,68,102,0.1);padding:2px 8px;border-radius:10px;">Inactive</span>':''}
+            ${modBadge}
+          </div>
+          <div class="sm-em">Admin: ${co.admin_name} &nbsp;|&nbsp; 👥 ${co.smCount} employees &nbsp;|&nbsp; ✅ ${co.presentToday} present today</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+        <button class="btn-ghost" style="font-size:12px;padding:7px 10px;" onclick="openCoMgmt('${co.id}','${co.admin_uid}','${co.name.replace(/'/g,"\\'")}')">⚙️ Manage</button>
+        <button class="btn-ghost" style="font-size:12px;padding:7px 10px;" onclick="openCoSettings('${co.id}','${co.name.replace(/'/g,"\\'")}')">🔧 Settings</button>
+        <button class="btn-ghost" style="font-size:12px;padding:7px 10px;${isInactive?'color:var(--ok);border-color:rgba(31,209,122,0.3);':''}"
+          onclick="toggleCompanyStatus('${co.id}','${co.name.replace(/'/g,"\\'")}','${co.admin_uid}','${co.status==='inactive'?'active':'inactive'}')">
+          ${isInactive?'✅':'🚫'}</button>
+        <button class="btn-danger" style="padding:7px 10px;font-size:12px;" onclick="deleteCompanyConfirm('${co.id}','${co.name.replace(/'/g,"\\'")}')">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function searchCoList(){
+  const query=(document.getElementById('saCoSearchInput')?.value||'').trim().toLowerCase();
+  const items=document.querySelectorAll('#saCoListBody .sm-list-item');
+  let visible=0;
+  items.forEach(item=>{
+    const s=item.getAttribute('data-search')||'';
+    const show=!query||s.includes(query);
+    item.style.display=show?'':'none';
+    if(show) visible++;
+  });
+  const noRes=document.getElementById('saCoSearchNoResult');
+  if(noRes) noRes.style.display=(items.length>0&&visible===0)?'block':'none';
+}
+
+async function exportCompanyListExcel(){
+  if(!SA_coDetails.length){ toast('No companies to export','err'); return; }
+  loading('Generating Company List Excel...');
+  await ensureReportLibs();
+  try{
+    const wb=new ExcelJS.Workbook();
+    const ws=wb.addWorksheet('Companies');
+    const headers=['CO ID','Company Name','Admin Name','Modules','Status','Employees','Present Today','Weekly Holiday','Mail Report','Created'];
+    const colWidths=[10,28,22,20,12,12,14,18,14,20];
+    const nc=headers.length;
+    const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+    const titleDefs=[
+      {v:'SunStar Solutions',sz:18,bold:true,fg:'FFEFA800',bg:'FF06091A',h:30},
+      {v:'All Companies List',sz:12,bold:true,fg:'FFF0F4FF',bg:'FF0C1229',h:22},
+      {v:`Total: ${SA_coDetails.length} companies`,sz:10,bold:false,fg:'FF7A8DB8',bg:'FF0C1229',h:18},
+      {v:`Generated: ${new Date().toLocaleString('en-IN')}`,sz:9,bold:false,fg:'FF3E4E78',bg:'FF0C1229',h:14},
+    ];
+    titleDefs.forEach((td,ri)=>{
+      ws.getRow(ri+1).height=td.h;
+      const cell=ws.getCell(ri+1,1);
+      cell.value=td.v;
+      xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+      ws.mergeCells(ri+1,1,ri+1,nc);
+    });
+    ws.getRow(5).height=22;
+    headers.forEach((h,ci)=>{
+      const cell=ws.getCell(5,ci+1);
+      cell.value=h;
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
+    });
+
+    SA_coDetails.forEach((co,i)=>{
+      const rowNum=6+i;
+      ws.getRow(rowNum).height=17;
+      const isInactive=co.status==='inactive';
+      const altBg=isInactive?'FFFFF8E8':i%2===0?'FFFFFFFF':'FFEEF2FF';
+      const mods=co.modules||{sales:true};
+      const modText=mods.sales&&mods.backoffice?'Sales + Back Office':mods.sales?'Sales':'Back Office';
+      const holText=(co.holidays||[0]).map(d=>dayNames[d]).join(', ');
+      const vals=[co.co_id,co.name,co.admin_name,modText,isInactive?'Inactive':'Active',co.smCount,co.presentToday,holText,'—','—'];
+      vals.forEach((v,ci)=>{
+        const cell=ws.getCell(rowNum,ci+1);
+        cell.value=v;
+        const leftA=ci===1||ci===2||ci===3||ci===7;
+        xlsStyle(cell,{bg:altBg,fg:'FF1A2850',sz:10,align:leftA?'left':'center'});
+        if(ci===0) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFEFA800'}};
+        if(ci===4) cell.font={name:'Calibri',size:10,bold:true,color:{argb:isInactive?'FFFF4466':'FF1FD17A'}};
+      });
+    });
+
+    colWidths.forEach((w,i)=>ws.getColumn(i+1).width=w);
+    ws.views=[{state:'frozen',xSplit:0,ySplit:5,topLeftCell:'A6',activeCell:'A6'}];
+    ws.autoFilter={from:{row:5,column:1},to:{row:5,column:nc}};
+    await xlsDownload(wb,`SunStar_CompanyList_${new Date().toISOString().slice(0,10)}`);
+    doneLoading(); toast('Company List Excel downloading! 📥');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
 }
 
 
@@ -2367,9 +2550,12 @@ async function saveSalesmanEdit(){
     const empTypeEl=document.getElementById('esEmpType');
     if(empTypeEl) updates.emp_type=empTypeEl.value;
     // Shift from template dropdown
+    // In SA context use _saEditTemplates, in Company Admin context use APP.shiftTemplates
+    const isSAContext=document.getElementById('esUid').getAttribute('data-sa-context')==='1';
+    const shiftTemplates=isSAContext?(window._saEditTemplates||[]):(APP.shiftTemplates||[]);
     const selShift=document.getElementById('esShiftSelect')?.value;
     if(selShift){
-      const tmpl=(APP.shiftTemplates||[]).find(t=>t.name===selShift);
+      const tmpl=shiftTemplates.find(t=>t.name===selShift);
       if(tmpl){ updates.shift_in=tmpl.shift_in; updates.shift_out=tmpl.shift_out; updates.greeting_period=tmpl.grace; updates.shift_template_name=tmpl.name; }
     } else {
       // No template selected = use company default (clear overrides)
@@ -2379,8 +2565,14 @@ async function saveSalesmanEdit(){
     Object.keys(updates).forEach(k=>{ if(updates[k]===null) delete updates[k]; });
     await db.ref(`users/${uid}`).update(updates);
 
+    // Clear SA context flag
+    document.getElementById('esUid').removeAttribute('data-sa-context');
+    window._saEditTemplates=[];
+
     doneLoading(); toast('Employee updated successfully! ✅');
-    await loadSalesmen();
+    // Reload correct list based on context
+    if(isSAContext){ await loadCoMgmtSalesmen(); await loadSuperDashboard(); }
+    else { await loadSalesmen(); }
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
@@ -2799,17 +2991,59 @@ async function editSalesmanSA(uid){
     document.getElementById('esErr').style.display='none';
     const empTypeSel=document.getElementById('esEmpType');
     if(empTypeSel) empTypeSel.value=u.emp_type||'sales';
-    // Always show emp type
     const wrap=document.getElementById('esEmpTypeWrap');
     if(wrap) wrap.style.display='block';
     // Show emp_id (read-only)
     const idDisp=document.getElementById('esEmpIdDisplay');
     const idVal=document.getElementById('esEmpIdVal');
     if(idDisp&&idVal){ if(u.emp_id){ idVal.textContent=u.emp_id; idDisp.style.display='block'; } else { idDisp.style.display='none'; } }
-    // Shift override fields
+
+    // Load this company's shift templates and populate dropdown
+    const coId=u.company_id||SA_currentCoId;
+    let coTemplates=[];
+    try{
+      const coSnap=await db.ref(`companies/${coId}`).get();
+      if(coSnap.exists()){
+        const co=coSnap.val();
+        coTemplates=Array.isArray(co.shift_templates)?co.shift_templates:[];
+        if(!coTemplates.length && co.shift_in){
+          coTemplates=[{name:'Default Shift',shift_in:co.shift_in,shift_out:co.shift_out||'18:00',grace:co.greeting_period??15,is_default:true}];
+        }
+      }
+    }catch(e){ coTemplates=[]; }
+
+    // Temporarily override APP.shiftTemplates for this SA edit session
+    window._saEditTemplates=coTemplates;
+    // Populate esShiftSelect using SA templates
+    const esSel=document.getElementById('esShiftSelect');
+    if(esSel){
+      esSel.innerHTML='<option value="">— Use Company Default —</option>';
+      coTemplates.forEach(t=>{
+        const opt=document.createElement('option');
+        opt.value=t.name;
+        opt.textContent=t.name+(t.is_default?' (Default)':'')+' — '+t.shift_in+' to '+t.shift_out;
+        if(t.name===(u.shift_template_name||'')) opt.selected=true;
+        esSel.appendChild(opt);
+      });
+    }
+    // Show preview if a template is selected
+    const prev=document.getElementById('esShiftPreview');
+    if(prev){
+      const selName=u.shift_template_name||'';
+      const selTmpl=coTemplates.find(t=>t.name===selName);
+      if(selTmpl&&selName){
+        prev.style.display='block';
+        prev.innerHTML=`🕐 ${selTmpl.shift_in} – ${selTmpl.shift_out} &nbsp;|&nbsp; Grace: ${selTmpl.grace} min`;
+      } else {
+        prev.style.display='none';
+      }
+    }
+    // Set hidden fields for compat
     document.getElementById('esShiftIn').value=u.shift_in||'';
     document.getElementById('esShiftOut').value=u.shift_out||'';
     document.getElementById('esGreeting').value=u.greeting_period!=null?u.greeting_period:'';
+    // Mark this modal as SA context so saveSalesmanEdit uses correct templates + reload
+    document.getElementById('esUid').setAttribute('data-sa-context','1');
     doneLoading(); openModal('editSalesmanModal');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -2858,8 +3092,8 @@ async function initAdmin(){
 }
 
 function adminPage(page,el){
-  document.querySelectorAll('.admin-page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.sid-item').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#adminScreen .admin-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#adminScreen .sid-item').forEach(s=>s.classList.remove('active'));
   document.getElementById(`page-${page}`).classList.add('active');
   el.classList.add('active');
   if(page==='map') setTimeout(()=>{ initMap(); if(APP.mapInstance) APP.mapInstance.invalidateSize(); },150);
@@ -2961,7 +3195,10 @@ function onShiftSelectChange(prefix){
     if(prev) prev.style.display='none';
     return;
   }
-  const tmpl = (APP.shiftTemplates||[]).find(t=>t.name===val);
+  // Use SA edit templates if in SA context, else company admin templates
+  const isSACtx = prefix==='es' && document.getElementById('esUid')?.getAttribute('data-sa-context')==='1';
+  const templates = isSACtx ? (window._saEditTemplates||[]) : (APP.shiftTemplates||[]);
+  const tmpl = templates.find(t=>t.name===val);
   if(tmpl && prev){
     prev.style.display='block';
     prev.innerHTML=`🕐 ${tmpl.shift_in} – ${tmpl.shift_out} &nbsp;|&nbsp; Grace: ${tmpl.grace} min`;
@@ -3076,6 +3313,9 @@ async function loadSalesmen(){
 }
 
 function renderSalesmanList(){
+  // Clear search box so all employees show after add/edit/delete
+  const srch=document.getElementById('smSearchInput');
+  if(srch) srch.value='';
   const allEntries=Object.entries(APP.salesmen);
   const body=document.getElementById('smListBody');
   if(allEntries.length===0){ body.innerHTML='<div class="empty"><div class="empty-icon">👤</div>No salesman found. Add a new one.</div>'; return; }
@@ -3091,7 +3331,7 @@ function renderSalesmanList(){
       :'<span class="mod-badge mod-sales" style="font-size:10px;padding:2px 7px;margin-left:6px;">Sales</span>';
     const inactiveBadge=isInactive?'<span style="font-size:10px;color:var(--err);font-weight:600;background:rgba(255,68,102,0.1);padding:2px 8px;border-radius:10px;margin-left:6px;">Inactive</span>':'';
     const empIdBadge=u.emp_id?`<span style="font-size:10px;font-weight:800;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.25);border-radius:6px;padding:1px 7px;margin-right:8px;">${u.emp_id}</span>`:'';
-    return `<div class="sm-list-item" data-dept="${isBo?'backoffice':'sales'}" style="opacity:${isInactive?0.65:1};">
+    return `<div class="sm-list-item" data-dept="${isBo?'backoffice':'sales'}" data-search="${((u.emp_id||'')+' '+(u.name||'')+' '+(u.email||'')).toLowerCase()}" style="opacity:${isInactive?0.65:1};">
       <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;">
         <div class="sm-av" style="background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${u.name[0].toUpperCase()}</div>
         <div style="min-width:0;">
@@ -3127,6 +3367,111 @@ function renderSalesmanList(){
   body.innerHTML=html;
 }
 
+async function exportEmpListExcel(){
+  if(!Object.keys(APP.salesmen).length){ toast('No employees to export','err'); return; }
+  loading('Generating Employee List Excel...');
+  await ensureReportLibs();
+  try{
+    const co=getCompanyName();
+    const wb=new ExcelJS.Workbook();
+    const ws=wb.addWorksheet('Employees');
+    const headers=['Emp ID','Name','Type','Email','Status','Shift In','Shift Out','Grace (min)','Shift Template','Created'];
+    const colWidths=[12,24,14,32,12,12,12,13,20,20];
+    const nc=headers.length;
+
+    // Title block
+    const titleDefs=[
+      {v:'SunStar Solutions',sz:18,bold:true,fg:'FFEFA800',bg:'FF06091A',h:30},
+      {v:`${co} — Employee List`,sz:12,bold:true,fg:'FFF0F4FF',bg:'FF0C1229',h:22},
+      {v:`Total: ${Object.values(APP.salesmen).filter(u=>u.status!=='deleted_by_admin').length} active employees`,sz:10,bold:false,fg:'FF7A8DB8',bg:'FF0C1229',h:18},
+      {v:`Generated: ${new Date().toLocaleString('en-IN')}`,sz:9,bold:false,fg:'FF3E4E78',bg:'FF0C1229',h:14},
+    ];
+    titleDefs.forEach((td,ri)=>{
+      ws.getRow(ri+1).height=td.h;
+      const cell=ws.getCell(ri+1,1);
+      cell.value=td.v;
+      xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+      ws.mergeCells(ri+1,1,ri+1,nc);
+    });
+
+    // Header row
+    ws.getRow(5).height=22;
+    headers.forEach((h,ci)=>{
+      const cell=ws.getCell(5,ci+1);
+      cell.value=h;
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
+    });
+
+    // Sort: active first by EMP ID, then inactive, then deleted
+    const statusOrder={active:0,inactive:1,deleted_by_admin:2};
+    const sorted=Object.entries(APP.salesmen).sort(([,a],[,b])=>{
+      const so=(statusOrder[a.status||'active']||0)-(statusOrder[b.status||'active']||0);
+      if(so!==0) return so;
+      const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999);
+      const nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999);
+      return na-nb;
+    });
+
+    sorted.forEach(([,u],i)=>{
+      const rowNum=6+i;
+      ws.getRow(rowNum).height=17;
+      const isDeleted=u.status==='deleted_by_admin';
+      const isInactive=u.status==='inactive';
+      const altBg=isDeleted?'FFFFF0F0':isInactive?'FFFFF8E8':i%2===0?'FFFFFFFF':'FFEEF2FF';
+
+      // Resolve shift
+      const shift=getEmpShift(Object.entries(APP.salesmen).find(([,v])=>v===u)?.[0]||'');
+      const shiftTemplateName=u.shift_template_name||(u.shift_in?'Custom':'Company Default');
+      const statusLabel=isDeleted?'Removed':isInactive?'Inactive':'Active';
+      const statusFg=isDeleted?'FFFF4466':isInactive?'FFFF9900':'FF1FD17A';
+
+      const created=u.created_at?new Date(u.created_at).toLocaleDateString('en-IN'):'—';
+      const vals=[
+        u.emp_id||'—',
+        u.name||'—',
+        u.emp_type==='backoffice'?'Back Office':'Sales',
+        u.email||'—',
+        statusLabel,
+        shift.shiftIn,
+        shift.shiftOut,
+        shift.greeting,
+        shiftTemplateName,
+        created
+      ];
+
+      vals.forEach((v,ci)=>{
+        const cell=ws.getCell(rowNum,ci+1);
+        cell.value=v;
+        const leftAlign=ci===1||ci===3||ci===8;
+        xlsStyle(cell,{bg:altBg,fg:'FF1A2850',sz:10,align:leftAlign?'left':'center'});
+        // Status color
+        if(ci===4){
+          cell.font={name:'Calibri',size:10,bold:true,color:{argb:statusFg}};
+        }
+        // Type color
+        if(ci===2){
+          const tc=u.emp_type==='backoffice'?'FF065F46':'FF1A5FA8';
+          cell.font={name:'Calibri',size:10,bold:true,color:{argb:tc}};
+        }
+        // Emp ID color
+        if(ci===0){
+          cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF1E40AF'}};
+        }
+      });
+    });
+
+    colWidths.forEach((w,i)=>ws.getColumn(i+1).width=w);
+    ws.views=[{state:'frozen',xSplit:0,ySplit:5,topLeftCell:'A6',activeCell:'A6'}];
+    ws.autoFilter={from:{row:5,column:1},to:{row:5,column:nc}};
+
+    await xlsDownload(wb,`${co}_EmployeeList_${new Date().toISOString().slice(0,10)}`);
+    doneLoading(); toast('Employee List Excel downloading! 📥');
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
+}
+
 async function editSalesmanAdmin(uid){
   loading('Loading employee...');
   try{
@@ -3153,6 +3498,8 @@ async function editSalesmanAdmin(uid){
     document.getElementById('esShiftIn').value=u.shift_in||'';
     document.getElementById('esShiftOut').value=u.shift_out||'';
     document.getElementById('esGreeting').value=u.greeting_period!=null?u.greeting_period:'';
+    // Ensure SA context flag is NOT set (this is Company Admin context)
+    document.getElementById('esUid').removeAttribute('data-sa-context');
     doneLoading();
     openModal('editSalesmanModal');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
@@ -3226,12 +3573,25 @@ function filterSmList(type, btn){
   currentSmFilter=type;
   document.querySelectorAll('#smDeptFilter .dept-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
+  searchSmList(); // re-apply search with new dept filter
+}
+
+function searchSmList(){
+  const query=(document.getElementById('smSearchInput')?.value||'').trim().toLowerCase();
   const items=document.querySelectorAll('#smListBody .sm-list-item');
+  let visibleCount=0;
   items.forEach(item=>{
-    if(type==='all'){ item.style.display=''; return; }
     const dept=item.getAttribute('data-dept')||'sales';
-    item.style.display=(dept===type)?'':'none';
+    const searchStr=item.getAttribute('data-search')||'';
+    const deptMatch=currentSmFilter==='all'||dept===currentSmFilter;
+    const queryMatch=!query||searchStr.includes(query);
+    const show=deptMatch&&queryMatch;
+    item.style.display=show?'':'none';
+    if(show) visibleCount++;
   });
+  // Show "no results" if nothing matches
+  const noRes=document.getElementById('smSearchNoResult');
+  if(noRes) noRes.style.display=(items.length>0&&visibleCount===0)?'block':'none';
 }
 
 async function toggleSalesmanStatus(uid, name, newStatus){
@@ -4657,17 +5017,22 @@ async function submitVisit(){
 }
 
 
-function saTab(tab){
-  ['companies','report'].forEach(t=>{
-    const panel=document.getElementById(`sa-panel-${t}`);
-    const btn=document.getElementById(`sa-tab-${t}`);
-    if(panel) panel.style.display=t===tab?'block':'none';
-    if(btn){
-      btn.style.borderBottomColor=t===tab?'var(--gold)':'transparent';
-      btn.style.color=t===tab?'var(--gold)':'var(--txt-2)';
-    }
+function saPage(page, el){
+  ['overview','companies','reports'].forEach(p=>{
+    const panel=document.getElementById(`sa-page-${p}`);
+    if(panel) panel.classList.remove('active');
   });
-  if(tab==='report') initSAReport();
+  document.querySelectorAll('#superScreen .sidebar .sid-item').forEach(s=>s.classList.remove('active'));
+  const target=document.getElementById(`sa-page-${page}`);
+  if(target) target.classList.add('active');
+  if(el) el.classList.add('active');
+  if(page==='reports') initSAReport();
+}
+
+// Legacy saTab kept for any old references
+function saTab(tab){
+  if(tab==='report') saPage('reports', document.getElementById('sa-sid-reports'));
+  else saPage('companies', document.getElementById('sa-sid-companies'));
 }
 
 let SA_reportData=[];
