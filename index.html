@@ -357,6 +357,11 @@ button{font-family:'DM Sans',sans-serif;}
 }
 .tc-title{font-size:15px;font-weight:700;}
 .tc-acts{display:flex;gap:8px;}
+/* Zone badges */
+.zone-badge-in{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;background:rgba(31,209,122,0.12);color:var(--ok);border:1px solid rgba(31,209,122,0.3);border-radius:10px;padding:2px 8px;}
+.zone-badge-out{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;background:rgba(255,68,102,0.12);color:var(--err);border:1px solid rgba(255,68,102,0.3);border-radius:10px;padding:2px 8px;}
+.zone-section{background:rgba(31,209,122,0.04);border:1px solid rgba(31,209,122,0.2);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px;}
+
 .btn-exp{
   display:flex;align-items:center;gap:6px;
   background:rgba(255,255,255,0.04);border:1px solid var(--border);
@@ -416,42 +421,19 @@ button{font-family:'DM Sans',sans-serif;}
 ════════════════════════════════════════════════ */
 #superScreen{display:none!important;min-height:100vh;}
 #superScreen.on{display:flex!important;flex-direction:column;}
-.super-wrap{max-width:960px;margin:0 auto;padding:32px 22px;}
-.super-hd{
-  display:flex;justify-content:space-between;align-items:flex-end;
-  margin-bottom:28px;flex-wrap:wrap;gap:14px;
-}
-.co-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;margin-bottom:30px;}
-.co-card{
-  background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);
-  padding:22px;transition:all .25s;position:relative;overflow:hidden;
-}
+
 .co-card::after{
   content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
   background:linear-gradient(90deg,var(--gold),transparent);
 }
-.co-card:hover{border-color:rgba(239,168,0,0.28);transform:translateY(-3px);box-shadow:var(--shadow);}
-.co-nm{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;margin-bottom:5px;}
-.co-meta{font-size:12px;color:var(--txt-3);margin-bottom:14px;}
-.co-stats{display:flex;gap:22px;margin-bottom:16px;}
-.co-sv{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--gold);}
-.co-sl{font-size:11px;color:var(--txt-3);text-transform:uppercase;letter-spacing:.5px;}
-.co-acts{
-  display:flex;gap:8px;padding-top:14px;border-top:1px solid var(--border);
-}
-.btn-sm-g{
-  flex:1;padding:8px;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;
-  font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
-  background:rgba(255,255,255,0.04);border:1px solid var(--border);
-  color:var(--txt-2);
-}
-.btn-sm-g:hover{color:var(--gold);border-color:rgba(239,168,0,0.3);}
-.btn-sm-d{
-  flex:1;padding:8px;border-radius:var(--r-sm);font-family:'DM Sans',sans-serif;
-  font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;
-  background:rgba(255,68,102,0.08);border:1px solid rgba(255,68,102,0.2);color:var(--err);
-}
-.btn-sm-d:hover{background:rgba(255,68,102,0.18);}
+
+/* MODAL
+
+
+
+
+
+
 
 /* MODAL
 ════════════════════════════════════════════════ */
@@ -916,6 +898,19 @@ button{font-family:'DM Sans',sans-serif;}
           <span style="font-size:13px;color:var(--txt-2);display:block;margin-bottom:8px;">Festival Holidays</span>
           <div id="smProfCustomHol" style="display:flex;flex-direction:column;gap:6px;"></div>
         </div>
+        <div id="smProfZoneSection" style="display:none;padding:10px 0;border-top:1px solid var(--border);">
+          <span style="font-size:13px;color:var(--txt-2);display:block;margin-bottom:8px;">📍 Assigned Zones</span>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;color:var(--txt-3);">🟢 Check-in Zone</span>
+              <span id="smProfZoneIn" class="zone-badge-in">—</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:12px;color:var(--txt-3);">🔴 Check-out Zone</span>
+              <span id="smProfZoneOut" class="zone-badge-out">—</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div><!-- end smPageProfile -->
@@ -1307,6 +1302,37 @@ button{font-family:'DM Sans',sans-serif;}
             <input type="hidden" id="adShiftIn"><input type="hidden" id="adShiftOut"><input type="hidden" id="adGreetingPeriod">
           </div>
 
+          <!-- Zone Templates -->
+          <div class="tc" style="padding:22px;margin-bottom:0;">
+            <div class="tc-hd" style="margin-bottom:4px;"><div class="tc-title">📍 Zone Templates</div></div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:16px;">Define geo-zones. Assign check-in / check-out zones to employees so they can only check in/out within the allowed radius.</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+              <div class="fg" style="margin-bottom:0;">
+                <label class="fl" style="font-size:11px;">Zone Name</label>
+                <input class="fi" type="text" id="adNewZoneName" placeholder="e.g. Head Office, Warehouse">
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <div class="fg" style="flex:1;min-width:100px;margin-bottom:0;">
+                  <label class="fl" style="font-size:11px;">Latitude</label>
+                  <input class="fi" type="number" step="any" id="adNewZoneLat" placeholder="23.8103">
+                </div>
+                <div class="fg" style="flex:1;min-width:100px;margin-bottom:0;">
+                  <label class="fl" style="font-size:11px;">Longitude</label>
+                  <input class="fi" type="number" step="any" id="adNewZoneLng" placeholder="90.4125">
+                </div>
+                <div class="fg" style="flex:0 0 100px;margin-bottom:0;">
+                  <label class="fl" style="font-size:11px;">Radius (m)</label>
+                  <input class="fi" type="number" id="adNewZoneRadius" value="200" min="50" max="5000">
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn-ghost" style="padding:9px 14px;font-size:12px;" onclick="useCurrentLocationForZone('ad',this)">📡 Use Current Location</button>
+                <button class="btn-go" style="padding:9px 16px;font-size:13px;" onclick="addZoneTemplate('ad')">➕ Add Zone</button>
+              </div>
+            </div>
+            <div id="adZoneTemplateList" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+
           <button class="btn" onclick="saveAdminSettings()" style="max-width:280px;">💾 Save Settings</button>
         </div>
       </div>
@@ -1593,6 +1619,37 @@ button{font-family:'DM Sans',sans-serif;}
       <input type="hidden" id="csShiftIn"><input type="hidden" id="csShiftOut"><input type="hidden" id="csGreetingPeriod">
     </div>
 
+    <!-- Zone Templates -->
+    <div class="settings-section">
+      <div class="settings-title">📍 Zone Templates</div>
+      <div style="font-size:12px;color:var(--txt-2);margin-bottom:12px;">Define geo-zones for check-in / check-out enforcement.</div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px;">
+        <div class="fg" style="margin-bottom:0;">
+          <label class="fl" style="font-size:11px;">Zone Name</label>
+          <input class="fi" type="text" id="csNewZoneName" placeholder="e.g. Head Office, Warehouse">
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div class="fg" style="flex:1;min-width:100px;margin-bottom:0;">
+            <label class="fl" style="font-size:11px;">Latitude</label>
+            <input class="fi" type="number" step="any" id="csNewZoneLat" placeholder="23.8103">
+          </div>
+          <div class="fg" style="flex:1;min-width:100px;margin-bottom:0;">
+            <label class="fl" style="font-size:11px;">Longitude</label>
+            <input class="fi" type="number" step="any" id="csNewZoneLng" placeholder="90.4125">
+          </div>
+          <div class="fg" style="flex:0 0 100px;margin-bottom:0;">
+            <label class="fl" style="font-size:11px;">Radius (m)</label>
+            <input class="fi" type="number" id="csNewZoneRadius" value="200" min="50" max="5000">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-ghost" style="padding:9px 14px;font-size:12px;" onclick="useCurrentLocationForZone('cs',this)">📡 Use Current Location</button>
+          <button class="btn-go" style="padding:9px 16px;font-size:13px;" onclick="addZoneTemplate('cs')">➕ Add Zone</button>
+        </div>
+      </div>
+      <div id="csZoneTemplateList" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
     <!-- Report Mail Required -->
     <div class="settings-section">
       <div class="settings-title">📨 Report Mail Required</div>
@@ -1645,6 +1702,22 @@ button{font-family:'DM Sans',sans-serif;}
         <option value="">— Use Company Default —</option>
       </select>
       <div id="asShiftPreviewSA" style="display:none;margin-top:7px;font-size:12px;color:var(--info);background:rgba(75,159,255,0.08);border:1px solid rgba(75,159,255,0.2);border-radius:var(--r-sm);padding:8px 12px;"></div>
+    </div>
+    <!-- Zone Assignment (SA) -->
+    <div class="zone-section">
+      <div style="font-size:12px;font-weight:700;color:var(--ok);margin-bottom:10px;">📍 Zone Assignment</div>
+      <div class="fg" style="margin-bottom:10px;">
+        <label class="fl" style="font-size:11px;">🟢 Check-in Zone</label>
+        <select class="fsel" id="asZoneInSA">
+          <option value="">— Not Required —</option>
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:0;">
+        <label class="fl" style="font-size:11px;">🔴 Check-out Zone</label>
+        <select class="fsel" id="asZoneOutSA">
+          <option value="">— Not Required —</option>
+        </select>
+      </div>
     </div>
     <div class="modal-acts">
       <button class="btn-cancel" onclick="closeModal('addSmSAModal')">Cancel</button>
@@ -1733,6 +1806,22 @@ button{font-family:'DM Sans',sans-serif;}
       <!-- Hidden fields for JS compatibility -->
       <input type="hidden" id="asShiftIn"><input type="hidden" id="asShiftOut"><input type="hidden" id="asGreeting">
     </div>
+    <!-- Zone Assignment -->
+    <div class="zone-section">
+      <div style="font-size:12px;font-weight:700;color:var(--ok);margin-bottom:10px;">📍 Zone Assignment</div>
+      <div class="fg" style="margin-bottom:10px;">
+        <label class="fl" style="font-size:11px;">🟢 Check-in Zone</label>
+        <select class="fsel" id="asZoneIn">
+          <option value="">— Not Required —</option>
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:0;">
+        <label class="fl" style="font-size:11px;">🔴 Check-out Zone</label>
+        <select class="fsel" id="asZoneOut">
+          <option value="">— Not Required —</option>
+        </select>
+      </div>
+    </div>
     <div class="modal-acts">
       <button class="btn-cancel" onclick="closeModal('addSalesmanModal')">Cancel</button>
       <button class="btn-confirm" onclick="addSalesman()">Create Employee</button>
@@ -1779,6 +1868,22 @@ button{font-family:'DM Sans',sans-serif;}
       <div id="esShiftPreview" style="display:none;margin-top:10px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);font-size:12px;color:var(--txt-2);"></div>
       <!-- Hidden fields for JS compatibility -->
       <input type="hidden" id="esShiftIn"><input type="hidden" id="esShiftOut"><input type="hidden" id="esGreeting">
+    </div>
+    <!-- Zone Assignment -->
+    <div class="zone-section">
+      <div style="font-size:12px;font-weight:700;color:var(--ok);margin-bottom:10px;">📍 Zone Assignment</div>
+      <div class="fg" style="margin-bottom:10px;">
+        <label class="fl" style="font-size:11px;">🟢 Check-in Zone</label>
+        <select class="fsel" id="esZoneIn">
+          <option value="">— Not Required —</option>
+        </select>
+      </div>
+      <div class="fg" style="margin-bottom:0;">
+        <label class="fl" style="font-size:11px;">🔴 Check-out Zone</label>
+        <select class="fsel" id="esZoneOut">
+          <option value="">— Not Required —</option>
+        </select>
+      </div>
     </div>
     <div class="modal-acts">
       <button class="btn-cancel" onclick="closeModal('editSalesmanModal')">Cancel</button>
@@ -1837,7 +1942,7 @@ async function ensureReportLibs(){
 let APP = { user:null, userData:null, companyId:null, salesmen:{}, visitCache:{}, mapInstance:null, apiKey:'' };
 
 function show(id){ document.getElementById(id).classList.add('on'); }
-function hide(id){ document.getElementById(id).classList.remove('on'); }
+
 function hideAll(){ 
   ['setupScreen','loginScreen','salesmanScreen','adminScreen','superScreen'].forEach(id=>{
     const el=document.getElementById(id);
@@ -1850,6 +1955,24 @@ function loading(txt='Loading...'){
   document.getElementById('loader').classList.add('on');
 }
 function doneLoading(){ document.getElementById('loader').classList.remove('on'); }
+
+// XSS protection — escape user-supplied strings before inserting into innerHTML
+function htmlEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// fetch() with 15s timeout — prevents forever-hang on slow/dead network
+async function fetchWithTimeout(url, options={}, timeoutMs=15000){
+  const controller=new AbortController();
+  const tid=setTimeout(()=>controller.abort(), timeoutMs);
+  try{
+    const res=await fetch(url, {...options, signal:controller.signal});
+    clearTimeout(tid);
+    return res;
+  }catch(e){
+    clearTimeout(tid);
+    if(e.name==='AbortError') throw new Error('Request timed out. Please check your connection.');
+    throw e;
+  }
+}
 
 function toast(msg,type='ok'){
   const d=document.createElement('div');
@@ -1870,7 +1993,7 @@ function parseTimeToMin(t){ // "HH:MM" or "HH:MM AM/PM" → total minutes (alway
   const str=t.trim();
   const ampmMatch=str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
   if(ampmMatch){
-    let h=parseInt(ampmMatch[1]), m=parseInt(ampmMatch[2]);
+    let h=parseInt(ampmMatch[1], 10), m=parseInt(ampmMatch[2], 10);
     const period=ampmMatch[3].toUpperCase();
     if(period==='PM' && h!==12) h+=12;
     if(period==='AM' && h===12) h=0;
@@ -1878,7 +2001,7 @@ function parseTimeToMin(t){ // "HH:MM" or "HH:MM AM/PM" → total minutes (alway
   }
   // 24-hour: "HH:MM"
   const parts=str.split(':');
-  return parseInt(parts[0])*60+(parseInt(parts[1])||0);
+  return parseInt(parts[0], 10)*60+(parseInt(parts[1], 10)||0);
 }
 function minToHHMM(m){ // total minutes → "HH:MM"
   const h=Math.floor(Math.abs(m)/60), mm=Math.abs(m)%60;
@@ -1920,7 +2043,7 @@ async function generateCompanyId(){
     Object.values(snap.val()).forEach(co=>{
       if(co.co_id){
         const m=co.co_id.match(/^CO-(\d+)$/);
-        if(m) maxNum=Math.max(maxNum,parseInt(m[1]));
+        if(m) maxNum=Math.max(maxNum,parseInt(m[1], 10));
       }
     });
   }
@@ -1934,7 +2057,7 @@ async function generateEmpId(coId){
     Object.values(snap.val()).forEach(u=>{
       if(u.emp_id){
         const m=u.emp_id.match(/^EMP-(\d+)$/);
-        if(m) maxNum=Math.max(maxNum,parseInt(m[1]));
+        if(m) maxNum=Math.max(maxNum,parseInt(m[1], 10));
       }
     });
   }
@@ -1951,24 +2074,30 @@ function loadFirebase(config){
     const s1=document.createElement('script');
     s1.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js';
     s1.onload=()=>{
+      // Load auth + database in parallel (faster)
       const s2=document.createElement('script');
       s2.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js';
-      s2.onload=()=>{
-        const s3=document.createElement('script');
-        s3.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js';
-        s3.onload=()=>{
+      const s3=document.createElement('script');
+      s3.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js';
+      let loaded=0;
+      const onBothLoaded=()=>{
+        loaded++;
+        if(loaded<2) return;
+        try{
           if(!firebase.apps.length) firebase.initializeApp(config);
           db=firebase.database();
           auth=firebase.auth();
           APP.apiKey=config.apiKey;
           firebase_loaded=true;
           res();
-        };
-        document.head.appendChild(s3);
+        }catch(e){ rej(e); }
       };
+      s2.onload=onBothLoaded; s2.onerror=()=>rej(new Error('Firebase auth failed to load'));
+      s3.onload=onBothLoaded; s3.onerror=()=>rej(new Error('Firebase database failed to load'));
       document.head.appendChild(s2);
+      document.head.appendChild(s3);
     };
-    s1.onerror=rej;
+    s1.onerror=()=>rej(new Error('Firebase app failed to load'));
     document.head.appendChild(s1);
   });
 }
@@ -2138,8 +2267,16 @@ async function doLogin(){
 
 async function doLogout(){
   loading('Logging out...');
+  // Clear duration timer so it doesn't keep running after logout
+  if(typeof dayDurationInterval!=='undefined' && dayDurationInterval){
+    clearInterval(dayDurationInterval);
+    dayDurationInterval=null;
+  }
   // Destroy map instance to avoid re-use issues
   if(APP.mapInstance){ try{ APP.mapInstance.remove(); }catch(e){} }
+  // Reset tile layer globals so initMap creates fresh layers on next login
+  _streetLayer=null; _satLayer=null; _satLabelLayer=null; _currentTile='street';
+  window._saAddSmZones=[]; window._saEditZones=[]; window._csZoneTemplates=[];
   const savedKey=APP.apiKey;
   APP={user:null,userData:null,companyId:null,salesmen:{},visitCache:{},mapInstance:null,apiKey:savedKey};
   // Reset login form
@@ -2158,7 +2295,7 @@ async function authAction(uid, action){
   const cfg=JSON.parse(localStorage.getItem('ss_config'));
   const apiKey=cfg.apiKey;
   if(action==='delete'){
-    const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`,{
+    const res=await fetchWithTimeout(`https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({localId:uid})
     });
@@ -2173,7 +2310,7 @@ async function authAction(uid, action){
 async function createAuthUser(email,pass){
   const cfg=JSON.parse(localStorage.getItem('ss_config'));
   const apiKey=cfg.apiKey;
-  const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,{
+  const res=await fetchWithTimeout(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
     body:JSON.stringify({email,password:pass,returnSecureToken:false})
@@ -2526,7 +2663,7 @@ async function saveSalesmanEdit(){
       if(!oldPass) throw new Error('Current password not found in database.');
 
       // Sign in as the employee to get their idToken
-      const signInRes=await fetch(
+      const signInRes=await fetchWithTimeout(
         `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,
         {method:'POST',headers:{'Content-Type':'application/json'},
          body:JSON.stringify({email:curData.email||email, password:oldPass, returnSecureToken:true})}
@@ -2535,7 +2672,7 @@ async function saveSalesmanEdit(){
       if(signInData.error) throw new Error('Auth sign-in failed: '+signInData.error.message);
 
       // Change password using their idToken
-      const updateRes=await fetch(
+      const updateRes=await fetchWithTimeout(
         `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,
         {method:'POST',headers:{'Content-Type':'application/json'},
          body:JSON.stringify({idToken:signInData.idToken, password:pass, returnSecureToken:false})}
@@ -2558,11 +2695,17 @@ async function saveSalesmanEdit(){
       const tmpl=shiftTemplates.find(t=>t.name===selShift);
       if(tmpl){ updates.shift_in=tmpl.shift_in; updates.shift_out=tmpl.shift_out; updates.greeting_period=tmpl.grace; updates.shift_template_name=tmpl.name; }
     } else {
-      // No template selected = use company default (clear overrides)
+      // No template selected = use company default — explicitly null so Firebase removes the override fields
       updates.shift_in=null; updates.shift_out=null; updates.greeting_period=null; updates.shift_template_name=null;
     }
-    // Remove nulls to keep DB clean
-    Object.keys(updates).forEach(k=>{ if(updates[k]===null) delete updates[k]; });
+    // Remove nulls from non-shift fields only — shift nulls are intentional (Firebase removes them)
+    const shiftNullKeys=['shift_in','shift_out','greeting_period','shift_template_name'];
+    Object.keys(updates).forEach(k=>{ if(updates[k]===null && !shiftNullKeys.includes(k)) delete updates[k]; });
+    // Zone assignment — null clears the field in Firebase
+    const zIn=document.getElementById('esZoneIn')?.value||'';
+    const zOut=document.getElementById('esZoneOut')?.value||'';
+    updates.checkin_zone=zIn||null;
+    updates.checkout_zone=zOut||null;
     await db.ref(`users/${uid}`).update(updates);
 
     // Clear SA context flag
@@ -2608,12 +2751,12 @@ function toggleHolidayChip(el){
 
 function getSelectedHolidays(containerId){
   return Array.from(document.querySelectorAll(`#${containerId} .holiday-chip.selected, #${containerId} .holiday-chip[style*="gradient"]`))
-    .map(el=>parseInt(el.dataset.day));
+    .map(el=>parseInt(el.dataset.day, 10));
 }
 
 function setHolidayChips(containerId, days=[]){
   document.querySelectorAll(`#${containerId} .holiday-chip`).forEach(el=>{
-    const day=parseInt(el.dataset.day);
+    const day=parseInt(el.dataset.day, 10);
     if(days.includes(day)){
       el.style.background='linear-gradient(145deg,var(--gold),#C88A00)';
       el.style.color='#000'; el.classList.add('selected');
@@ -2637,7 +2780,7 @@ async function openCoSettings(coId, coName){
     document.getElementById('csCoId').value=coId;
     // Store admin uid for login-as
     document.getElementById('csAdminUid').value=co.admin_uid||'';
-    document.getElementById('coSettingsTitle').innerHTML=`🔧 ${coName} — Settings`+(co.co_id?` <span style="font-size:11px;font-weight:800;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:8px;padding:2px 8px;">${co.co_id}</span>`:'');
+    document.getElementById('coSettingsTitle').innerHTML=`🔧 ${htmlEsc(coName)} — Settings`+(co.co_id?` <span style="font-size:11px;font-weight:800;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:8px;padding:2px 8px;">${htmlEsc(co.co_id)}</span>`:'');
     // Weekly holidays
     setHolidayChips('csHolidayChips', co.holidays||[0]);
     // Custom holidays
@@ -2649,6 +2792,9 @@ async function openCoSettings(coId, coName){
       window._csShiftTemplates=[{name:'Default Shift',shift_in:co.shift_in,shift_out:co.shift_out||'18:00',grace:co.greeting_period??15,is_default:true}];
     }
     renderShiftTemplates('cs');
+    // Zone templates
+    window._csZoneTemplates=co.zone_templates?JSON.parse(JSON.stringify(co.zone_templates)):[];
+    renderZoneTemplates('cs');
     // Mail required (default true)
     setMailRequired(co.mail_required!==false);
     // CC emails
@@ -2697,11 +2843,12 @@ async function saveCoSettings(){
   const ccRaw=document.getElementById('csCcEmails').value.trim();
   const cc_emails=ccRaw?ccRaw.split(',').map(e=>e.trim()).filter(Boolean):[];
   const shift_templates=window._csShiftTemplates||[];
+  const zone_templates=window._csZoneTemplates||[];
   const defT=shift_templates.find(t=>t.is_default)||shift_templates[0]||{shift_in:'09:00',shift_out:'18:00',grace:15};
   const custom_holidays=window._csCustomHolidays||[];
   loading('Saving settings...');
   try{
-    await db.ref(`companies/${coId}`).update({holidays, mail_required, cc_emails, shift_templates, shift_in:defT.shift_in, shift_out:defT.shift_out, greeting_period:defT.grace, custom_holidays});
+    await db.ref(`companies/${coId}`).update({holidays, mail_required, cc_emails, shift_templates, zone_templates, shift_in:defT.shift_in, shift_out:defT.shift_out, greeting_period:defT.grace, custom_holidays});
     doneLoading(); toast('Settings saved! ✅');
     closeModal('coSettingsModal');
     await loadSuperDashboard();
@@ -2720,7 +2867,7 @@ async function loginAsCompany(){
     closeModal('coSettingsModal');
     // Sign in as company admin using stored credentials
     const cfg=JSON.parse(localStorage.getItem('ss_config'));
-    const res=await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,{
+    const res=await fetchWithTimeout(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,{
       method:'POST',headers:{'Content-Type':'application/json'},
       body:JSON.stringify({email:adminData.email,password:adminData.password,returnSecureToken:true})
     });
@@ -2742,7 +2889,7 @@ async function openCoMgmt(coId,adminUid,coName){
     // Fetch company to get co_id
     const coSnap=await db.ref(`companies/${coId}`).get();
     const co=coSnap.val()||{};
-    document.getElementById('coMgmtTitle').innerHTML=`⚙️ ${coName}`+(co.co_id?` <span style="font-size:11px;font-weight:800;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:8px;padding:2px 8px;">${co.co_id}</span>`:'');
+    document.getElementById('coMgmtTitle').innerHTML=`⚙️ ${htmlEsc(coName)}`+(co.co_id?` <span style="font-size:11px;font-weight:800;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:8px;padding:2px 8px;">${htmlEsc(co.co_id)}</span>`:'');
     const snap=await db.ref(`users/${adminUid}`).get();
     if(snap.exists()){
       const u=snap.val();
@@ -2860,7 +3007,7 @@ async function saveAdminEdit2(){
       let idToken=null;
       const tryPasswords=[oldPass, pass].filter(Boolean);
       for(const tryPass of tryPasswords){
-        const signInRes=await fetch(
+        const signInRes=await fetchWithTimeout(
           `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,
           {method:'POST',headers:{'Content-Type':'application/json'},
            body:JSON.stringify({email:email, password:tryPass, returnSecureToken:true})}
@@ -2871,7 +3018,7 @@ async function saveAdminEdit2(){
       if(!idToken) throw new Error('Auth sign-in failed: INVALID_LOGIN_CREDENTIALS — Firebase Console থেকে এই user-এর password manually update করুন।');
 
       // Update Firebase Auth password
-      const updateRes=await fetch(
+      const updateRes=await fetchWithTimeout(
         `https://identitytoolkit.googleapis.com/v1/accounts:update?key=${cfg.apiKey}`,
         {method:'POST',headers:{'Content-Type':'application/json'},
          body:JSON.stringify({idToken:idToken, password:pass, returnSecureToken:false})}
@@ -2898,7 +3045,10 @@ async function saveAdminEdit2(){
 
     doneLoading(); toast('Admin updated successfully! ✅');
     await loadSuperDashboard();
-  }catch(e){ doneLoading(); errEl.textContent='Error: '+e.message; errEl.style.display='block'; }
+  }catch(e){
+    APP._suppressAuth=false; // always reset on error so auth state works again
+    doneLoading(); errEl.textContent='Error: '+e.message; errEl.style.display='block';
+  }
 }
 
 async function openAddSalesmanFromSA(){
@@ -2906,27 +3056,44 @@ async function openAddSalesmanFromSA(){
   document.getElementById('asErrSA').style.display='none';
   document.getElementById('asCoIdSA').value=SA_currentCoId;
   document.getElementById('addSmSACompanyName').textContent=`Adding to: ${SA_currentCoName}`;
-  // Always show both employee types for Super Admin
+
+  // Fetch company data first — needed for both module filter AND shift templates
+  let coSnapData=null;
+  try{
+    const coSnap=await db.ref(`companies/${SA_currentCoId}`).get();
+    coSnapData=coSnap.exists()?coSnap.val():null;
+  }catch(e){ coSnapData=null; }
+
+  // Filter employee type based on this company's modules
+  const coMods=coSnapData?(coSnapData.modules||{sales:true,backoffice:true}):{sales:true,backoffice:true};
   const wrap=document.getElementById('asEmpTypeSAWrap');
   const sel=document.getElementById('asEmpTypeSA');
-  wrap.style.display='block';
-  sel.innerHTML='<option value="sales">📊 Sales Employee</option><option value="backoffice">🏢 Back Office Employee</option>';
-  // Populate shift dropdown from this company's templates
+  if(wrap && sel){
+    const hasSales=coMods.sales!==false;
+    const hasBo=coMods.backoffice!==false;
+    if(hasSales && hasBo){
+      sel.innerHTML='<option value="sales">📊 Sales Employee</option><option value="backoffice">🏢 Back Office Employee</option>';
+      wrap.style.display='block';
+    } else if(hasSales){
+      sel.innerHTML='<option value="sales">📊 Sales Employee</option>';
+      sel.value='sales';
+      wrap.style.display='none';
+    } else {
+      sel.innerHTML='<option value="backoffice">🏢 Back Office Employee</option>';
+      sel.value='backoffice';
+      wrap.style.display='none';
+    }
+  }
+  // Populate shift dropdown from already-fetched company data
   const shiftSel=document.getElementById('asShiftSelectSA');
   const prev=document.getElementById('asShiftPreviewSA');
   if(shiftSel){
     shiftSel.innerHTML='<option value="">— Use Company Default —</option>';
     try{
-      const coSnap=await db.ref(`companies/${SA_currentCoId}`).get();
-      const coTemplates=(coSnap.exists()&&coSnap.val().shift_templates)||[];
-      // fallback: build single template from legacy fields
-      let templates=coTemplates;
-      if(!templates.length && coSnap.exists() && coSnap.val().shift_in){
-        const c=coSnap.val();
-        templates=[{name:'Default Shift',shift_in:c.shift_in,shift_out:c.shift_out||'18:00',grace:c.greeting_period??15,is_default:true}];
-      }
-      window._saAddSmTemplates=templates;
-      templates.forEach(t=>{
+      const coTemplates=(coSnapData&&Array.isArray(coSnapData.shift_templates)&&coSnapData.shift_templates.length)?coSnapData.shift_templates
+        :(coSnapData&&coSnapData.shift_in?[{name:'Default Shift',shift_in:coSnapData.shift_in,shift_out:coSnapData.shift_out||'18:00',grace:coSnapData.greeting_period??15,is_default:true}]:[]);
+      window._saAddSmTemplates=coTemplates;
+      coTemplates.forEach(t=>{
         const opt=document.createElement('option');
         opt.value=t.name;
         opt.textContent=t.name+(t.is_default?' (Default)':'')+' — '+t.shift_in+' to '+t.shift_out;
@@ -2935,6 +3102,10 @@ async function openAddSalesmanFromSA(){
     }catch(e){ window._saAddSmTemplates=[]; }
   }
   if(prev) prev.style.display='none';
+  // Zone dropdowns — use this company's zone templates
+  const coZones=(coSnapData&&Array.isArray(coSnapData.zone_templates))?coSnapData.zone_templates:[];
+  window._saAddSmZones=coZones;
+  populateZoneDropdowns('asZoneInSA','asZoneOutSA','','',coZones);
   openModal('addSmSAModal');
 }
 
@@ -2959,6 +3130,11 @@ async function addSalesmanFromSA(){
       const tmpl=(window._saAddSmTemplates||[]).find(t=>t.name===selShift);
       if(tmpl){ newEmp.shift_in=tmpl.shift_in; newEmp.shift_out=tmpl.shift_out; newEmp.greeting_period=tmpl.grace; newEmp.shift_template_name=tmpl.name; }
     }
+    // Zone assignment
+    const zIn=document.getElementById('asZoneInSA')?.value||'';
+    const zOut=document.getElementById('asZoneOutSA')?.value||'';
+    if(zIn) newEmp.checkin_zone=zIn;
+    if(zOut) newEmp.checkout_zone=zOut;
     await db.ref(`users/${uid}`).set(newEmp);
     doneLoading(); toast(`"${name}" created as ${empTypeSA==='sales'?'Sales':'Back Office'} employee!`);
     await loadCoMgmtSalesmen(); await loadSuperDashboard();
@@ -3001,6 +3177,7 @@ async function editSalesmanSA(uid){
     // Load this company's shift templates and populate dropdown
     const coId=u.company_id||SA_currentCoId;
     let coTemplates=[];
+    let coZones=[];
     try{
       const coSnap=await db.ref(`companies/${coId}`).get();
       if(coSnap.exists()){
@@ -3009,8 +3186,9 @@ async function editSalesmanSA(uid){
         if(!coTemplates.length && co.shift_in){
           coTemplates=[{name:'Default Shift',shift_in:co.shift_in,shift_out:co.shift_out||'18:00',grace:co.greeting_period??15,is_default:true}];
         }
+        coZones=Array.isArray(co.zone_templates)?co.zone_templates:[];
       }
-    }catch(e){ coTemplates=[]; }
+    }catch(e){ coTemplates=[]; coZones=[]; }
 
     // Temporarily override APP.shiftTemplates for this SA edit session
     window._saEditTemplates=coTemplates;
@@ -3042,6 +3220,9 @@ async function editSalesmanSA(uid){
     document.getElementById('esShiftIn').value=u.shift_in||'';
     document.getElementById('esShiftOut').value=u.shift_out||'';
     document.getElementById('esGreeting').value=u.greeting_period!=null?u.greeting_period:'';
+    // Zone dropdowns — use this company's zone templates
+    window._saEditZones=coZones;
+    populateZoneDropdowns('esZoneIn','esZoneOut',u.checkin_zone||'',u.checkout_zone||'',coZones);
     // Mark this modal as SA context so saveSalesmanEdit uses correct templates + reload
     document.getElementById('esUid').setAttribute('data-sa-context','1');
     doneLoading(); openModal('editSalesmanModal');
@@ -3081,11 +3262,18 @@ async function initAdmin(){
     APP.companyShiftOut=co.shift_out||'18:00';
     APP.companyGreetingPeriod=co.greeting_period!=null?co.greeting_period:15;
     APP.companyCcEmails=co.cc_emails||[];
-    // Load shift templates for employee add/edit dropdowns
     APP.shiftTemplates=co.shift_templates||[];
+    APP.zoneTemplates=co.zone_templates||[];
     if(!APP.shiftTemplates.length && co.shift_in){
       APP.shiftTemplates=[{name:'Default Shift',shift_in:co.shift_in,shift_out:co.shift_out||'18:00',grace:co.greeting_period??15,is_default:true}];
     }
+    // Show/hide dept filter buttons based on modules
+    const hasSales=APP.companyModules.sales!==false;
+    const hasBo=APP.companyModules.backoffice!==false;
+    const sfBtn=document.getElementById('smFilterSales');
+    const bBtn=document.getElementById('smFilterBo');
+    if(sfBtn) sfBtn.style.display=hasSales?'':'none';
+    if(bBtn)  bBtn.style.display=hasBo?'':'none';
   }
   // Run Overview + History in parallel — both load today's data independently
   await Promise.all([loadOverview(), loadHistory()]);
@@ -3108,6 +3296,118 @@ function getShiftTemplates(ctx){
 function setShiftTemplates(ctx, arr){
   if(ctx==='cs') window._csShiftTemplates=arr;
   else APP.shiftTemplates=arr;
+}
+
+/* ── ZONE TEMPLATE HELPERS ─────────────────────── */
+function distMeters(lat1,lng1,lat2,lng2){
+  const R=6371000, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function getZoneTemplates(ctx){
+  return ctx==='cs'?(window._csZoneTemplates||[]):(APP.zoneTemplates||[]);
+}
+function setZoneTemplates(ctx,arr){
+  if(ctx==='cs') window._csZoneTemplates=arr;
+  else APP.zoneTemplates=arr;
+}
+
+function renderZoneTemplates(ctx){
+  const listId=ctx==='cs'?'csZoneTemplateList':'adZoneTemplateList';
+  const list=document.getElementById(listId);
+  if(!list) return;
+  const zones=getZoneTemplates(ctx);
+  if(!zones.length){ list.innerHTML='<div style="font-size:12px;color:var(--txt-3);padding:8px 0;">No zone templates added yet.</div>'; return; }
+  list.innerHTML=zones.map((z,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:var(--r-sm);">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:700;color:var(--ok);">📍 ${z.name}</div>
+        <div style="font-size:11px;color:var(--txt-3);margin-top:3px;">
+          ${parseFloat(z.lat).toFixed(5)}, ${parseFloat(z.lng).toFixed(5)} &nbsp;|&nbsp; Radius: ${z.radius}m
+        </div>
+      </div>
+      <button onclick="removeZoneTemplate('${ctx}',${i})" style="background:none;border:none;color:var(--err);cursor:pointer;font-size:16px;padding:2px 6px;line-height:1;">✕</button>
+    </div>`).join('');
+}
+
+function addZoneTemplate(ctx){
+  const prefix=ctx==='cs'?'csNew':'adNew';
+  const name=document.getElementById(prefix+'ZoneName')?.value.trim();
+  const lat=parseFloat(document.getElementById(prefix+'ZoneLat')?.value);
+  const lng=parseFloat(document.getElementById(prefix+'ZoneLng')?.value);
+  const radius=parseInt(document.getElementById(prefix+'ZoneRadius')?.value,10)||200;
+  if(!name){ toast('Enter a zone name','err'); return; }
+  if(isNaN(lat)||isNaN(lng)){ toast('Enter valid latitude and longitude','err'); return; }
+  const zones=getZoneTemplates(ctx);
+  if(zones.some(z=>z.name===name)){ toast('Zone name already exists','err'); return; }
+  zones.push({name,lat,lng,radius});
+  setZoneTemplates(ctx,zones);
+  renderZoneTemplates(ctx);
+  document.getElementById(prefix+'ZoneName').value='';
+  document.getElementById(prefix+'ZoneLat').value='';
+  document.getElementById(prefix+'ZoneLng').value='';
+  toast('Zone added ✅');
+}
+
+function removeZoneTemplate(ctx,idx){
+  const zones=getZoneTemplates(ctx);
+  zones.splice(idx,1);
+  setZoneTemplates(ctx,zones);
+  renderZoneTemplates(ctx);
+  // Refresh all open zone dropdowns that use these templates
+  if(ctx==='cs'){
+    populateZoneDropdowns('asZoneInSA','asZoneOutSA','','',zones);
+    populateZoneDropdowns('esZoneIn','esZoneOut','','',zones);
+  } else {
+    populateZoneDropdowns('asZoneIn','asZoneOut','','',zones);
+    populateZoneDropdowns('esZoneIn','esZoneOut','','',zones);
+  }
+  toast('Zone removed');
+}
+
+async function useCurrentLocationForZone(ctx, btn){
+  const prefix=ctx==='cs'?'csNew':'adNew';
+  const origText=btn?btn.textContent:'';
+  if(btn){ btn.disabled=true; btn.textContent='Getting GPS...'; }
+  try{
+    const pos=await getAccurateLocation(btn, origText);
+    document.getElementById(prefix+'ZoneLat').value=pos.coords.latitude.toFixed(6);
+    document.getElementById(prefix+'ZoneLng').value=pos.coords.longitude.toFixed(6);
+    toast(`📡 GPS captured (±${Math.round(pos.coords.accuracy)}m)`);
+  }catch(e){ toast('GPS error: allow location access','err'); }
+  finally{ if(btn){ btn.disabled=false; btn.textContent=origText; } }
+}
+
+function populateZoneDropdowns(inId,outId,currentIn='',currentOut='',templates=null){
+  const zones=templates||APP.zoneTemplates||[];
+  [inId,outId].forEach((id,idx)=>{
+    const sel=document.getElementById(id);
+    if(!sel) return;
+    const cur=idx===0?currentIn:currentOut;
+    sel.innerHTML='<option value="">— Not Required —</option>';
+    zones.forEach(z=>{
+      const opt=document.createElement('option');
+      opt.value=z.name;
+      opt.textContent=`📍 ${z.name} (${z.radius}m)`;
+      if(z.name===cur) opt.selected=true;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function getZoneByName(name, templates=null){
+  const zones=templates||APP.zoneTemplates||[];
+  return zones.find(z=>z.name===name)||null;
+}
+
+function checkZoneAllowed(zoneNameKey, pos, templates=null){
+  // Returns {ok:true} or {ok:false, message:'...'}
+  const zn=zoneNameKey?getZoneByName(zoneNameKey,templates):null;
+  if(!zn) return {ok:true}; // No zone restriction
+  const d=distMeters(pos.coords.latitude,pos.coords.longitude,parseFloat(zn.lat),parseFloat(zn.lng));
+  if(d<=zn.radius) return {ok:true};
+  return {ok:false,message:`You are ${Math.round(d)}m away from "${zn.name}" (allowed: ${zn.radius}m). Move closer and try again.`};
 }
 
 function renderShiftTemplates(ctx){
@@ -3139,7 +3439,7 @@ function addShiftTemplate(ctx){
   const name = document.getElementById(prefix+'ShiftName')?.value.trim();
   const shift_in = document.getElementById(prefix+'ShiftIn')?.value;
   const shift_out = document.getElementById(prefix+'ShiftOut')?.value;
-  const grace = parseInt(document.getElementById(prefix+'ShiftGrace')?.value)||15;
+  const grace = parseInt(document.getElementById(prefix+'ShiftGrace')?.value, 10)||15;
   if(!name){ toast('Enter a shift name','err'); return; }
   if(!shift_in||!shift_out){ toast('Enter shift in and out times','err'); return; }
   const templates = getShiftTemplates(ctx);
@@ -3231,6 +3531,9 @@ async function loadAdminSettings(){
       APP.shiftTemplates=[{name:'Default Shift',shift_in:co.shift_in,shift_out:co.shift_out||'18:00',grace:co.greeting_period??15,is_default:true}];
     }
     renderShiftTemplates('ad');
+    // Zone templates
+    APP.zoneTemplates=co.zone_templates||[];
+    renderZoneTemplates('ad');
     // Custom holidays
     APP.companyCustomHolidays=co.custom_holidays||[];
     renderAdminCustomHolidays();
@@ -3278,10 +3581,11 @@ async function saveAdminSettings(){
     const holidays=getSelectedHolidays('adHolidayChips');
     const custom_holidays=APP.companyCustomHolidays||[];
     const shift_templates=APP.shiftTemplates||[];
+    const zone_templates=APP.zoneTemplates||[];
     // Derive legacy fields from default template for backward compat
     const defT=shift_templates.find(t=>t.is_default)||shift_templates[0]||{shift_in:'09:00',shift_out:'18:00',grace:15};
     await db.ref(`companies/${APP.companyId}`).update({
-      holidays, custom_holidays, shift_templates,
+      holidays, custom_holidays, shift_templates, zone_templates,
       shift_in:defT.shift_in, shift_out:defT.shift_out, greeting_period:defT.grace
     });
     APP.companyHolidays=holidays;
@@ -3304,7 +3608,7 @@ async function loadSalesmen(){
   // Only non-deleted salesmen in dropdowns/reports — sorted A-Z
   const activeOpts='<option value="">All</option>'+Object.entries(APP.salesmen)
     .filter(([,u])=>u.status!=='deleted_by_admin')
-    .sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999); return na-nb; })
+    .sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999, 10),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999, 10); return na-nb; })
     .map(([uid,u])=>`<option value="${uid}">${u.name}${u.status==='inactive'?' (Inactive)':''}</option>`).join('');
   ['vSalesmanFilter','mapSalesmanFilter'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.innerHTML=activeOpts;
@@ -3320,8 +3624,8 @@ function renderSalesmanList(){
   const body=document.getElementById('smListBody');
   if(allEntries.length===0){ body.innerHTML='<div class="empty"><div class="empty-icon">👤</div>No salesman found. Add a new one.</div>'; return; }
 
-  const active=allEntries.filter(([,u])=>u.status!=='deleted_by_admin').sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999); return na-nb; });
-  const deleted=allEntries.filter(([,u])=>u.status==='deleted_by_admin').sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999); return na-nb; });
+  const active=allEntries.filter(([,u])=>u.status!=='deleted_by_admin').sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999, 10),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999, 10); return na-nb; });
+  const deleted=allEntries.filter(([,u])=>u.status==='deleted_by_admin').sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999, 10),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999, 10); return na-nb; });
 
   let html=active.map(([uid,u])=>{
     const isInactive=u.status==='inactive';
@@ -3331,12 +3635,15 @@ function renderSalesmanList(){
       :'<span class="mod-badge mod-sales" style="font-size:10px;padding:2px 7px;margin-left:6px;">Sales</span>';
     const inactiveBadge=isInactive?'<span style="font-size:10px;color:var(--err);font-weight:600;background:rgba(255,68,102,0.1);padding:2px 8px;border-radius:10px;margin-left:6px;">Inactive</span>':'';
     const empIdBadge=u.emp_id?`<span style="font-size:10px;font-weight:800;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.25);border-radius:6px;padding:1px 7px;margin-right:8px;">${u.emp_id}</span>`:'';
+    const zoneInBadge=u.checkin_zone?`<span class="zone-badge-in" style="margin-left:6px;">🟢 ${u.checkin_zone}</span>`:'';
+    const zoneOutBadge=u.checkout_zone?`<span class="zone-badge-out" style="margin-left:4px;">🔴 ${u.checkout_zone}</span>`:'';
     return `<div class="sm-list-item" data-dept="${isBo?'backoffice':'sales'}" data-search="${((u.emp_id||'')+' '+(u.name||'')+' '+(u.email||'')).toLowerCase()}" style="opacity:${isInactive?0.65:1};">
       <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;">
         <div class="sm-av" style="background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${u.name[0].toUpperCase()}</div>
         <div style="min-width:0;">
           <div class="sm-nm" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">${empIdBadge}${u.name}${typeBadge}${inactiveBadge}</div>
           <div class="sm-em">${u.email}</div>
+          ${(u.checkin_zone||u.checkout_zone)?`<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${zoneInBadge}${zoneOutBadge}</div>`:''}
         </div>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0;">
@@ -3410,8 +3717,8 @@ async function exportEmpListExcel(){
     const sorted=Object.entries(APP.salesmen).sort(([,a],[,b])=>{
       const so=(statusOrder[a.status||'active']||0)-(statusOrder[b.status||'active']||0);
       if(so!==0) return so;
-      const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999);
-      const nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999);
+      const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999, 10);
+      const nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999, 10);
       return na-nb;
     });
 
@@ -3484,9 +3791,22 @@ async function editSalesmanAdmin(uid){
     document.getElementById('esPass').value=u.password||'';
     document.getElementById('esErr').style.display='none';
     const empTypeSel=document.getElementById('esEmpType');
-    if(empTypeSel){ empTypeSel.value=u.emp_type||'sales'; }
-    const wrap=document.getElementById('esEmpTypeWrap');
-    if(wrap) wrap.style.display='block';
+    const esWrap=document.getElementById('esEmpTypeWrap');
+    if(empTypeSel && esWrap){
+      const mods=APP.companyModules||{sales:true,backoffice:true};
+      const hasSales=mods.sales!==false, hasBo=mods.backoffice!==false;
+      if(hasSales && hasBo){
+        empTypeSel.innerHTML='<option value="sales">📊 Sales Employee</option><option value="backoffice">🏢 Back Office Employee</option>';
+        esWrap.style.display='block';
+      } else if(hasSales){
+        empTypeSel.innerHTML='<option value="sales">📊 Sales Employee</option>';
+        esWrap.style.display='none';
+      } else {
+        empTypeSel.innerHTML='<option value="backoffice">🏢 Back Office Employee</option>';
+        esWrap.style.display='none';
+      }
+      empTypeSel.value=u.emp_type||'sales';
+    }
     // Show emp_id (read-only)
     const idDisp=document.getElementById('esEmpIdDisplay');
     const idVal=document.getElementById('esEmpIdVal');
@@ -3498,6 +3818,8 @@ async function editSalesmanAdmin(uid){
     document.getElementById('esShiftIn').value=u.shift_in||'';
     document.getElementById('esShiftOut').value=u.shift_out||'';
     document.getElementById('esGreeting').value=u.greeting_period!=null?u.greeting_period:'';
+    // Zone dropdowns
+    populateZoneDropdowns('esZoneIn','esZoneOut',u.checkin_zone||'',u.checkout_zone||'',APP.zoneTemplates||[]);
     // Ensure SA context flag is NOT set (this is Company Admin context)
     document.getElementById('esUid').removeAttribute('data-sa-context');
     doneLoading();
@@ -3527,14 +3849,38 @@ async function softDeleteSalesman(uid, name){
 async function openAddSalesmanModal(){
   ['asName','asEmail','asPass'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('asErr').style.display='none';
-  // Always show both emp type options
+
+  // Filter emp type options based on company modules
+  const mods=APP.companyModules||{sales:true,backoffice:true};
   const wrap=document.getElementById('asEmpTypeWrap');
-  if(wrap) wrap.style.display='block';
+  const sel=document.getElementById('asEmpType');
+  if(wrap && sel){
+    const hasSales=mods.sales!==false;
+    const hasBo=mods.backoffice!==false;
+    if(hasSales && hasBo){
+      // Both modules — show both options
+      sel.innerHTML='<option value="sales">📊 Sales Employee</option><option value="backoffice">🏢 Back Office Employee</option>';
+      wrap.style.display='block';
+    } else if(hasSales){
+      // Sales only — auto-select, hide dropdown
+      sel.innerHTML='<option value="sales">📊 Sales Employee</option>';
+      sel.value='sales';
+      wrap.style.display='none';
+    } else {
+      // Back Office only — auto-select, hide dropdown
+      sel.innerHTML='<option value="backoffice">🏢 Back Office Employee</option>';
+      sel.value='backoffice';
+      wrap.style.display='none';
+    }
+  }
+
   // Populate shift dropdown
   populateShiftDropdown('asShiftSelect', '');
   const prev=document.getElementById('asShiftPreview');
   if(prev) prev.style.display='none';
   ['asShiftIn','asShiftOut','asGreeting'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  // Populate zone dropdowns
+  populateZoneDropdowns('asZoneIn','asZoneOut','','',APP.zoneTemplates||[]);
   openModal('addSalesmanModal');
 }
 
@@ -3560,6 +3906,11 @@ async function addSalesman(){
       const tmpl=(APP.shiftTemplates||[]).find(t=>t.name===selShift);
       if(tmpl){ newEmp.shift_in=tmpl.shift_in; newEmp.shift_out=tmpl.shift_out; newEmp.greeting_period=tmpl.grace; newEmp.shift_template_name=tmpl.name; }
     }
+    // Zone assignment
+    const zIn=document.getElementById('asZoneIn')?.value||'';
+    const zOut=document.getElementById('asZoneOut')?.value||'';
+    if(zIn) newEmp.checkin_zone=zIn;
+    if(zOut) newEmp.checkout_zone=zOut;
     await db.ref(`users/${uid}`).set(newEmp);
     doneLoading(); toast(`"${name}" created as ${empType==='sales'?'Sales':'Back Office'} employee!`);
     await loadSalesmen();
@@ -3714,8 +4065,8 @@ async function loadOverview(){
   rows.sort((a,b)=>{
     if(a.sortKey!==b.sortKey) return a.sortKey-b.sortKey;
     // Within same status group: sort by EMP ID numerically
-    const na=parseInt((a.u.emp_id||'EMP-9999').split('-')[1]||9999);
-    const nb=parseInt((b.u.emp_id||'EMP-9999').split('-')[1]||9999);
+    const na=parseInt((a.u.emp_id||'EMP-9999').split('-')[1]||9999, 10);
+    const nb=parseInt((b.u.emp_id||'EMP-9999').split('-')[1]||9999, 10);
     return na-nb;
   });
 
@@ -3768,7 +4119,7 @@ function populateEmpFilter(selectId, dept){
     const isBO=u.emp_type==='backoffice';
     if(dept==='sales'&&isBO) return;
     if(dept==='backoffice'&&!isBO) return;
-    sel.innerHTML+=`<option value="${uid}" ${uid===prev?'selected':''}>${u.name}</option>`;
+    sel.innerHTML+=`<option value="${htmlEsc(uid)}" ${uid===prev?'selected':''}>${htmlEsc(u.name)}</option>`;
   });
 }
 
@@ -4185,8 +4536,8 @@ function scoreRingSVG(score,color){
 }
 
 async function loadPerformance(){
-  const month=parseInt(document.getElementById('perfMonth').value);
-  const year=parseInt(document.getElementById('perfYear').value);
+  const month=parseInt(document.getElementById('perfMonth').value, 10);
+  const year=parseInt(document.getElementById('perfYear').value, 10);
   loading('Calculating performance scores...');
   lastPerfData=[];
 
@@ -4369,8 +4720,8 @@ async function exportPerfExcel(){
   if(lastPerfData.length===0){ toast('Please calculate first','err'); return; }
   loading('Generating Excel...');
   await ensureReportLibs();
-  const month=parseInt(document.getElementById('perfMonth').value);
-  const year=parseInt(document.getElementById('perfYear').value);
+  const month=parseInt(document.getElementById('perfMonth').value, 10);
+  const year=parseInt(document.getElementById('perfYear').value, 10);
   const MONTHS_A=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const co=getCompanyName();
   const headers=['Rank','Emp ID','Employee','Score','Grade','Present','Working Days','Att%','Total Visits','Visits/Day','Avg Hours','Att(40)','Visit(35)','Dur(25)'];
@@ -4501,28 +4852,33 @@ async function initSalesman(){
   if(!APP.companyHolidays){
     const _coSnap=await db.ref(`companies/${APP.companyId}`).get();
     const _co=_coSnap.exists()?_coSnap.val():{};
+    APP.companyModules=_co.modules||{sales:true,backoffice:true};
     APP.companyHolidays=_co.holidays||[0];
     APP.companyCustomHolidays=_co.custom_holidays||[];
     APP.companyShiftIn=_co.shift_in||'09:00';
     APP.companyShiftOut=_co.shift_out||'18:00';
     APP.companyGreetingPeriod=_co.greeting_period!=null?_co.greeting_period:15;
     APP.shiftTemplates=_co.shift_templates||[];
+    APP.companyZoneTemplates=_co.zone_templates||[];
   }
   
   const isBo=APP.userData.emp_type==='backoffice';
-  APP.isBackOffice=isBo;
-  
+  // Also hide visit if company is Back-Office-only module (no sales module)
+  const coMods=APP.companyModules||{sales:true,backoffice:true};
+  const hideVisit=isBo || coMods.sales===false;
+  APP.isBackOffice=hideVisit;
+
   // Show only name in nav pill (no badge — prevents truncation)
   const nmEl=document.getElementById('smNm');
   if(nmEl) nmEl.textContent=APP.userData.name;
-  
-  // Hide visit sections for Back Office employees
+
+  // Hide visit sections for Back Office employees or BO-only companies
   const visitCard=document.getElementById('visitFormCard');
   const visitHeading=document.getElementById('smVisitHeading');
   const visitListWrap=document.getElementById('smVisitListWrap');
   const statToday=document.getElementById('smStatToday');
   const statMonth=document.getElementById('smStatMonth');
-  if(isBo){
+  if(hideVisit){
     if(visitCard) visitCard.style.display='none';
     if(visitHeading) visitHeading.style.display='none';
     if(visitListWrap) visitListWrap.style.display='none';
@@ -4602,6 +4958,17 @@ async function loadSmProfile(){
         </div>`).join('');
     } else {
       customSec.style.display='none';
+    }
+
+    // Zone assignment — show if any zone is assigned
+    const zoneSec=document.getElementById('smProfZoneSection');
+    const zoneInEl=document.getElementById('smProfZoneIn');
+    const zoneOutEl=document.getElementById('smProfZoneOut');
+    if(zoneSec && zoneInEl && zoneOutEl){
+      const hasZone=u.checkin_zone||u.checkout_zone;
+      zoneSec.style.display=hasZone?'block':'none';
+      zoneInEl.textContent=u.checkin_zone||'Not Required';
+      zoneOutEl.textContent=u.checkout_zone||'Not Required';
     }
   }catch(e){ toast('Error loading profile','err'); }
 }
@@ -4807,6 +5174,17 @@ async function startDay(){
   btn.disabled=true;
   try{
     const pos=await getAccurateLocation(btn,'🌅 Start Your Day');
+    // Zone enforcement for check-in
+    const ciZone=APP.userData.checkin_zone||'';
+    if(ciZone){
+      const coZones=APP.companyZoneTemplates||[];
+      const check=checkZoneAllowed(ciZone,pos,coZones);
+      if(!check.ok){
+        btn.disabled=false;
+        toast('⛔ Check-in blocked: '+check.message,'err');
+        return;
+      }
+    }
     loading('Starting your day...');
     const now=new Date();
     const today=todayStr();
@@ -4848,7 +5226,35 @@ async function endDay(auto=false){
   const now=auto ? new Date(new Date().setHours(23,59,59,0)) : new Date();
   const endTs=auto ? new Date(todayStr()+'T23:59:59').getTime() : Date.now();
 
+  // End without GPS if geolocation not available
+  const doEndWithoutGPS=async()=>{
+    loading(auto?'Auto ending day...':'Ending your day...');
+    const time=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
+    const updates={end_time:auto?'11:59 PM (Auto)':time, end_timestamp:endTs};
+    try{
+      await db.ref(`attendance/${APP.companyId}/${today}/${APP.user.uid}`).update(updates);
+      if(dayDurationInterval){ clearInterval(dayDurationInterval); dayDurationInterval=null; }
+      doneLoading();
+      const updated={...att,...updates};
+      showDayState('ended', updated);
+    }catch(e){ doneLoading(); }
+  };
+
+  if(!navigator.geolocation){ await doEndWithoutGPS(); return; }
+
   navigator.geolocation.getCurrentPosition(async pos=>{
+    // Zone enforcement for check-out (skip for auto end-of-day)
+    if(!auto){
+      const coZone=APP.userData.checkout_zone||'';
+      if(coZone){
+        const coZones=APP.companyZoneTemplates||[];
+        const check=checkZoneAllowed(coZone,pos,coZones);
+        if(!check.ok){
+          toast('⛔ Check-out blocked: '+check.message,'err');
+          return;
+        }
+      }
+    }
     loading(auto?'Auto ending day...':'Ending your day...');
     const time=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
     const acc=Math.round(pos.coords.accuracy);
@@ -4868,19 +5274,7 @@ async function endDay(auto=false){
       const updated={...att,...updates};
       showDayState('ended', updated);
     }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
-  }, async ()=>{
-    // No GPS — end without location
-    loading(auto?'Auto ending day...':'Ending your day...');
-    const time=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
-    const updates={end_time:auto?'11:59 PM (Auto)':time, end_timestamp:endTs};
-    try{
-      await db.ref(`attendance/${APP.companyId}/${today}/${APP.user.uid}`).update(updates);
-      if(dayDurationInterval){ clearInterval(dayDurationInterval); dayDurationInterval=null; }
-      doneLoading();
-      const updated={...att,...updates};
-      showDayState('ended', updated);
-    }catch(e){ doneLoading(); }
-  },{enableHighAccuracy:true,timeout:8000});
+  }, doEndWithoutGPS, {enableHighAccuracy:true,timeout:8000});
 }
 
 function scheduleAutoEndDay(){
@@ -5049,7 +5443,7 @@ async function initSAReport(){
     if(snap.exists()){
       Object.entries(snap.val()).forEach(([id,co])=>{
         SA_companies_cache[id]=co;
-        sel.innerHTML+=`<option value="${id}">${co.name}</option>`;
+        sel.innerHTML+=`<option value="${htmlEsc(id)}">${htmlEsc(co.name)}</option>`;
       });
     }
     const today2=todayStr();
@@ -5061,129 +5455,6 @@ async function initSAReport(){
     const syEl=document.getElementById('saRptSumYear'); if(syEl&&!syEl.value) syEl.value=String(now2.getFullYear());
     doneLoading();
   }catch(e){ doneLoading(); toast('Error loading companies: '+e.message,'err'); }
-}
-
-async function loadSAReport(){
-  const fromDate=document.getElementById('saReportFrom').value;
-  const toDate=document.getElementById('saReportTo').value;
-  const coFilter=document.getElementById('saReportCompany').value;
-  if(!fromDate||!toDate){ toast('Please select from and to date','err'); return; }
-  if(fromDate>toDate){ toast('From date must be before To date','err'); return; }
-  loading('Loading all companies report...');
-  SA_reportData=[];
-
-  // Build date list — local date to avoid timezone shift
-  const dateList=[];
-  let cur=new Date(fromDate+'T00:00:00');
-  const end=new Date(toDate+'T00:00:00');
-  while(cur<=end){
-    const y=cur.getFullYear(), m=String(cur.getMonth()+1).padStart(2,'0'), d=String(cur.getDate()).padStart(2,'0');
-    dateList.push(`${y}-${m}-${d}`);
-    cur.setDate(cur.getDate()+1);
-  }
-
-  try{
-    const companies=coFilter?{[coFilter]:SA_companies_cache[coFilter]}:{...SA_companies_cache};
-    if(!Object.keys(companies).length){
-      const snap=await db.ref('companies').get();
-      if(snap.exists()) Object.entries(snap.val()).forEach(([id,co])=>{ companies[id]=co; });
-    }
-
-    let totalVisits=0, totalIn=0, totalPending=0;
-    let html='';
-
-    for(const [coId,co] of Object.entries(companies)){
-      if(co.status==='inactive') continue;
-      const smSnap=await db.ref('users').orderByChild('company_id').equalTo(coId).get();
-      const salesmen={};
-      if(smSnap.exists()) Object.entries(smSnap.val()).forEach(([uid,u])=>{
-        if(u.role==='salesman'&&u.status!=='deleted_by_admin') salesmen[uid]=u;
-      });
-
-      const coRows=[];
-      for(const date of dateList){
-        const [vSnap,attSnap]=await Promise.all([
-          db.ref(`visits/${coId}/${date}`).get(),
-          db.ref(`attendance/${coId}/${date}`).get()
-        ]);
-        const visits=vSnap.exists()?vSnap.val():{};
-        const att=attSnap.exists()?attSnap.val():{};
-
-        // Attendance rows
-        Object.entries(att).forEach(([uid,a])=>{
-          if(!salesmen[uid]) return;
-          const u=salesmen[uid];
-          const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-          const inLoc=a.start_address||(a.start_lat?`${a.start_lat.toFixed(4)}, ${a.start_lng.toFixed(4)}${a.start_accuracy?` (±${a.start_accuracy}m)`:''}`:'—');
-          const outLoc=a.end_address||(a.end_lat?`${a.end_lat.toFixed(4)}, ${a.end_lng.toFixed(4)}${a.end_accuracy?` (±${a.end_accuracy}m)`:''}`:'—');
-          if(a.start_time){ coRows.push({co:co.name,date,type,status:'In',name:u.name,emp_id:u.emp_id||'—',location:inLoc,time:a.start_time,outlet:'—',remarks:'Day Started',sort_ts:a.start_timestamp||0}); totalIn++; }
-          if(a.end_time){ coRows.push({co:co.name,date,type,status:'Out',name:u.name,emp_id:u.emp_id||'—',location:outLoc,time:a.end_time,outlet:'—',remarks:'Day Ended',sort_ts:a.end_timestamp||0}); }
-          else if(a.start_time){ coRows.push({co:co.name,date,type,status:'Pending',name:u.name,emp_id:u.emp_id||'—',location:'—',time:'—',outlet:'—',remarks:'⚠️ Not Checked Out',sort_ts:(a.start_timestamp||0)+1}); totalPending++; }
-        });
-        // Visit rows
-        Object.values(visits).forEach(v=>{
-          if(!salesmen[v.salesman_uid]) return;
-          const u=salesmen[v.salesman_uid];
-          const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-          const loc=v.lat?`${v.lat.toFixed(4)}, ${v.lng.toFixed(4)}`:'—';
-          coRows.push({co:co.name,date,type,status:'Visit',name:u.name||v.salesman_name,emp_id:u.emp_id||'—',location:loc,time:v.time||'—',outlet:v.outlet||'—',remarks:v.remarks||'—',sort_ts:v.timestamp||0});
-          totalVisits++;
-        });
-      }
-
-      coRows.sort((a,b)=>a.sort_ts-b.sort_ts);
-      SA_reportData.push(...coRows);
-
-      if(coRows.length===0) continue;
-      html+=`<div class="tc" style="margin-bottom:18px;">
-        <div class="tc-hd">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div class="tc-title">🏢 ${co.name}${co.co_id?` <span style="font-size:11px;font-weight:800;color:var(--gold);background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:8px;padding:2px 8px;margin-left:4px;">${co.co_id}</span>`:''}</div>
-            <span style="font-size:12px;color:var(--txt-2);">${coRows.filter(r=>r.status==='Visit').length} Visits &nbsp;|&nbsp; ${coRows.filter(r=>r.status==='In').length} Check-Ins</span>
-          </div>
-        </div>
-        <div style="overflow-x:auto;">
-          <table class="tbl">
-            <thead><tr>
-              <th style="width:90px;">Date</th>
-              <th style="width:82px;">Type</th>
-              <th style="width:88px;">Status</th>
-              <th style="width:160px;">Name</th>
-              <th style="width:80px;">Time</th>
-              <th style="width:110px;">Outlet</th>
-              <th>Remarks</th>
-            </tr></thead>
-            <tbody>
-              ${coRows.map(r=>{
-                const sc=r.status==='In'?'var(--ok)':r.status==='Out'?'var(--err)':r.status==='Pending'?'#FF9900':'var(--info)';
-                const si=r.status==='In'?'🟢':r.status==='Out'?'🔴':r.status==='Pending'?'⚠️':'📍';
-                const tip=`${r.emp_id||''} ${r.name} | ${r.time} | ${r.location} | ${r.outlet} | ${r.remarks}`;
-                const empIdBadge=r.emp_id&&r.emp_id!=='—'?`<span style="font-size:9px;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);padding:1px 5px;border-radius:5px;margin-right:4px;font-weight:800;">${r.emp_id}</span>`:'';
-                return `<tr title="${tip}">
-                  <td>${r.date}</td>
-                  <td style="font-size:11px;color:var(--txt-2);">${r.type}</td>
-                  <td><span style="color:${sc};font-weight:700;">${si} ${r.status}</span></td>
-                  <td class="tbl-name" title="${r.name}">${empIdBadge}${r.name}</td>
-                  <td>${r.time}</td>
-                  <td style="font-weight:${r.outlet!=='—'?'600':'400'};color:${r.outlet!=='—'?'var(--txt)':'var(--txt-3)'};" title="${r.outlet}">${r.outlet}</td>
-                  <td class="c-rmk" title="${r.remarks}">${r.remarks}</td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>`;
-    }
-
-    const summaryHtml=`<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:20px;">
-      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">📍</div><div class="ov-val">${totalVisits}</div><div class="ov-lbl">Total Visits</div></div>
-      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">✅</div><div class="ov-val" style="color:var(--ok);">${totalIn}</div><div class="ov-lbl">Check-Ins</div></div>
-      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">⚠️</div><div class="ov-val" style="color:#FF9900;">${totalPending}</div><div class="ov-lbl">Pending Checkout</div></div>
-      <div class="ov-card" style="flex:1;min-width:120px;"><div class="ov-icon">📋</div><div class="ov-val">${SA_reportData.length}</div><div class="ov-lbl">Total Records</div></div>
-    </div>`;
-    document.getElementById('saReportContent').innerHTML=summaryHtml+(html||'<div class="empty"><div class="empty-icon">📭</div>No data found for selected range</div>');
-    doneLoading();
-  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
 // ── Helper: get companies to export (all or selected) ──
@@ -5353,13 +5624,17 @@ function getCompanyName(){
   return el?el.textContent.replace(/\s+/g,' ').trim():'Company';
 }
 
+/* ── Excel status colour helpers — used by both company admin and SA reports ── */
+function statusFg(v){ return v==='Present'?{argb:'FF065F46'}:v==='Late'?{argb:'FFB45309'}:v==='Holiday'?{argb:'FF7A4F00'}:v==='Absent'?{argb:'FF991B1B'}:{argb:'FF3E4E78'}; }
+function statusBg(v,alt){ return v==='Present'?'FFD1FAE5':v==='Late'?'FFFEF3C7':v==='Holiday'?'FFFFF3CD':v==='Absent'?'FFFEE2E2':alt; }
+
 // ══════════════════════════════════════════════
 // SA REPORT B — Attendance Summary (multi-company)
 // Sheet 1: matrix + totals | Sheet 2: daily detail
 // ══════════════════════════════════════════════
 async function exportSASumExcel(){
-  const month=parseInt(document.getElementById('saRptSumMonth').value);
-  const year=parseInt(document.getElementById('saRptSumYear').value);
+  const month=parseInt(document.getElementById('saRptSumMonth').value, 10);
+  const year=parseInt(document.getElementById('saRptSumYear').value, 10);
   const typeFilter=document.getElementById('saRptSumType').value;
   if(!month||!year){ toast('Please select month and year','err'); return; }
   loading('Building SA Attendance Summary...');
@@ -5409,9 +5684,6 @@ async function exportSASumExcel(){
       cell.alignment={horizontal:'center',vertical:'middle',wrapText:true};
       cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
     });
-
-    function statusFg(v){ return v==='Present'?{argb:'FF065F46'}:v==='Late'?{argb:'FFB45309'}:v==='Holiday'?{argb:'FF7A4F00'}:v==='Absent'?{argb:'FF991B1B'}:{argb:'FF3E4E78'}; }
-    function statusBg(v,alt){ return v==='Present'?'FFD1FAE5':v==='Late'?'FFFEF3C7':v==='Holiday'?'FFFFF3CD':v==='Absent'?'FFFEE2E2':alt; }
 
     // ── Sheet 2: Daily detail ──
     const ws2=wb.addWorksheet('Daily Detail');
@@ -5841,8 +6113,8 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
 }
 
 async function exportRptSumExcel(){
-  const month=parseInt(document.getElementById('rptSumMonth').value);
-  const year=parseInt(document.getElementById('rptSumYear').value);
+  const month=parseInt(document.getElementById('rptSumMonth').value, 10);
+  const year=parseInt(document.getElementById('rptSumYear').value, 10);
   const typeFilter=document.getElementById('rptSumType').value;
   if(!month||!year){ toast('Please select month and year','err'); return; }
   loading('Building Attendance Summary...');
@@ -5894,20 +6166,7 @@ async function exportRptSumExcel(){
     });
 
     // Status → colour map
-    function statusFg(v){
-      if(v==='Present') return {argb:'FF065F46'};
-      if(v==='Late')    return {argb:'FFB45309'};
-      if(v==='Holiday') return {argb:'FF7A4F00'};
-      if(v==='Absent')  return {argb:'FF991B1B'};
-      return {argb:'FF3E4E78'};
-    }
-    function statusBg(v,alt){
-      if(v==='Present') return 'FFD1FAE5';
-      if(v==='Late')    return 'FFFEF3C7';
-      if(v==='Holiday') return 'FFFFF3CD';
-      if(v==='Absent')  return 'FFFEE2E2';
-      return alt;
-    }
+
 
     // Data rows
     empList.forEach(([uid,u],ri)=>{
@@ -6051,7 +6310,7 @@ async function exportRptSumExcel(){
           const leftAlign=ci===2||ci===9; // Name, Remarks
           xlsStyle(cell,{bg:hol?'FFFFF3CD':altBg,fg:'FF1A2850',sz:9,align:leftAlign?'left':'center'});
           if(isTimeCol&&v!=null){
-            cell.numFmt='HH:MM';
+            cell.numFmt=ci===7?'[h]:MM':'HH:MM'; // Duration uses [h]:MM, In/Out use HH:MM
             cell.alignment={horizontal:'center',vertical:'middle'};
           }
           // Remarks colour
@@ -6143,11 +6402,13 @@ async function buildLateRows(startDate, endDate, typeFilter){
     return true;
   });
 
-  for(const date of dates){
-    const hol=isAnyHoliday(date,weeklyHols,customHols);
-    if(hol) continue; // skip holidays entirely
+  // Fetch all non-holiday dates in parallel — consistent with other report functions
+  const nonHolDates=dates.filter(date=>!isAnyHoliday(date,weeklyHols,customHols));
+  const attSnapsArr=await Promise.all(nonHolDates.map(date=>db.ref(`attendance/${APP.companyId}/${date}`).get()));
 
-    const attSnap=await db.ref(`attendance/${APP.companyId}/${date}`).get();
+  for(let di=0;di<nonHolDates.length;di++){
+    const date=nonHolDates[di];
+    const attSnap=attSnapsArr[di];
     if(!attSnap.exists()) continue;
     const attDay=attSnap.val();
 
@@ -6415,6 +6676,20 @@ window.addEventListener('load',initApp);
   }
   const icon192=makePwaIcon(192);
   const icon512=makePwaIcon(512);
+
+  // Convert data URLs to blob URLs — Chrome PWA requires blob: not data: for icons
+  function dataUrlToBlob(dataUrl){
+    const arr=dataUrl.split(',');
+    const mime=arr[0].match(/:(.*?);/)[1];
+    const bstr=atob(arr[1]);
+    let n=bstr.length;
+    const u8arr=new Uint8Array(n);
+    while(n--) u8arr[n]=bstr.charCodeAt(n);
+    return URL.createObjectURL(new Blob([u8arr],{type:mime}));
+  }
+  const blobIcon192=dataUrlToBlob(icon192);
+  const blobIcon512=dataUrlToBlob(icon512);
+
   const manifest={
     name:'SunStar Solutions',
     short_name:'SunStar',
@@ -6423,8 +6698,8 @@ window.addEventListener('load',initApp);
     background_color:'#06091A',
     theme_color:'#EFA800',
     icons:[
-      {src:icon192,sizes:'192x192',type:'image/png',purpose:'any maskable'},
-      {src:icon512,sizes:'512x512',type:'image/png',purpose:'any maskable'}
+      {src:blobIcon192,sizes:'192x192',type:'image/png',purpose:'maskable any'},
+      {src:blobIcon512,sizes:'512x512',type:'image/png',purpose:'maskable any'}
     ]
   };
   const blob=new Blob([JSON.stringify(manifest)],{type:'application/json'});
@@ -6433,7 +6708,7 @@ window.addEventListener('load',initApp);
   document.head.appendChild(link);
   // Apple touch icon
   const appleLink=document.createElement('link');
-  appleLink.rel='apple-touch-icon'; appleLink.href=icon192;
+  appleLink.rel='apple-touch-icon'; appleLink.href=blobIcon192;
   document.head.appendChild(appleLink);
 })();
 </script>
