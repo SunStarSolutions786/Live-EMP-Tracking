@@ -3368,15 +3368,31 @@ function removeZoneTemplate(ctx,idx){
 
 async function useCurrentLocationForZone(ctx, btn){
   const prefix=ctx==='cs'?'csNew':'adNew';
-  const origText=btn?btn.textContent:'';
+  if(!navigator.geolocation){
+    toast('GPS not supported in this browser','err');
+    return;
+  }
+  const origText=btn?btn.textContent:'📡 Use Current Location';
   if(btn){ btn.disabled=true; btn.textContent='Getting GPS...'; }
   try{
-    const pos=await getAccurateLocation(btn, origText);
+    // Use geolocation directly — no need for getAccurateLocation's multi-attempt logic here
+    const pos=await new Promise((resolve,reject)=>{
+      navigator.geolocation.getCurrentPosition(resolve, reject,
+        {enableHighAccuracy:true, timeout:12000, maximumAge:0});
+    });
     document.getElementById(prefix+'ZoneLat').value=pos.coords.latitude.toFixed(6);
     document.getElementById(prefix+'ZoneLng').value=pos.coords.longitude.toFixed(6);
     toast(`📡 GPS captured (±${Math.round(pos.coords.accuracy)}m)`);
-  }catch(e){ toast('GPS error: allow location access','err'); }
-  finally{ if(btn){ btn.disabled=false; btn.textContent=origText; } }
+  }catch(e){
+    const msg=
+      e.code===1?'Location permission denied — allow it in browser/app settings':
+      e.code===2?'Location unavailable — check GPS signal':
+      e.code===3?'GPS timed out — try again outdoors':
+      'GPS error — try again';
+    toast('⚠️ '+msg,'err');
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent=origText; }
+  }
 }
 
 function populateZoneDropdowns(inId,outId,currentIn='',currentOut='',templates=null){
