@@ -569,17 +569,109 @@ button{font-family:'DM Sans',sans-serif;}
 ::-webkit-scrollbar-thumb{background:var(--border-lg);border-radius:3px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--gold);}
 
+/* Bottom nav — desktop hidden, mobile shown via media query */
+.admin-bottom-nav{ display:none; }
+.abn-item{ display:flex;flex-direction:column;align-items:center; }
+
+/* Page transitions for admin pages */
+.admin-page{ animation:none; }
+.admin-page.active{ animation:pgFadeIn .2s ease; }
+@keyframes pgFadeIn{ from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);} }
+
+/* Overscroll — prevent bounce on body, allow in scroll containers */
+body{ overscroll-behavior:none; }
+
+/* Mobile top nav — compact when bottom nav shown */
 @media(max-width:768px){
-  .sidebar{width:52px;}
-  .sid-item span:not(.sid-icon){display:none;}
-  .sid-item{padding:14px;justify-content:center;border-left:none;}
-  .sid-item.active{background:var(--gold-dim);border-left:none;}
-  .admin-main{padding:16px;}
-  .fbar{flex-direction:column;}
+  .nav{ height:50px;padding:0 14px; }
+  .nav-title{ font-size:13px; }
+  .user-pill{ padding:5px 8px;gap:6px; }
+  .user-nm{ font-size:11px;max-width:80px; }
+  .btn-out{ padding:5px 11px;font-size:12px; }
+  .user-av{ width:26px;height:26px;font-size:11px; }
+}
+
+@media(max-width:768px){
+  /* ── SIDEBAR → hide on mobile ── */
+  .sidebar{ display:none!important; }
+
+  /* ── BOTTOM NAV BAR ── */
+  .admin-bottom-nav{
+    display:flex!important;
+    position:fixed;bottom:0;left:0;right:0;z-index:200;
+    background:var(--bg-card);border-top:1px solid var(--border);
+    padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+    overflow-x:auto;gap:0;
+    -webkit-overflow-scrolling:touch;
+  }
+  .admin-bottom-nav::-webkit-scrollbar{display:none;}
+  .abn-item{
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    flex:1;min-width:52px;padding:6px 4px;
+    color:var(--txt-3);cursor:pointer;border-radius:10px;
+    font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;
+    transition:all .2s;border:none;background:none;
+    font-family:'DM Sans',sans-serif;
+  }
+  .abn-item .abn-icon{font-size:20px;line-height:1;}
+  .abn-item.active{color:var(--gold);}
+  .abn-item.active .abn-icon{filter:drop-shadow(0 0 6px rgba(239,168,0,.5));}
+
+  /* ── MAIN CONTENT — room for bottom nav ── */
+  .admin-main{
+    padding:14px 14px calc(90px + env(safe-area-inset-bottom));
+    overflow-y:auto;
+  }
+
+  /* ── PAGE HEADER compact ── */
+  .pt{font-size:22px;}
+  .ps{font-size:13px;}
+  .ph{margin-bottom:16px;}
+
+  /* ── ADMIN NAV BAR compact ── */
+  .admin-nav{padding:0 14px;height:54px;}
+
+  /* ── OVERVIEW GRID ── */
+  .ov-grid{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+  .ov-card{padding:14px 12px;}
+  .ov-val{font-size:26px;}
+
+  /* ── FILTER BAR stack ── */
+  .fbar{flex-direction:column;gap:10px;padding:14px;}
   .fi-sm,.fsel-sm{min-width:100%;width:100%;}
+  .btn-go{width:100%;text-align:center;justify-content:center;}
+
+  /* ── TC-HD (table card header) — stack title + search ── */
+  .tc-hd{flex-direction:column;align-items:flex-start;gap:10px;padding:14px 16px;}
+  .tc-hd > div:last-child{width:100%;}
+  .tc-hd input{width:100%!important;min-width:unset!important;}
+
+  /* ── TABLE — horizontal scroll ── */
+  .tc{overflow-x:auto;}
+  .tbl th,.tbl td{padding:9px 10px;font-size:12px;}
+
+  /* ── EMPLOYEES PAGE header ── */
+  .ph .pt + div{flex-direction:column;gap:8px;}
+
+  /* ── FILTERS bar above employee list ── */
+  .dept-filter{gap:6px;}
+
+  /* ── MODALS — full screen on mobile ── */
+  .modal-ov{align-items:flex-end!important;padding:0!important;}
+  .modal-box{
+    width:100%!important;max-width:100%!important;border-radius:20px 20px 0 0!important;
+    max-height:92vh;overflow-y:auto;padding:22px 18px;
+    padding-bottom:calc(22px + env(safe-area-inset-bottom));
+  }
+
+  /* ── SETTINGS sections ── */
+  .settings-section{padding:16px 14px;}
+
+  /* ── LOGIN/SETUP CARDS ── */
+  .login-card,.setup-card{padding:28px 18px;}
+
+  /* ── STATS in overview ── */
   .stats-row{grid-template-columns:repeat(2,1fr);}
-  .ov-grid{grid-template-columns:repeat(2,1fr);}
-  .login-card,.setup-card{padding:32px 24px;}
 }
 </style>
 <script>
@@ -746,7 +838,7 @@ button{font-family:'DM Sans',sans-serif;}
     <div class="nav-right">
       <div class="user-pill">
         <div class="user-av" id="smAv">R</div>
-        <div class="user-nm" id="smNm">Salesman</div>
+        <div class="user-nm" id="smNm"></div>
       </div>
       <button id="pwaInstallBtn" style="display:none;background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:var(--r-sm);padding:6px 10px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;" onclick="installPWA()">📲</button>
       <button class="btn-out" style="font-size:12px;padding:6px 10px;" onclick="doLogout()">Exit</button>
@@ -757,7 +849,7 @@ button{font-family:'DM Sans',sans-serif;}
     <div class="sm-wrap">
   <!-- ── HOME PAGE ── -->
   <div id="smPageHome">
-    <div class="greet">Good day, <span id="smGreet">Salesman</span>!</div>
+    <div class="greet">Good day, <span id="smGreet">there</span>!</div>
     <div class="date-pill" id="smDate">📅 Today</div>
 
     <!-- DAY STATUS CARD -->
@@ -822,18 +914,18 @@ button{font-family:'DM Sans',sans-serif;}
       <div class="card-hd"><div class="card-icon">📍</div>Submit New Visit</div>
       <div id="gpsStatus" class="gps-bar"><div class="gps-dot"></div>GPS ready — Location will be captured</div>
       <div class="fg">
-        <label class="fl">Outlet Name *</label>
-        <input class="fi" id="outletName" placeholder="Enter the name of the outlet you visited">
+        <label class="fl">Client / Location *</label>
+        <input class="fi" id="outletName" placeholder="e.g. Rahima Store, City Hospital, ABC Office">
       </div>
       <div class="fg" style="margin-bottom:20px;">
         <label class="fl">Remarks</label>
-        <textarea class="fta" id="visitRemarks" placeholder="Enter order, payment, feedback etc..."></textarea>
+        <textarea class="fta" id="visitRemarks" placeholder="Add any notes about this visit…"></textarea>
       </div>
       <button class="btn" id="submitBtn" onclick="submitVisit()">✅ Submit Visit</button>
     </div>
     <!-- Today's visits -->
     <div id="smVisitHeading" class="card-hd" style="padding:0;margin-bottom:14px;"><div class="card-icon">📋</div>Today's Visits</div>
-    <div id="smVisitListWrap"><div id="smVisitList"><div class="empty"><div class="empty-icon">🏪</div>No visits submitted yet</div></div></div>
+    <div id="smVisitListWrap"><div id="smVisitList"><div class="empty"><div class="empty-icon">📍</div>No visits submitted yet</div></div></div>
   </div><!-- end smPageHome -->
 
   <!-- ── SELF REPORT PAGE ── -->
@@ -950,6 +1042,7 @@ button{font-family:'DM Sans',sans-serif;}
         <div class="user-av" id="adAv">A</div>
         <div class="user-nm" id="adNm">Admin</div>
       </div>
+      <button id="pwaInstallBtnAdmin" style="display:none;background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:var(--r-sm);padding:6px 10px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;" onclick="installPWA()">📲</button>
       <button class="btn-out" onclick="doLogout()">Logout</button>
     </div>
   </div>
@@ -979,7 +1072,15 @@ button{font-family:'DM Sans',sans-serif;}
         </div>
         <!-- Recent History -->
         <div class="tc">
-          <div class="tc-hd"><div class="tc-title">⚡ Today's Activity</div></div>
+          <div class="tc-hd">
+            <div class="tc-title">⚡ Today's Activity</div>
+            <div style="position:relative;width:220px;">
+              <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;">🔍</span>
+              <input id="ovActivitySearch" type="text" placeholder="Search by Name or Emp ID…"
+                style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px 8px 32px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:12px;outline:none;"
+                oninput="filterActivityTable(this.value)">
+            </div>
+          </div>
           <div style="overflow-x:auto;">
           <table class="tbl" id="ovActivityTable">
             <thead><tr>
@@ -1039,10 +1140,14 @@ button{font-family:'DM Sans',sans-serif;}
         <div class="fbar">
           <div class="fg-sm"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="vStartDate"></div>
           <div class="fg-sm"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="vEndDate"></div>
-          <div class="fg-sm"><label class="fl-sm">Employee Name</label>
-            <select class="fsel-sm" id="vSalesmanFilter"><option value="">All</option></select>
-          </div>
           <button class="btn-go" onclick="loadHistory()">🔍 Search</button>
+        </div>
+        <div style="position:relative;margin-bottom:14px;">
+          <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;">🔍</span>
+          <input id="histSearchInput" type="text" placeholder="Search by Name or Emp ID…"
+            style="width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:var(--r-sm);padding:9px 12px 9px 34px;color:var(--txt);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s;"
+            oninput="filterHistoryTable(this.value)"
+            onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='var(--border)'">
         </div>
         <div class="tc">
           <div class="tc-hd">
@@ -1058,7 +1163,7 @@ button{font-family:'DM Sans',sans-serif;}
                 <th style="width:90px;">Shift</th>
                 <th style="width:80px;">Status</th>
                 <th style="width:72px;">Time</th>
-                <th style="width:110px;">Outlet</th>
+                <th style="width:110px;">Client / Location</th>
                 <th>Remarks</th>
               </tr></thead>
               <tbody id="visitTbody"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--txt-3);white-space:normal;">Apply filter and search</td></tr></tbody>
@@ -1339,6 +1444,32 @@ button{font-family:'DM Sans',sans-serif;}
 
     </div><!-- end admin-main -->
   </div><!-- end admin-body -->
+
+  <!-- Mobile bottom navigation -->
+  <nav class="admin-bottom-nav" id="adminBottomNav">
+    <button class="abn-item active" id="abn-overview" onclick="showAdminPage('overview',this)">
+      <span class="abn-icon">📊</span><span>Overview</span>
+    </button>
+    <button class="abn-item" id="abn-salesman" onclick="showAdminPage('salesman',this)">
+      <span class="abn-icon">👥</span><span>Employees</span>
+    </button>
+    <button class="abn-item" id="abn-visits" onclick="showAdminPage('visits',this)">
+      <span class="abn-icon">📋</span><span>History</span>
+    </button>
+    <button class="abn-item" id="abn-performance" onclick="showAdminPage('performance',this)">
+      <span class="abn-icon">🏆</span><span>Perf.</span>
+    </button>
+    <button class="abn-item" id="abn-map" onclick="showAdminPage('map',this)">
+      <span class="abn-icon">🗺️</span><span>Map</span>
+    </button>
+    <button class="abn-item" id="abn-export" onclick="showAdminPage('export',this)">
+      <span class="abn-icon">📥</span><span>Reports</span>
+    </button>
+    <button class="abn-item" id="abn-settings" onclick="showAdminPage('settings',this)">
+      <span class="abn-icon">⚙️</span><span>Settings</span>
+    </button>
+  </nav>
+
 </div><!-- end adminScreen -->
 
 <!-- ══════════════════════════════════════════════
@@ -1357,6 +1488,7 @@ button{font-family:'DM Sans',sans-serif;}
         <div class="user-av" id="saAvNav">S</div>
         <div class="user-nm" id="saNmNav">Super Admin</div>
       </div>
+      <button id="pwaInstallBtnSA" style="display:none;background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);border-radius:var(--r-sm);padding:6px 10px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;" onclick="installPWA()">📲</button>
       <button class="btn-out" onclick="doLogout()">Logout</button>
     </div>
   </div>
@@ -1536,7 +1668,7 @@ button{font-family:'DM Sans',sans-serif;}
     <div id="coTab-salesmen" style="display:none;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
         <div style="font-size:14px;font-weight:700;">Employee List</div>
-        <button class="btn-add" style="padding:8px 14px;font-size:13px;" onclick="openAddSalesmanFromSA()">➕ Add Salesman</button>
+        <button class="btn-add" style="padding:8px 14px;font-size:13px;" onclick="openAddSalesmanFromSA()">➕ Add Employee</button>
       </div>
       <div id="coMgmtSmList"><div class="empty"><div class="empty-icon">👤</div>No employees found.</div></div>
     </div>
@@ -1679,7 +1811,7 @@ button{font-family:'DM Sans',sans-serif;}
   </div>
 </div>
 
-<!-- Add Salesman from Super Admin Modal -->
+<!-- Add Employee from Super Admin Modal -->
 <div class="modal-ov" id="addSmSAModal">
   <div class="modal-box">
     <div class="modal-title">👤 Add New Employee</div>
@@ -1777,7 +1909,7 @@ button{font-family:'DM Sans',sans-serif;}
   </div>
 </div>
 
-<!-- Add Salesman Modal -->
+<!-- Add Employee Modal -->
 <div class="modal-ov" id="addSalesmanModal" style="align-items:flex-start;padding:20px;overflow-y:auto;">
   <div class="modal-box" style="max-width:500px;width:100%;margin:auto;">
     <div class="modal-title">👤 Add New Employee</div>
@@ -1829,7 +1961,7 @@ button{font-family:'DM Sans',sans-serif;}
   </div>
 </div>
 
-<!-- Edit Salesman Modal -->
+<!-- Edit Employee Modal -->
 <div class="modal-ov" id="editSalesmanModal" style="align-items:flex-start;padding:20px;overflow-y:auto;">
   <div class="modal-box" style="max-width:500px;width:100%;margin:auto;">
     <div class="modal-title">✏️ Edit Employee</div>
@@ -2290,19 +2422,38 @@ async function doLogout(){
 
 async function authAction(uid, action){
   // action: 'disable' | 'enable' | 'delete'
-  // NOTE: disable/enable via Firebase REST API requires OAuth admin token — not supported here.
-  // Instead we rely on DB status field checked at login time.
+  // disable/enable: no REST API support without admin token — DB status field is the source of truth
+  if(action!=='delete') return;
+
   const cfg=JSON.parse(localStorage.getItem('ss_config'));
   const apiKey=cfg.apiKey;
-  if(action==='delete'){
-    const res=await fetchWithTimeout(`https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({localId:uid})
-    });
-    const d=await res.json();
-    if(d.error) throw new Error(d.error.message);
-  }
-  // disable/enable: no-op here — DB status field is the source of truth
+
+  // To delete a Firebase Auth user client-side, we must first sign in as them
+  // to get their idToken, then call accounts:delete with idToken
+  const userSnap=await db.ref(`users/${uid}`).get();
+  if(!userSnap.exists()) return; // already gone from DB
+
+  const u=userSnap.val();
+  const email=u.email; const pass=u.password;
+  if(!email||!pass) return; // can't sign in without credentials
+
+  // Sign in as the user
+  const signInRes=await fetchWithTimeout(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${apiKey}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({email,password:pass,returnSecureToken:true})}
+  );
+  const signInData=await signInRes.json();
+  if(signInData.error) throw new Error('Auth sign-in failed: '+signInData.error.message);
+
+  // Delete using their idToken
+  const delRes=await fetchWithTimeout(
+    `https://identitytoolkit.googleapis.com/v1/accounts:delete?key=${apiKey}`,
+    {method:'POST',headers:{'Content-Type':'application/json'},
+     body:JSON.stringify({idToken:signInData.idToken})}
+  );
+  const delData=await delRes.json();
+  if(delData.error) throw new Error(delData.error.message);
 }
 
 /* CREATE USER VIA REST API (without sign-in)
@@ -2624,17 +2775,21 @@ async function deleteCompany(id){
   closeModal('deleteModal');
   loading('Deleting...');
   try{
-    // Delete all salesmen from Auth first
+    // Delete all employees — Auth first (needs DB credentials), then DB
     const usersSnap=await db.ref('users').orderByChild('company_id').equalTo(id).get();
     if(usersSnap.exists()){
       for(const [uid] of Object.entries(usersSnap.val())){
-        await db.ref(`users/${uid}`).remove();
+        // Auth delete BEFORE DB remove (authAction reads email/pass from DB)
         try{ await authAction(uid,'delete'); }catch(e){}
+        await db.ref(`users/${uid}`).remove();
       }
     }
+    // Also delete admin user of this company
+    const adminSnap=await db.ref('users').orderByChild('company_id').equalTo(id).get();
     await db.ref(`companies/${id}`).remove();
     await db.ref(`visits/${id}`).remove();
     await db.ref(`attendance/${id}`).remove();
+    await db.ref(`login_logs/${id}`).remove();
     doneLoading(); toast('Company permanently deleted');
     await loadSuperDashboard();
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
@@ -2916,7 +3071,7 @@ function coTab(tab){
 }
 
 async function loadCoMgmtSalesmen(){
-  loading('Loading salesmen...');
+  loading('Loading employees...');
   try{
     const snap=await db.ref('users').orderByChild('company_id').equalTo(SA_currentCoId).get();
     const list=document.getElementById('coMgmtSmList');
@@ -2924,29 +3079,45 @@ async function loadCoMgmtSalesmen(){
     if(snap.exists()) Object.entries(snap.val()).forEach(([uid,u])=>{ if(u.role==='salesman') salesmen.push({uid,...u}); });
     if(salesmen.length===0){ list.innerHTML='<div class="empty"><div class="empty-icon">👤</div>No employees found.</div>'; doneLoading(); return; }
 
-    const active=salesmen.filter(u=>u.status!=='deleted_by_admin').sort((a,b)=>a.name.localeCompare(b.name));
+    const active=salesmen.filter(u=>u.status!=='deleted_by_admin').sort((a,b)=>{
+      // Sort by emp_id numerically; employees without emp_id go to end, sorted by name
+      const na=a.emp_id?parseInt((a.emp_id).replace(/\D/g,'')||'999999',10):999999;
+      const nb=b.emp_id?parseInt((b.emp_id).replace(/\D/g,'')||'999999',10):999999;
+      if(na!==nb) return na-nb;
+      return a.name.localeCompare(b.name);
+    });
     const deleted=salesmen.filter(u=>u.status==='deleted_by_admin').sort((a,b)=>a.name.localeCompare(b.name));
 
     let html=active.map(u=>{
       const isInactive=u.status==='inactive';
+      const isBo=u.emp_type==='backoffice';
+      const typeBadge=isBo
+        ?'<span class="mod-badge mod-bo" style="font-size:9px;padding:1px 6px;">BO</span>'
+        :'<span class="mod-badge mod-sales" style="font-size:9px;padding:1px 6px;">Sales</span>';
+      const inactiveBadge=isInactive?'<span style="font-size:9px;color:var(--err);font-weight:700;background:rgba(255,68,102,0.12);padding:1px 6px;border-radius:8px;">Off</span>':'';
+      const empIdBadge=u.emp_id?`<span style="font-size:9px;font-weight:800;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);border-radius:5px;padding:1px 6px;">${u.emp_id}</span>`:'';
+      const zoneInBadge=u.checkin_zone?`<span class="zone-badge-in" style="font-size:9px;padding:1px 6px;">🟢 ${u.checkin_zone}</span>`:'';
+      const zoneOutBadge=u.checkout_zone?`<span class="zone-badge-out" style="font-size:9px;padding:1px 6px;">🔴 ${u.checkout_zone}</span>`:'';
       return `
-      <div class="sm-list-item" style="opacity:${isInactive?0.6:1};">
+      <div class="sm-list-item" style="opacity:${isInactive?0.6:1};padding:10px 14px;">
         <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
-          <div class="sm-av" style="background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${u.name[0].toUpperCase()}</div>
-          <div style="min-width:0;">
-            <div class="sm-nm" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">
-              ${u.emp_id?`<span style="font-size:10px;font-weight:800;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.25);border-radius:6px;padding:1px 7px;margin-right:6px;">${u.emp_id}</span>`:''}${u.name}${isInactive?' <span style="font-size:10px;color:var(--err);font-weight:600;background:rgba(255,68,102,0.1);padding:2px 7px;border-radius:10px;">Inactive</span>':''}
+          <div class="sm-av" style="width:36px;height:36px;min-width:36px;font-size:14px;background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${u.name[0].toUpperCase()}</div>
+          <div style="min-width:0;flex:1;">
+            <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:3px;">
+              ${empIdBadge}
+              <span style="font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;">${u.name}</span>
+              ${typeBadge}${inactiveBadge}${zoneInBadge}${zoneOutBadge}
             </div>
-            <div class="sm-em">${u.email}${u.password?' &nbsp;🔑 '+u.password:''}</div>
+            <div style="font-size:11px;color:var(--txt-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.email}${u.password?' · 🔑 '+u.password:''}</div>
           </div>
         </div>
-        <div style="display:flex;gap:6px;flex-shrink:0;">
-          <button class="btn-ghost" style="font-size:12px;padding:6px 9px;" onclick="editSalesmanSA('${u.uid}')">✏️</button>
-          <button class="btn-ghost" style="font-size:12px;padding:6px 9px;${isInactive?'color:var(--ok);border-color:rgba(31,209,122,0.3);':''}"
+        <div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px;">
+          <button title="Edit" class="btn-ghost" style="font-size:14px;padding:6px 9px;line-height:1;" onclick="editSalesmanSA('${u.uid}')">✏️</button>
+          <button title="${isInactive?'Activate':'Deactivate'}" class="btn-ghost" style="font-size:14px;padding:6px 9px;line-height:1;${isInactive?'color:var(--ok);border-color:rgba(31,209,122,0.3);':''}"
             onclick="toggleSalesmanStatusSA('${u.uid}','${u.name}','${isInactive?'active':'inactive'}')">
             ${isInactive?'✅':'🚫'}
           </button>
-          <button class="btn-danger" style="padding:6px 9px;" onclick="deleteSalesmanSA('${u.uid}','${u.name}')">🗑</button>
+          <button title="Delete" class="btn-danger" style="padding:6px 9px;font-size:14px;line-height:1;" onclick="deleteSalesmanSA('${u.uid}','${u.name}')">🗑</button>
         </div>
       </div>`;
     }).join('');
@@ -3118,7 +3289,7 @@ async function addSalesmanFromSA(){
   errEl.style.display='none';
   if(!name||!email||!pass){ errEl.textContent='Please fill all fields'; errEl.style.display='block'; return; }
   if(pass.length<6){ errEl.textContent='Password minimum 6 characters'; errEl.style.display='block'; return; }
-  loading('Creating salesman...'); closeModal('addSmSAModal');
+  loading('Creating employee...'); closeModal('addSmSAModal');
   try{
     const empTypeSA=document.getElementById('asEmpTypeSA')?.value||'sales';
     const uid=await createAuthUser(email,pass);
@@ -3234,8 +3405,9 @@ async function deleteSalesmanSA(uid,name){
   document.getElementById('deleteConfirmBtn').onclick=async()=>{
     closeModal('deleteModal'); loading('Deleting...');
     try{
-      await db.ref(`users/${uid}`).remove();
+      // Auth delete BEFORE DB remove (authAction reads credentials from DB)
       try{ await authAction(uid,'delete'); }catch(e){ console.warn('Auth delete:',e.message); }
+      await db.ref(`users/${uid}`).remove();
       doneLoading(); toast(`"${name}" permanently deleted`);
       await loadCoMgmtSalesmen(); await loadSuperDashboard();
     }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
@@ -3283,9 +3455,28 @@ function adminPage(page,el){
   document.querySelectorAll('#adminScreen .admin-page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('#adminScreen .sid-item').forEach(s=>s.classList.remove('active'));
   document.getElementById(`page-${page}`).classList.add('active');
-  el.classList.add('active');
+  if(el) el.classList.add('active');
+  // Sync bottom nav — sidebar page names are 'visits' and 'export', not 'history'/'reports'
+  document.querySelectorAll('#adminBottomNav .abn-item').forEach(b=>b.classList.remove('active'));
+  const abnBtn=document.getElementById(`abn-${page}`);
+  if(abnBtn) abnBtn.classList.add('active');
   if(page==='map') setTimeout(()=>{ initMap(); if(APP.mapInstance) APP.mapInstance.invalidateSize(); },150);
   if(page==='settings') loadAdminSettings();
+  // Scroll to top of main on mobile nav switch
+  const main=document.querySelector('#adminScreen .admin-main');
+  if(main && window.innerWidth<=768) main.scrollTop=0;
+}
+// Alias for bottom nav buttons (no sidebar el to pass)
+function showAdminPage(page, btn){
+  document.querySelectorAll('#adminScreen .sid-item').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#adminBottomNav .abn-item').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  document.querySelectorAll('#adminScreen .admin-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  if(page==='map') setTimeout(()=>{ initMap(); if(APP.mapInstance) APP.mapInstance.invalidateSize(); },150);
+  if(page==='settings') loadAdminSettings();
+  const main=document.querySelector('#adminScreen .admin-main');
+  if(main) main.scrollTop=0;
 }
 
 // APP.shiftTemplates used for company admin, window._csShiftTemplates for SA modal
@@ -3373,21 +3564,37 @@ async function useCurrentLocationForZone(ctx, btn){
     return;
   }
   const origText=btn?btn.textContent:'📡 Use Current Location';
-  if(btn){ btn.disabled=true; btn.textContent='Getting GPS...'; }
+  if(btn){ btn.disabled=true; btn.textContent='Getting GPS (1/4)...'; }
+
   try{
-    // Use geolocation directly — no need for getAccurateLocation's multi-attempt logic here
+    // Multi-attempt for best accuracy — same logic as getAccurateLocation
+    // but btn passed as null so we control button text ourselves
     const pos=await new Promise((resolve,reject)=>{
-      navigator.geolocation.getCurrentPosition(resolve, reject,
-        {enableHighAccuracy:true, timeout:12000, maximumAge:0});
+      let best=null, attempts=0;
+      const MAX=4, THRESHOLD=25; // tighter threshold for zone center pinning
+      function tryOnce(){
+        attempts++;
+        if(btn) btn.textContent=`Getting GPS (${attempts}/${MAX})...`;
+        navigator.geolocation.getCurrentPosition(
+          p=>{
+            if(!best||p.coords.accuracy<best.coords.accuracy) best=p;
+            if(p.coords.accuracy<=THRESHOLD||attempts>=MAX) resolve(best);
+            else setTimeout(tryOnce,1500);
+          },
+          e=>{ best?resolve(best):reject(e); },
+          {enableHighAccuracy:true,timeout:12000,maximumAge:0}
+        );
+      }
+      tryOnce();
     });
     document.getElementById(prefix+'ZoneLat').value=pos.coords.latitude.toFixed(6);
     document.getElementById(prefix+'ZoneLng').value=pos.coords.longitude.toFixed(6);
     toast(`📡 GPS captured (±${Math.round(pos.coords.accuracy)}m)`);
   }catch(e){
     const msg=
-      e.code===1?'Location permission denied — allow it in browser/app settings':
+      e.code===1?'Permission denied — allow location in settings':
       e.code===2?'Location unavailable — check GPS signal':
-      e.code===3?'GPS timed out — try again outdoors':
+      e.code===3?'GPS timed out — try outdoors':
       'GPS error — try again';
     toast('⚠️ '+msg,'err');
   }finally{
@@ -3626,7 +3833,7 @@ async function loadSalesmen(){
     .filter(([,u])=>u.status!=='deleted_by_admin')
     .sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999, 10),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999, 10); return na-nb; })
     .map(([uid,u])=>`<option value="${uid}">${u.name}${u.status==='inactive'?' (Inactive)':''}</option>`).join('');
-  ['vSalesmanFilter','mapSalesmanFilter'].forEach(id=>{
+  ['mapSalesmanFilter'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.innerHTML=activeOpts;
   });
   renderSalesmanList();
@@ -3638,7 +3845,7 @@ function renderSalesmanList(){
   if(srch) srch.value='';
   const allEntries=Object.entries(APP.salesmen);
   const body=document.getElementById('smListBody');
-  if(allEntries.length===0){ body.innerHTML='<div class="empty"><div class="empty-icon">👤</div>No salesman found. Add a new one.</div>'; return; }
+  if(allEntries.length===0){ body.innerHTML='<div class="empty"><div class="empty-icon">👤</div>No employees found. Add a new one.</div>'; return; }
 
   const active=allEntries.filter(([,u])=>u.status!=='deleted_by_admin').sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999, 10),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999, 10); return na-nb; });
   const deleted=allEntries.filter(([,u])=>u.status==='deleted_by_admin').sort(([,a],[,b])=>{ const na=parseInt((a.emp_id||'EMP-9999').split('-')[1]||9999, 10),nb=parseInt((b.emp_id||'EMP-9999').split('-')[1]||9999, 10); return na-nb; });
@@ -3647,28 +3854,31 @@ function renderSalesmanList(){
     const isInactive=u.status==='inactive';
     const isBo=u.emp_type==='backoffice';
     const typeBadge=isBo
-      ?'<span class="mod-badge mod-bo" style="font-size:10px;padding:2px 7px;margin-left:6px;">Back Office</span>'
-      :'<span class="mod-badge mod-sales" style="font-size:10px;padding:2px 7px;margin-left:6px;">Sales</span>';
-    const inactiveBadge=isInactive?'<span style="font-size:10px;color:var(--err);font-weight:600;background:rgba(255,68,102,0.1);padding:2px 8px;border-radius:10px;margin-left:6px;">Inactive</span>':'';
-    const empIdBadge=u.emp_id?`<span style="font-size:10px;font-weight:800;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.25);border-radius:6px;padding:1px 7px;margin-right:8px;">${u.emp_id}</span>`:'';
-    const zoneInBadge=u.checkin_zone?`<span class="zone-badge-in" style="margin-left:6px;">🟢 ${u.checkin_zone}</span>`:'';
-    const zoneOutBadge=u.checkout_zone?`<span class="zone-badge-out" style="margin-left:4px;">🔴 ${u.checkout_zone}</span>`:'';
-    return `<div class="sm-list-item" data-dept="${isBo?'backoffice':'sales'}" data-search="${((u.emp_id||'')+' '+(u.name||'')+' '+(u.email||'')).toLowerCase()}" style="opacity:${isInactive?0.65:1};">
-      <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:0;">
-        <div class="sm-av" style="background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${u.name[0].toUpperCase()}</div>
-        <div style="min-width:0;">
-          <div class="sm-nm" style="display:flex;align-items:center;flex-wrap:wrap;gap:2px;">${empIdBadge}${u.name}${typeBadge}${inactiveBadge}</div>
-          <div class="sm-em">${u.email}</div>
-          ${(u.checkin_zone||u.checkout_zone)?`<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:4px;">${zoneInBadge}${zoneOutBadge}</div>`:''}
+      ?'<span class="mod-badge mod-bo" style="font-size:9px;padding:1px 6px;">BO</span>'
+      :'<span class="mod-badge mod-sales" style="font-size:9px;padding:1px 6px;">Sales</span>';
+    const inactiveBadge=isInactive?'<span style="font-size:9px;color:var(--err);font-weight:700;background:rgba(255,68,102,0.12);padding:1px 6px;border-radius:8px;">Off</span>':'';
+    const empIdBadge=u.emp_id?`<span style="font-size:9px;font-weight:800;color:var(--info);background:rgba(75,159,255,0.1);border:1px solid rgba(75,159,255,0.2);border-radius:5px;padding:1px 6px;">${u.emp_id}</span>`:'';
+    const zoneInBadge=u.checkin_zone?`<span class="zone-badge-in" style="font-size:9px;padding:1px 6px;">🟢 ${u.checkin_zone}</span>`:'';
+    const zoneOutBadge=u.checkout_zone?`<span class="zone-badge-out" style="font-size:9px;padding:1px 6px;">🔴 ${u.checkout_zone}</span>`:'';
+    return `<div class="sm-list-item" data-dept="${isBo?'backoffice':'sales'}" data-search="${((u.emp_id||'')+' '+(u.name||'')+' '+(u.email||'')).toLowerCase()}" style="opacity:${isInactive?0.65:1};padding:10px 14px;">
+      <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+        <div class="sm-av" style="width:36px;height:36px;min-width:36px;font-size:14px;background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${u.name[0].toUpperCase()}</div>
+        <div style="min-width:0;flex:1;">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:3px;">
+            ${empIdBadge}
+            <span style="font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;">${u.name}</span>
+            ${typeBadge}${inactiveBadge}${zoneInBadge}${zoneOutBadge}
+          </div>
+          <div style="font-size:11px;color:var(--txt-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.email}</div>
         </div>
       </div>
-      <div style="display:flex;gap:6px;flex-shrink:0;">
-        <button class="btn-ghost" style="font-size:12px;padding:7px 10px;" onclick="editSalesmanAdmin('${uid}')">✏️ Edit</button>
-        <button class="btn-ghost" style="font-size:12px;padding:7px 10px;${isInactive?'color:var(--ok);border-color:rgba(31,209,122,0.3);':''}"
+      <div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px;">
+        <button title="Edit" class="btn-ghost" style="font-size:14px;padding:6px 9px;line-height:1;" onclick="editSalesmanAdmin('${uid}')">✏️</button>
+        <button title="${isInactive?'Activate':'Deactivate'}" class="btn-ghost" style="font-size:14px;padding:6px 9px;line-height:1;${isInactive?'color:var(--ok);border-color:rgba(31,209,122,0.3);':''}"
           onclick="toggleSalesmanStatus('${uid}','${u.name}','${isInactive?'active':'inactive'}')">
-          ${isInactive?'✅ Activate':'🚫 Deactivate'}
+          ${isInactive?'✅':'🚫'}
         </button>
-        <button class="btn-danger" style="padding:7px 10px;font-size:12px;" onclick="softDeleteSalesman('${uid}','${u.name}')">🗑 Remove</button>
+        <button title="Remove" class="btn-danger" style="padding:6px 9px;font-size:14px;line-height:1;" onclick="softDeleteSalesman('${uid}','${u.name}')">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -3698,8 +3908,13 @@ async function exportEmpListExcel(){
     const co=getCompanyName();
     const wb=new ExcelJS.Workbook();
     const ws=wb.addWorksheet('Employees');
-    const headers=['Emp ID','Name','Type','Email','Status','Shift In','Shift Out','Grace (min)','Shift Template','Created'];
-    const colWidths=[12,24,14,32,12,12,12,13,20,20];
+    const headers=[
+      'Emp ID','Name','Type','Email','Status',
+      'Shift In','Shift Out','Grace (min)','Shift Template','Created',
+      '🟢 Check-in Zone','CI Latitude','CI Longitude',
+      '🔴 Check-out Zone','CO Latitude','CO Longitude'
+    ];
+    const colWidths=[12,24,14,32,12,12,12,13,20,20,20,14,14,20,14,14];
     const nc=headers.length;
 
     // Title block
@@ -3723,9 +3938,12 @@ async function exportEmpListExcel(){
       const cell=ws.getCell(5,ci+1);
       cell.value=h;
       cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};
-      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFEFA800'}};
+      // Zone header columns get a distinct background
+      const isZoneCol=ci>=10;
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:isZoneCol?'FF1A4731':'FFEFA800'}};
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:isZoneCol?'FF6EE7B7':'FF000000'}};
       cell.alignment={horizontal:'center',vertical:'middle'};
-      cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
+      cell.border={top:{style:'medium',color:{argb:isZoneCol?'FF065F46':'FFC88A00'}},bottom:{style:'medium',color:{argb:isZoneCol?'FF065F46':'FFC88A00'}},left:{style:'thin',color:{argb:isZoneCol?'FF065F46':'FFC88A00'}},right:{style:'thin',color:{argb:isZoneCol?'FF065F46':'FFC88A00'}}};
     });
 
     // Sort: active first by EMP ID, then inactive, then deleted
@@ -3738,18 +3956,29 @@ async function exportEmpListExcel(){
       return na-nb;
     });
 
+    // Zone template lookup helper
+    const zones=APP.zoneTemplates||[];
+    const zoneByName=n=>zones.find(z=>z.name===n)||null;
+
     sorted.forEach(([,u],i)=>{
       const rowNum=6+i;
       ws.getRow(rowNum).height=17;
       const isDeleted=u.status==='deleted_by_admin';
       const isInactive=u.status==='inactive';
       const altBg=isDeleted?'FFFFF0F0':isInactive?'FFFFF8E8':i%2===0?'FFFFFFFF':'FFEEF2FF';
+      const zoneAltBg=isDeleted?'FFFFF0F0':isInactive?'FFFFF8E8':i%2===0?'FFF0FDF9':'FFE6FAF3';
 
       // Resolve shift
       const shift=getEmpShift(Object.entries(APP.salesmen).find(([,v])=>v===u)?.[0]||'');
       const shiftTemplateName=u.shift_template_name||(u.shift_in?'Custom':'Company Default');
       const statusLabel=isDeleted?'Removed':isInactive?'Inactive':'Active';
       const statusFg=isDeleted?'FFFF4466':isInactive?'FFFF9900':'FF1FD17A';
+
+      // Zone data
+      const ciZoneName=u.checkin_zone||'';
+      const coZoneName=u.checkout_zone||'';
+      const ciZone=ciZoneName?zoneByName(ciZoneName):null;
+      const coZone=coZoneName?zoneByName(coZoneName):null;
 
       const created=u.created_at?new Date(u.created_at).toLocaleDateString('en-IN'):'—';
       const vals=[
@@ -3762,27 +3991,33 @@ async function exportEmpListExcel(){
         shift.shiftOut,
         shift.greeting,
         shiftTemplateName,
-        created
+        created,
+        // Zone columns
+        ciZoneName||'—',
+        ciZone?parseFloat(ciZone.lat).toFixed(6):'—',
+        ciZone?parseFloat(ciZone.lng).toFixed(6):'—',
+        coZoneName||'—',
+        coZone?parseFloat(coZone.lat).toFixed(6):'—',
+        coZone?parseFloat(coZone.lng).toFixed(6):'—',
       ];
 
       vals.forEach((v,ci)=>{
         const cell=ws.getCell(rowNum,ci+1);
         cell.value=v;
-        const leftAlign=ci===1||ci===3||ci===8;
-        xlsStyle(cell,{bg:altBg,fg:'FF1A2850',sz:10,align:leftAlign?'left':'center'});
+        const isZoneCol=ci>=10;
+        const leftAlign=ci===1||ci===3||ci===8||ci===10||ci===13;
+        xlsStyle(cell,{bg:isZoneCol?zoneAltBg:altBg,fg:'FF1A2850',sz:10,align:leftAlign?'left':'center'});
         // Status color
-        if(ci===4){
-          cell.font={name:'Calibri',size:10,bold:true,color:{argb:statusFg}};
-        }
+        if(ci===4) cell.font={name:'Calibri',size:10,bold:true,color:{argb:statusFg}};
         // Type color
-        if(ci===2){
-          const tc=u.emp_type==='backoffice'?'FF065F46':'FF1A5FA8';
-          cell.font={name:'Calibri',size:10,bold:true,color:{argb:tc}};
-        }
+        if(ci===2){ const tc=u.emp_type==='backoffice'?'FF065F46':'FF1A5FA8'; cell.font={name:'Calibri',size:10,bold:true,color:{argb:tc}}; }
         // Emp ID color
-        if(ci===0){
-          cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF1E40AF'}};
-        }
+        if(ci===0) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF1E40AF'}};
+        // Zone name colors
+        if(ci===10&&ciZoneName) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF065F46'}};
+        if(ci===13&&coZoneName) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF991B1B'}};
+        // Lat/lng italic
+        if((ci===11||ci===12||ci===14||ci===15)&&v!=='—') cell.font={name:'Calibri',size:9,italic:true,color:{argb:'FF374151'}};
       });
     });
 
@@ -4091,7 +4326,8 @@ async function loadOverview(){
     const typeLabel=isBo?'Back Office':'Sales';
     const typeColor=isBo?'var(--ok)':'var(--info)';
     const typeBg=isBo?'rgba(31,209,122,0.1)':'rgba(75,159,255,0.1)';
-    return `<tr>
+    const searchStr=((r.u.emp_id||'')+' '+(r.u.name||'')).toLowerCase();
+    return `<tr data-search="${searchStr}">
       <td style="font-size:11px;font-weight:800;color:var(--info);">${r.u.emp_id||'—'}</td>
       <td style="font-weight:600;font-size:13px;">${r.u.name}</td>
       <td><span style="font-size:11px;font-weight:700;color:${typeColor};background:${typeBg};padding:2px 7px;border-radius:8px;">${typeLabel}</span></td>
@@ -4104,15 +4340,58 @@ async function loadOverview(){
       <td style="font-size:11px;color:var(--txt-2);">${r.remarks}</td>
     </tr>`;
   }).join('');
+  // Clear search box on refresh
+  const srch=document.getElementById('ovActivitySearch');
+  if(srch) srch.value='';
 }
 
 let currentHistDept='all', currentMapDept='all', currentPerfDept='all';
+
+function filterActivityTable(q){
+  const term=q.toLowerCase().trim();
+  const rows=document.querySelectorAll('#recentTbody tr[data-search]');
+  let visible=0;
+  rows.forEach(tr=>{
+    const match=!term||tr.dataset.search.includes(term);
+    tr.style.display=match?'':'none';
+    if(match) visible++;
+  });
+  // Show/hide no-result row
+  let noRes=document.getElementById('ovActivityNoResult');
+  if(!noRes){
+    noRes=document.createElement('tr');
+    noRes.id='ovActivityNoResult';
+    noRes.innerHTML=`<td colspan="10" style="text-align:center;padding:24px;color:var(--txt-3);font-size:13px;">🔍 No employees match "${q}"</td>`;
+    document.getElementById('recentTbody').appendChild(noRes);
+  }
+  noRes.style.display=(visible===0&&term)?'':'none';
+  noRes.querySelector('td').textContent=`🔍 No employees match "${q}"`;
+}
+
+function filterHistoryTable(q){
+  const term=q.toLowerCase().trim();
+  const rows=document.querySelectorAll('#visitTbody tr[data-search]');
+  let visible=0;
+  rows.forEach(tr=>{
+    const match=!term||tr.dataset.search.includes(term);
+    tr.style.display=match?'':'none';
+    if(match) visible++;
+  });
+  let noRes=document.getElementById('histNoResult');
+  if(!noRes){
+    noRes=document.createElement('tr');
+    noRes.id='histNoResult';
+    noRes.innerHTML=`<td colspan="9" style="text-align:center;padding:24px;color:var(--txt-3);font-size:13px;"></td>`;
+    document.getElementById('visitTbody').appendChild(noRes);
+  }
+  noRes.querySelector('td').textContent=`🔍 No records match "${q}"`;
+  noRes.style.display=(visible===0&&term)?'':'none';
+}
 
 function setHistDept(dept, btn){
   currentHistDept=dept;
   document.querySelectorAll('#histDeptFilter .dept-btn').forEach(b=>b.classList.remove('active'));
   if(btn) btn.classList.add('active');
-  populateEmpFilter('vSalesmanFilter', dept);
 }
 function setMapDept(dept, btn){
   currentMapDept=dept;
@@ -4143,7 +4422,6 @@ let lastHistoryData=[];
 async function loadHistory(){
   const startDate=document.getElementById('vStartDate').value;
   const endDate=document.getElementById('vEndDate').value;
-  const empUid=document.getElementById('vSalesmanFilter').value;
   if(!startDate||!endDate){ toast('Please enter start and end date','err'); return; }
   loading('Loading history...');
   lastHistoryData=[];
@@ -4152,11 +4430,10 @@ async function loadHistory(){
     let cur=new Date(startDate+'T00:00:00');
     const end=new Date(endDate+'T00:00:00');
     while(cur<=end){ const _y=cur.getFullYear(),_m=String(cur.getMonth()+1).padStart(2,'0'),_d=String(cur.getDate()).padStart(2,'0'); dates.push(`${_y}-${_m}-${_d}`); cur.setDate(cur.getDate()+1); }
-    // Filter active employees by dept and optional specific employee
+    // Filter active employees by dept only (no individual filter — use search box instead)
     const dept=currentHistDept;
     const activeEmp=Object.entries(APP.salesmen).filter(([uid,u])=>{
       if(u.status==='deleted_by_admin') return false;
-      if(empUid && uid!==empUid) return false;
       const isBO=u.emp_type==='backoffice';
       if(dept==='sales'&&isBO) return false;
       if(dept==='backoffice'&&!isBO) return false;
@@ -4241,7 +4518,7 @@ async function loadHistory(){
         const typeBg=isBo?'rgba(31,209,122,0.1)':'rgba(75,159,255,0.1)';
         const sh=getEmpShift(r.uid||'');
         const shiftLabel=`${sh.shiftIn}–${sh.shiftOut}`;
-        return `<tr title="${fullTip}">
+        return `<tr data-search="${((r.emp_id||'')+' '+(r.name||'')).toLowerCase()}" title="${fullTip}">
           <td>${r.date}</td>
           <td style="font-size:11px;font-weight:800;color:var(--info);">${r.emp_id&&r.emp_id!=='—'?r.emp_id:'—'}</td>
           <td class="tbl-name" title="${r.name}">${r.name}</td>
@@ -4254,6 +4531,9 @@ async function loadHistory(){
         </tr>`;
       }).join('');
     }
+    // Clear search box after fresh load
+    const srch=document.getElementById('histSearchInput');
+    if(srch) srch.value='';
     doneLoading();
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -4432,7 +4712,7 @@ async function loadMap(){
               ${v.salesman_name||smName}
             </div>
             <div style="display:flex;flex-direction:column;gap:5px;font-size:12px;color:#444;">
-              <div>🏪 <b>${v.outlet||'—'}</b></div>
+              <div>📍 <b>${v.outlet||'—'}</b></div>
               <div>🕐 ${v.time||'—'}</div>
               ${v.remarks?`<div style="margin-top:4px;padding:5px 8px;background:#f5f5f5;border-left:3px solid ${color};border-radius:0 4px 4px 0;font-size:11px;color:#555;">💬 ${v.remarks}</div>`:''}
             </div>
@@ -4647,7 +4927,7 @@ async function loadPerformance(){
     results.sort((a,b)=>b.total-a.total);
     lastPerfData=results;
 
-    if(results.length===0){ content.innerHTML='<div class="empty"><div class="empty-icon">👥</div>No salesman data found</div>'; doneLoading(); return; }
+    if(results.length===0){ content.innerHTML='<div class="empty"><div class="empty-icon">👥</div>No employee data found</div>'; doneLoading(); return; }
 
     const monthLabel=`${['January','February','March','April','May','June','July','August','September','October','November','December'][month]} ${year}`;
 
@@ -4858,8 +5138,7 @@ async function xlsBuildSheet(wb, sheetName, title, subtitle, headers, rows, colW
 async function initSalesman(){
   show('salesmanScreen');
   smShowPage('home'); // start on home
-  const pwaBtn=document.getElementById('pwaInstallBtn');
-  if(pwaBtn) pwaBtn.style.display=deferredPrompt?'block':'none';
+  _setPwaBtns(deferredPrompt?true:false);
   document.getElementById('smAv').textContent=APP.userData.name[0].toUpperCase();
   document.getElementById('smNm').textContent=APP.userData.name;
   document.getElementById('smGreet').textContent=APP.userData.name.split(' ')[0];
@@ -5376,13 +5655,13 @@ async function loadTodayVisits(){
   const today=todayStr();
   const snap=await db.ref(`visits/${APP.companyId}/${today}`).orderByChild('salesman_uid').equalTo(APP.user.uid).get();
   const list=document.getElementById('smVisitList');
-  if(!snap.exists()){ list.innerHTML='<div class="empty"><div class="empty-icon">🏪</div>No visits submitted yet</div>'; return; }
+  if(!snap.exists()){ list.innerHTML='<div class="empty"><div class="empty-icon">📍</div>No visits submitted yet</div>'; return; }
   const visits=Object.values(snap.val()).sort((a,b)=>a.timestamp-b.timestamp);
   list.innerHTML=visits.map((v,i)=>`
     <div class="visit-item">
       <div class="v-num">${i+1}</div>
       <div>
-        <div class="v-outlet">🏪 ${v.outlet}</div>
+        <div class="v-outlet">📍 ${v.outlet}</div>
         ${v.remarks?`<div class="v-remarks">${v.remarks}</div>`:''}
         <div class="v-meta">
           <span>🕐 ${v.time}</span>
@@ -5395,7 +5674,7 @@ async function loadTodayVisits(){
 async function submitVisit(){
   const outlet=document.getElementById('outletName').value.trim();
   const remarks=document.getElementById('visitRemarks').value.trim();
-  if(!outlet){ toast('Please enter outlet name','err'); return; }
+  if(!outlet){ toast('Please enter a client or location name','err'); return; }
   const btn=document.getElementById('submitBtn');
   btn.disabled=true;
   try{
@@ -5533,7 +5812,7 @@ async function exportSAHistExcel(){
     const companies=await getSACompanies();
     const wb=new ExcelJS.Workbook();
     const ws=wb.addWorksheet('History');
-    const headers=['Sr.','Co ID','Company','Date','Emp ID','Name','Type','Shift','Status','Location','Time','Outlet','Remarks'];
+    const headers=['Sr.','Co ID','Company','Date','Emp ID','Name','Type','Shift','Status','Location','Time','Client / Location','Remarks'];
     const nc=headers.length;
     const colWidths=[4,10,22,12,11,20,13,14,11,26,10,18,40];
 
@@ -5987,8 +6266,8 @@ async function exportRptHistExcel(){
     const co=getCompanyName();
 
     // New column order per spec
-    const headers=['Sr.','Date','Emp ID','Name','Type','Shift','Status','Location','Time','Outlet','Remarks'];
-    // Col widths:       sr  date  empid  name  type  shift  status  loc  time  outlet  remarks
+    const headers=['Sr.','Date','Emp ID','Name','Type','Shift','Status','Location','Time','Client / Location','Remarks'];
+    // Col widths:       sr  date  empid  name  type  shift  status  loc  time  client  remarks
     const colWidths=    [ 4,  12,   11,   22,   13,    14,    11,   28,   10,    18,     42];
 
     const wb=new ExcelJS.Workbook();
@@ -6604,31 +6883,56 @@ async function exportRptLateExcel(){
 
 
 let deferredPrompt=null;
+const PWA_BTN_IDS=['pwaInstallBtn','pwaInstallBtnAdmin','pwaInstallBtnSA'];
+function _setPwaBtns(visible){
+  PWA_BTN_IDS.forEach(id=>{
+    const btn=document.getElementById(id);
+    if(btn) btn.style.display=visible?'block':'none';
+  });
+}
 window.addEventListener('beforeinstallprompt',(e)=>{
   e.preventDefault();
   deferredPrompt=e;
-  const btn=document.getElementById('pwaInstallBtn');
-  if(btn) btn.style.display='block';
+  _setPwaBtns(true);
 });
 
 async function installPWA(){
-  if(!deferredPrompt){ toast('Open in Chrome browser to install','err'); return; }
+  if(!deferredPrompt){ toast('Open in Chrome/Edge to install as app','err'); return; }
   deferredPrompt.prompt();
   const result=await deferredPrompt.userChoice;
   if(result.outcome==='accepted') toast('App installed! 📲');
   deferredPrompt=null;
-  const btn=document.getElementById('pwaInstallBtn');
-  if(btn) btn.style.display='none';
+  _setPwaBtns(false);
 }
 window.addEventListener('appinstalled',()=>{
   toast('App installed successfully! 🎉');
-  const btn=document.getElementById('pwaInstallBtn');
-  if(btn) btn.style.display='none';
+  _setPwaBtns(false);
 });
 
 /* START
 ════════════════════════════════════════════════ */
 window.addEventListener('load',initApp);
+
+// ── Service Worker (inline via Blob) — caches app shell for offline launch ──
+(function(){
+  if(!('serviceWorker' in navigator)) return;
+  const swCode=`
+const CACHE='sunstar-v1';
+const SHELL=[self.location.href.split('?')[0]];
+self.addEventListener('install',e=>{
+  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));
+});
+self.addEventListener('activate',e=>{
+  e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+});
+self.addEventListener('fetch',e=>{
+  if(e.request.url.includes('firebaseio.com')||e.request.url.includes('googleapis.com')||e.request.url.includes('firebase')) return;
+  e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).catch(()=>caches.match(SHELL[0]))));
+});`;
+  const blob=new Blob([swCode],{type:'application/javascript'});
+  const swUrl=URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl,{scope:'./'}).catch(()=>{});
+})();
 
 // ── PWA Manifest with canvas-generated icon ──
 (function(){
