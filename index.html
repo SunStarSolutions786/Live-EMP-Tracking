@@ -617,12 +617,14 @@ body{ overscroll-behavior:none; }
   .abn-item.active{color:var(--gold);}
   .abn-item.active .abn-icon{filter:drop-shadow(0 0 6px rgba(239,168,0,.5));}
 
-  /* SA screen also needs bottom padding for its 3-tab nav */
-  #superScreen .admin-main{
-    padding-bottom:calc(90px + env(safe-area-inset-bottom));
-  }
+  /* ── MAIN CONTENT — room for bottom nav ── */
+  .admin-main{
     padding:14px 14px calc(90px + env(safe-area-inset-bottom));
     overflow-y:auto;
+  }
+  /* SA screen — same bottom padding for its 3-tab nav */
+  #superScreen .admin-main{
+    padding-bottom:calc(90px + env(safe-area-inset-bottom));
   }
 
   /* ── PAGE HEADER compact ── */
