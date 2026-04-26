@@ -640,10 +640,11 @@ body{ overscroll-behavior:none; }
   .ov-card{padding:14px 12px;}
   .ov-val{font-size:26px;}
 
-  /* ── FILTER BAR stack ── */
-  .fbar{flex-direction:column;gap:10px;padding:14px;}
-  .fi-sm,.fsel-sm{min-width:100%;width:100%;}
-  .btn-go{width:100%;text-align:center;justify-content:center;}
+  /* ── FILTER BAR — mobile smart wrap ── */
+  .fbar{flex-wrap:wrap;gap:8px;padding:12px;}
+  .fbar .fg-sm{flex:1 1 calc(50% - 8px);min-width:120px;}
+  .fbar .btn-go{width:100%;justify-content:center;order:10;}
+  .fi-sm,.fsel-sm{width:100%;min-width:unset;}
 
   /* ── TC-HD (table card header) — stack title + search ── */
   .tc-hd{flex-direction:column;align-items:flex-start;gap:10px;padding:14px 16px;}
@@ -1141,12 +1142,10 @@ body{ overscroll-behavior:none; }
           <button class="dept-btn" onclick="setHistDept('sales',this)">📊 Sales</button>
           <button class="dept-btn" onclick="setHistDept('backoffice',this)">🏢 Back Office</button>
         </div>
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-            <div class="fg-sm"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="vStartDate" style="width:100%;"></div>
-            <div class="fg-sm"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="vEndDate" style="width:100%;"></div>
-          </div>
-          <button class="btn-go" style="width:100%;justify-content:center;" onclick="loadHistory()">🔍 Search</button>
+        <div class="fbar">
+          <div class="fg-sm"><label class="fl-sm">Start Date</label><input class="fi-sm" type="date" id="vStartDate"></div>
+          <div class="fg-sm"><label class="fl-sm">End Date</label><input class="fi-sm" type="date" id="vEndDate"></div>
+          <button class="btn-go" onclick="loadHistory()">🔍 Search</button>
         </div>
         <div style="position:relative;margin-bottom:14px;">
           <span style="position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;">🔍</span>
@@ -1186,15 +1185,13 @@ body{ overscroll-behavior:none; }
           <button class="dept-btn" onclick="setMapDept('sales',this)">📊 Sales</button>
           <button class="dept-btn" onclick="setMapDept('backoffice',this)">🏢 Back Office</button>
         </div>
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-            <div class="fg-sm"><label class="fl-sm">Date</label><input class="fi-sm" type="date" id="mapDate" style="width:100%;"></div>
-            <div class="fg-sm"><label class="fl-sm">Employee</label>
-              <select class="fsel-sm" id="mapSalesmanFilter" style="width:100%;"><option value="">All</option></select>
-            </div>
+        <div class="fbar" style="flex-wrap:wrap;gap:10px;align-items:flex-end;">
+          <div class="fg-sm"><label class="fl-sm">Date</label><input class="fi-sm" type="date" id="mapDate"></div>
+          <div class="fg-sm"><label class="fl-sm">Employee</label>
+            <select class="fsel-sm" id="mapSalesmanFilter"><option value="">All</option></select>
           </div>
-          <button class="btn-go" style="width:100%;justify-content:center;margin-bottom:10px;" onclick="loadMap()">🗺️ Show Map</button>
-          <div style="display:flex;align-items:center;gap:8px;justify-content:center;">
+          <button class="btn-go" onclick="loadMap()">🗺️ Show Map</button>
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;flex:0 0 100%;">
             <span style="font-size:12px;color:var(--txt-2);">Map Type:</span>
             <button id="tileStreetBtn" onclick="setMapTile('street')" style="padding:7px 14px;border-radius:var(--r-sm);border:1px solid var(--gold);background:var(--gold);color:#000;font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">🗺️ Street</button>
             <button id="tileSatBtn" onclick="setMapTile('satellite')" style="padding:7px 14px;border-radius:var(--r-sm);border:1px solid var(--border);background:transparent;color:var(--txt-2);font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">🛰️ Satellite</button>
@@ -1221,24 +1218,20 @@ body{ overscroll-behavior:none; }
           <button class="dept-btn" onclick="setPerfDept('sales',this)">📊 Sales</button>
           <button class="dept-btn" onclick="setPerfDept('backoffice',this)">🏢 Back Office</button>
         </div>
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px;">
-          <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:12px;">
-            <div class="fg-sm"><label class="fl-sm">Month</label>
-              <select class="fsel-sm" id="perfMonth" style="width:100%;">
-                <option value="0">January</option><option value="1">February</option>
-                <option value="2">March</option><option value="3">April</option>
-                <option value="4">May</option><option value="5">June</option>
-                <option value="6">July</option><option value="7">August</option>
-                <option value="8">September</option><option value="9">October</option>
-                <option value="10">November</option><option value="11">December</option>
-              </select>
-            </div>
-            <div class="fg-sm"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="perfYear" value="2024" min="2020" max="2030" style="width:88px;"></div>
+        <div class="fbar">
+          <div class="fg-sm"><label class="fl-sm">Month</label>
+            <select class="fsel-sm" id="perfMonth">
+              <option value="0">January</option><option value="1">February</option>
+              <option value="2">March</option><option value="3">April</option>
+              <option value="4">May</option><option value="5">June</option>
+              <option value="6">July</option><option value="7">August</option>
+              <option value="8">September</option><option value="9">October</option>
+              <option value="10">November</option><option value="11">December</option>
+            </select>
           </div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn-go" style="flex:1;justify-content:center;" onclick="loadPerformance()">🏆 Calculate</button>
-            <button class="btn-exp" onclick="exportPerfExcel()" style="white-space:nowrap;">📊 Excel</button>
-          </div>
+          <div class="fg-sm"><label class="fl-sm">Year</label><input class="fi-sm" type="number" id="perfYear" value="2024" min="2020" max="2030" style="max-width:100px;"></div>
+          <button class="btn-go" onclick="loadPerformance()">🏆 Calculate</button>
+          <button class="btn-exp" onclick="exportPerfExcel()">📊 Excel</button>
         </div>
 
         <!-- Score Legend -->
