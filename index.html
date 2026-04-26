@@ -617,8 +617,10 @@ body{ overscroll-behavior:none; }
   .abn-item.active{color:var(--gold);}
   .abn-item.active .abn-icon{filter:drop-shadow(0 0 6px rgba(239,168,0,.5));}
 
-  /* ── MAIN CONTENT — room for bottom nav ── */
-  .admin-main{
+  /* SA screen also needs bottom padding for its 3-tab nav */
+  #superScreen .admin-main{
+    padding-bottom:calc(90px + env(safe-area-inset-bottom));
+  }
     padding:14px 14px calc(90px + env(safe-area-inset-bottom));
     overflow-y:auto;
   }
@@ -1633,6 +1635,20 @@ body{ overscroll-behavior:none; }
 
     </div><!-- end admin-main -->
   </div><!-- end admin-body -->
+
+  <!-- SA Mobile bottom navigation -->
+  <nav class="admin-bottom-nav" id="saBottomNav">
+    <button class="abn-item active" id="sa-abn-overview" onclick="saPageMobile('overview',this)">
+      <span class="abn-icon">📊</span><span>Overview</span>
+    </button>
+    <button class="abn-item" id="sa-abn-companies" onclick="saPageMobile('companies',this)">
+      <span class="abn-icon">🏢</span><span>Companies</span>
+    </button>
+    <button class="abn-item" id="sa-abn-reports" onclick="saPageMobile('reports',this)">
+      <span class="abn-icon">📥</span><span>Reports</span>
+    </button>
+  </nav>
+
 </div>
 
 <!-- ══════════════════════════════════════════════
@@ -5714,10 +5730,32 @@ function saPage(page, el){
     if(panel) panel.classList.remove('active');
   });
   document.querySelectorAll('#superScreen .sidebar .sid-item').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#saBottomNav .abn-item').forEach(b=>b.classList.remove('active'));
   const target=document.getElementById(`sa-page-${page}`);
   if(target) target.classList.add('active');
   if(el) el.classList.add('active');
+  // Sync bottom nav
+  const abnBtn=document.getElementById(`sa-abn-${page}`);
+  if(abnBtn) abnBtn.classList.add('active');
   if(page==='reports') initSAReport();
+  // Scroll to top on mobile
+  const main=document.querySelector('#superScreen .admin-main');
+  if(main && window.innerWidth<=768) main.scrollTop=0;
+}
+
+function saPageMobile(page, btn){
+  document.querySelectorAll('#superScreen .sidebar .sid-item').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#saBottomNav .abn-item').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  ['overview','companies','reports'].forEach(p=>{
+    const panel=document.getElementById(`sa-page-${p}`);
+    if(panel) panel.classList.remove('active');
+  });
+  const target=document.getElementById(`sa-page-${page}`);
+  if(target) target.classList.add('active');
+  if(page==='reports') initSAReport();
+  const main=document.querySelector('#superScreen .admin-main');
+  if(main) main.scrollTop=0;
 }
 
 // Legacy saTab kept for any old references
