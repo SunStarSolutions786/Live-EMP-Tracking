@@ -394,6 +394,9 @@ button{font-family:'DM Sans',sans-serif;}
 
 /* Map */
 #visitMap{height:calc(100vh - 260px);min-height:420px;border-radius:var(--r);border:1px solid var(--border);overflow:hidden;}
+
+/* Bottom nav must always be above Leaflet map tiles and popups */
+.admin-bottom-nav{z-index:1000;}
 /* Salesman management */
 .sm-list-item{
   display:flex;align-items:center;justify-content:space-between;
@@ -625,6 +628,12 @@ body{ overscroll-behavior:none; }
   /* SA screen — same bottom padding for its 3-tab nav */
   #superScreen .admin-main{
     padding-bottom:calc(90px + env(safe-area-inset-bottom));
+  }
+
+  /* ── MAP — shorter on mobile so bottom nav always visible ── */
+  #visitMap{
+    height:calc(100vh - 340px);
+    min-height:300px;
   }
 
   /* ── PAGE HEADER compact ── */
@@ -1406,6 +1415,28 @@ body{ overscroll-behavior:none; }
             <input type="hidden" id="adShiftIn"><input type="hidden" id="adShiftOut"><input type="hidden" id="adGreetingPeriod">
           </div>
 
+          <!-- Device Binding -->
+          <div class="tc" style="padding:22px;margin-bottom:0;">
+            <div class="tc-hd" style="margin-bottom:4px;"><div class="tc-title">📱 Device Binding</div></div>
+            <div style="font-size:12px;color:var(--txt-2);margin-bottom:14px;">When enabled, each employee account is locked to one device. Employees cannot share login credentials to submit fake attendance from another phone.</div>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+                <div style="position:relative;width:46px;height:24px;">
+                  <input type="checkbox" id="adDeviceBinding" style="opacity:0;width:0;height:0;position:absolute;"
+                    onchange="document.getElementById('adDeviceBindingTrack').style.background=this.checked?'var(--ok)':'var(--border)';document.getElementById('adDeviceBindingThumb').style.left=this.checked?'22px':'2px';">
+                  <div id="adDeviceBindingTrack" style="position:absolute;top:0;left:0;right:0;bottom:0;border-radius:12px;background:var(--border);transition:background .2s;"></div>
+                  <div id="adDeviceBindingThumb" style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.3);"></div>
+                </div>
+                <span id="adDeviceBindingLabel" style="font-size:13px;font-weight:600;color:var(--txt);">Not Required</span>
+              </label>
+            </div>
+            <script>
+              document.getElementById('adDeviceBinding').addEventListener('change',function(){
+                document.getElementById('adDeviceBindingLabel').textContent=this.checked?'Required':'Not Required';
+              });
+            </script>
+          </div>
+
           <!-- Zone Templates -->
           <div class="tc" style="padding:22px;margin-bottom:0;">
             <div class="tc-hd" style="margin-bottom:4px;"><div class="tc-title">📍 Zone Templates</div></div>
@@ -1764,6 +1795,23 @@ body{ overscroll-behavior:none; }
       <input type="hidden" id="csShiftIn"><input type="hidden" id="csShiftOut"><input type="hidden" id="csGreetingPeriod">
     </div>
 
+    <!-- Device Binding -->
+    <div class="settings-section">
+      <div class="settings-title">📱 Device Binding</div>
+      <div style="font-size:12px;color:var(--txt-2);margin-bottom:14px;">When enabled, each employee account is locked to one specific device. Prevents fake attendance via credential sharing.</div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+          <div style="position:relative;width:46px;height:24px;">
+            <input type="checkbox" id="csDeviceBinding" style="opacity:0;width:0;height:0;position:absolute;"
+              onchange="document.getElementById('csDeviceBindingTrack').style.background=this.checked?'var(--ok)':'var(--border)';document.getElementById('csDeviceBindingThumb').style.left=this.checked?'22px':'2px';document.getElementById('csDeviceBindingLabel').textContent=this.checked?'Required':'Not Required';">
+            <div id="csDeviceBindingTrack" style="position:absolute;top:0;left:0;right:0;bottom:0;border-radius:12px;background:var(--border);transition:background .2s;"></div>
+            <div id="csDeviceBindingThumb" style="position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.3);"></div>
+          </div>
+          <span id="csDeviceBindingLabel" style="font-size:13px;font-weight:600;color:var(--txt);">Not Required</span>
+        </label>
+      </div>
+    </div>
+
     <!-- Zone Templates -->
     <div class="settings-section">
       <div class="settings-title">📍 Zone Templates</div>
@@ -2030,6 +2078,16 @@ body{ overscroll-behavior:none; }
         </select>
       </div>
     </div>
+
+    <!-- Device Binding Info (shown only if company has device binding enabled) -->
+    <div id="esDeviceBindingSection" style="display:none;background:rgba(75,159,255,0.06);border:1px solid rgba(75,159,255,0.25);border-radius:var(--r-sm);padding:14px 16px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:var(--info);margin-bottom:12px;">📱 Device Binding</div>
+      <div id="esDeviceInfo" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+        <div style="font-size:12px;color:var(--txt-3);font-style:italic;">No device registered yet.</div>
+      </div>
+      <button id="esDeviceResetBtn" onclick="resetDeviceBinding()" style="display:none;background:rgba(255,68,102,0.1);border:1px solid rgba(255,68,102,0.3);border-radius:var(--r-sm);padding:8px 16px;color:var(--err);font-size:12px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;">🔄 Reset Device Binding</button>
+    </div>
+
     <div class="modal-acts">
       <button class="btn-cancel" onclick="closeModal('editSalesmanModal')">Cancel</button>
       <button class="btn-confirm" onclick="saveSalesmanEdit()">Save Changes</button>
@@ -2136,7 +2194,7 @@ function todayStr(){ const n=new Date(); return `${n.getFullYear()}-${String(n.g
 function parseTimeToMin(t){ // "HH:MM" or "HH:MM AM/PM" → total minutes (always 0-1439)
   if(!t||!t.includes(':')) return 0;
   const str=t.trim();
-  const ampmMatch=str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  const ampmMatch=str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)/i);
   if(ampmMatch){
     let h=parseInt(ampmMatch[1], 10), m=parseInt(ampmMatch[2], 10);
     const period=ampmMatch[3].toUpperCase();
@@ -2373,6 +2431,33 @@ async function initApp(){
         return;
       }
       APP.companyId=APP.userData.company_id||null;
+      // Device binding check — only for employees, not admin/SA
+      if(APP.userData.role==='salesman' && APP.companyId){
+        const coSnap=await db.ref(`companies/${APP.companyId}/device_binding`).get();
+        const bindingEnabled=coSnap.exists()&&coSnap.val()===true;
+        if(bindingEnabled){
+          const currentDeviceId=getDeviceId();
+          const existingBinding=APP.userData.deviceBinding;
+          if(existingBinding && existingBinding.deviceId){
+            // Device already registered — check match
+            if(existingBinding.deviceId!==currentDeviceId){
+              await auth.signOut();
+              doneLoading(); hideAll(); show('loginScreen');
+              const errEl=document.getElementById('loginErr');
+              if(errEl){ errEl.textContent='This account is already registered on another device. Please contact your company admin.'; errEl.style.display='block'; }
+              return;
+            }
+          } else {
+            // First login — register this device
+            const deviceName=getDeviceName();
+            const registeredOn=new Date().toISOString().slice(0,10);
+            await db.ref(`users/${user.uid}/deviceBinding`).set({
+              deviceId:currentDeviceId, deviceName, registeredOn, status:'active'
+            });
+            APP.userData.deviceBinding={deviceId:currentDeviceId, deviceName, registeredOn, status:'active'};
+          }
+        }
+      }
       hideAll();
       if(APP.userData.role==='super_admin') await initSuperAdmin();
       else if(APP.userData.role==='company_admin') await initAdmin();
@@ -2382,6 +2467,8 @@ async function initApp(){
       doneLoading();
       hideAll();
       show('loginScreen');
+      const _lb=document.getElementById('loginBtn');
+      if(_lb){ _lb.disabled=false; _lb.textContent='Login'; }
       toast('Connection error. Please login again.','err');
     }
   });
@@ -2702,6 +2789,122 @@ async function exportCompanyListExcel(){
     colWidths.forEach((w,i)=>ws.getColumn(i+1).width=w);
     ws.views=[{state:'frozen',xSplit:0,ySplit:5,topLeftCell:'A6',activeCell:'A6'}];
     ws.autoFilter={from:{row:5,column:1},to:{row:5,column:nc}};
+
+    // ── Sheet 2: All Employees across all companies ──
+    const ws2=wb.addWorksheet('Employees');
+    const empHeaders=['CO ID','Company','Emp ID','Name','Type','Email','Status',
+      'Shift In','Shift Out','Grace (min)','Shift Template','Created',
+      '🟢 Check-in Zone','CI Lat','CI Lng',
+      '🔴 Check-out Zone','CO Lat','CO Lng',
+      '📱 Device Name','Device ID','Registered On'];
+    const empColWidths=[10,24,12,22,13,30,11,11,11,13,18,18,18,13,13,18,13,13,26,28,14];
+    const enc=empHeaders.length;
+
+    const empTitleDefs=[
+      {v:'SunStar Solutions',sz:18,bold:true,fg:'FFEFA800',bg:'FF06091A',h:30},
+      {v:'All Employees — Company Wise',sz:12,bold:true,fg:'FFF0F4FF',bg:'FF0C1229',h:22},
+      {v:`Generated: ${new Date().toLocaleString('en-IN')}`,sz:9,bold:false,fg:'FF3E4E78',bg:'FF0C1229',h:14},
+    ];
+    empTitleDefs.forEach((td,ri)=>{
+      ws2.getRow(ri+1).height=td.h;
+      const cell=ws2.getCell(ri+1,1);
+      cell.value=td.v;
+      xlsStyle(cell,{bg:td.bg,fg:td.fg,bold:td.bold,sz:td.sz,align:'left',border:false});
+      ws2.mergeCells(ri+1,1,ri+1,enc);
+    });
+
+    ws2.getRow(4).height=22;
+    empHeaders.forEach((h,ci)=>{
+      const cell=ws2.getCell(4,ci+1);
+      cell.value=h;
+      const isZoneCol=ci>=12;
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:isZoneCol?'FF6EE7B7':'FF000000'}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:isZoneCol?'FF1A4731':'FFEFA800'}};
+      cell.alignment={horizontal:'center',vertical:'middle'};
+      const bc=isZoneCol?'FF065F46':'FFC88A00';
+      cell.border={top:{style:'medium',color:{argb:bc}},bottom:{style:'medium',color:{argb:bc}},left:{style:'thin',color:{argb:bc}},right:{style:'thin',color:{argb:bc}}};
+    });
+
+    // Fetch all employees for all companies in parallel
+    const empSnaps=await Promise.all(
+      SA_coDetails.map(co=>db.ref('users').orderByChild('company_id').equalTo(co.co_id||co.id).get())
+    );
+
+    let empRowNum=5;
+    SA_coDetails.forEach((co,coIdx)=>{
+      const snap=empSnaps[coIdx];
+      if(!snap.exists()) return;
+      const zones=Array.isArray(co.zone_templates)?co.zone_templates:[];
+      const zoneByName=n=>zones.find(z=>z.name===n)||null;
+
+      // Sort: active by emp_id, then inactive, then deleted
+      const statusOrder={active:0,inactive:1,deleted_by_admin:2};
+      const emps=Object.entries(snap.val())
+        .filter(([,u])=>u.role==='salesman')
+        .sort(([,a],[,b])=>{
+          const so=(statusOrder[a.status||'active']||0)-(statusOrder[b.status||'active']||0);
+          if(so!==0) return so;
+          const na=a.emp_id?parseInt((a.emp_id).replace(/\D/g,'')||'999999',10):999999;
+          const nb=b.emp_id?parseInt((b.emp_id).replace(/\D/g,'')||'999999',10):999999;
+          return na-nb;
+        });
+
+      emps.forEach(([,u],i)=>{
+        ws2.getRow(empRowNum).height=17;
+        const isDeleted=u.status==='deleted_by_admin';
+        const isInactive=u.status==='inactive';
+        const altBg=isDeleted?'FFFFF0F0':isInactive?'FFFFF8E8':(empRowNum%2===0)?'FFFFFFFF':'FFEEF2FF';
+        const zoneAltBg=isDeleted?'FFFFF0F0':isInactive?'FFFFF8E8':(empRowNum%2===0)?'FFF0FDF9':'FFE6FAF3';
+        const statusLabel=isDeleted?'Removed':isInactive?'Inactive':'Active';
+        const statusFgColor=isDeleted?'FFFF4466':isInactive?'FFFF9900':'FF1FD17A';
+        const shiftIn=u.shift_in||co.shift_in||'—';
+        const shiftOut=u.shift_out||co.shift_out||'—';
+        const grace=u.greeting_period!=null?u.greeting_period:(co.greeting_period!=null?co.greeting_period:'—');
+        const shiftTmpl=u.shift_template_name||(u.shift_in?'Custom':'Company Default');
+        const created=u.created_at?new Date(u.created_at).toLocaleDateString('en-IN'):'—';
+        const ciZone=u.checkin_zone?zoneByName(u.checkin_zone):null;
+        const coZone=u.checkout_zone?zoneByName(u.checkout_zone):null;
+
+        const vals=[
+          co.co_id||'—', co.name||'—',
+          u.emp_id||'—', u.name||'—',
+          u.emp_type==='backoffice'?'Back Office':'Sales',
+          u.email||'—', statusLabel,
+          shiftIn, shiftOut, grace, shiftTmpl, created,
+          u.checkin_zone||'—',
+          ciZone?parseFloat(ciZone.lat).toFixed(6):'—',
+          ciZone?parseFloat(ciZone.lng).toFixed(6):'—',
+          u.checkout_zone||'—',
+          coZone?parseFloat(coZone.lat).toFixed(6):'—',
+          coZone?parseFloat(coZone.lng).toFixed(6):'—',
+          u.deviceBinding?.deviceName||'—',
+          u.deviceBinding?.deviceId||'—',
+          u.deviceBinding?.registeredOn||'—',
+        ];
+
+        vals.forEach((v,ci)=>{
+          const cell=ws2.getCell(empRowNum,ci+1);
+          cell.value=v;
+          const isZoneCol=ci>=12;
+          const leftA=ci===1||ci===3||ci===5||ci===10||ci===12||ci===15;
+          xlsStyle(cell,{bg:isZoneCol?zoneAltBg:altBg,fg:'FF1A2850',sz:10,align:leftA?'left':'center'});
+          if(ci===0) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FFEFA800'}};
+          if(ci===1) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF1A2850'}};
+          if(ci===2) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF1E40AF'}};
+          if(ci===4){ const tc=u.emp_type==='backoffice'?'FF065F46':'FF1A5FA8'; cell.font={name:'Calibri',size:10,bold:true,color:{argb:tc}}; }
+          if(ci===6) cell.font={name:'Calibri',size:10,bold:true,color:{argb:statusFgColor}};
+          if(ci===12&&u.checkin_zone) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF065F46'}};
+          if(ci===15&&u.checkout_zone) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF991B1B'}};
+          if((ci===13||ci===14||ci===16||ci===17)&&v!=='—') cell.font={name:'Calibri',size:9,italic:true,color:{argb:'FF374151'}};
+        });
+        empRowNum++;
+      });
+    });
+
+    empColWidths.forEach((w,i)=>ws2.getColumn(i+1).width=w);
+    ws2.views=[{state:'frozen',xSplit:2,ySplit:4,topLeftCell:'C5',activeCell:'C5'}];
+    ws2.autoFilter={from:{row:4,column:1},to:{row:4,column:enc}};
+
     await xlsDownload(wb,`SunStar_CompanyList_${new Date().toISOString().slice(0,10)}`);
     doneLoading(); toast('Company List Excel downloading! 📥');
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); console.error(e); }
@@ -2963,6 +3166,13 @@ async function openCoSettings(coId, coName){
     // Zone templates
     window._csZoneTemplates=co.zone_templates?JSON.parse(JSON.stringify(co.zone_templates)):[];
     renderZoneTemplates('cs');
+    // Device binding
+    const csDbEnabled=co.device_binding===true;
+    const csDbChk=document.getElementById('csDeviceBinding');
+    const csDbTrack=document.getElementById('csDeviceBindingTrack');
+    const csDbThumb=document.getElementById('csDeviceBindingThumb');
+    const csDbLabel=document.getElementById('csDeviceBindingLabel');
+    if(csDbChk){ csDbChk.checked=csDbEnabled; csDbTrack.style.background=csDbEnabled?'var(--ok)':'var(--border)'; csDbThumb.style.left=csDbEnabled?'22px':'2px'; csDbLabel.textContent=csDbEnabled?'Required':'Not Required'; }
     // Mail required (default true)
     setMailRequired(co.mail_required!==false);
     // CC emails
@@ -3012,11 +3222,12 @@ async function saveCoSettings(){
   const cc_emails=ccRaw?ccRaw.split(',').map(e=>e.trim()).filter(Boolean):[];
   const shift_templates=window._csShiftTemplates||[];
   const zone_templates=window._csZoneTemplates||[];
+  const device_binding=document.getElementById('csDeviceBinding')?.checked||false;
   const defT=shift_templates.find(t=>t.is_default)||shift_templates[0]||{shift_in:'09:00',shift_out:'18:00',grace:15};
   const custom_holidays=window._csCustomHolidays||[];
   loading('Saving settings...');
   try{
-    await db.ref(`companies/${coId}`).update({holidays, mail_required, cc_emails, shift_templates, zone_templates, shift_in:defT.shift_in, shift_out:defT.shift_out, greeting_period:defT.grace, custom_holidays});
+    await db.ref(`companies/${coId}`).update({holidays, mail_required, cc_emails, shift_templates, zone_templates, device_binding, shift_in:defT.shift_in, shift_out:defT.shift_out, greeting_period:defT.grace, custom_holidays});
     doneLoading(); toast('Settings saved! ✅');
     closeModal('coSettingsModal');
     await loadSuperDashboard();
@@ -3407,6 +3618,10 @@ async function editSalesmanSA(uid){
     // Zone dropdowns — use this company's zone templates
     window._saEditZones=coZones;
     populateZoneDropdowns('esZoneIn','esZoneOut',u.checkin_zone||'',u.checkout_zone||'',coZones);
+    // Device binding section
+    window._esCurrentEditUid=uid;
+    const coDbSnap=await db.ref(`companies/${coId}/device_binding`).get();
+    await populateDeviceBindingSection(u, coDbSnap.exists()&&coDbSnap.val()===true);
     // Mark this modal as SA context so saveSalesmanEdit uses correct templates + reload
     document.getElementById('esUid').setAttribute('data-sa-context','1');
     doneLoading(); openModal('editSalesmanModal');
@@ -3449,6 +3664,7 @@ async function initAdmin(){
     APP.companyCcEmails=co.cc_emails||[];
     APP.shiftTemplates=co.shift_templates||[];
     APP.zoneTemplates=co.zone_templates||[];
+    APP.companyDeviceBinding=co.device_binding===true;
     if(!APP.shiftTemplates.length && co.shift_in){
       APP.shiftTemplates=[{name:'Default Shift',shift_in:co.shift_in,shift_out:co.shift_out||'18:00',grace:co.greeting_period??15,is_default:true}];
     }
@@ -3507,6 +3723,44 @@ function distMeters(lat1,lng1,lat2,lng2){
   const R=6371000, dLat=(lat2-lat1)*Math.PI/180, dLng=(lng2-lng1)*Math.PI/180;
   const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+/* ── DEVICE BINDING UTILITIES ─────────────────────── */
+function getDeviceId(){
+  let id=localStorage.getItem('ss_device_id');
+  if(!id){
+    // Generate stable ID: timestamp + random, stored permanently in localStorage
+    id='DEV_'+Date.now().toString(36).toUpperCase()+'_'+Math.random().toString(36).substr(2,9).toUpperCase();
+    localStorage.setItem('ss_device_id',id);
+  }
+  return id;
+}
+
+function getDeviceName(){
+  const ua=navigator.userAgent;
+  // Extract device model from userAgent
+  let model='Unknown Device';
+  if(/iPhone/.test(ua)) model='iPhone';
+  else if(/iPad/.test(ua)) model='iPad';
+  else{
+    // Android device model: look for pattern like (Linux; Android X.X; MODEL)
+    const m=ua.match(/\(Linux; Android [^;]+; ([^)]+)\)/);
+    if(m) model=m[1].trim().split(' Build')[0];
+    else if(/Android/.test(ua)) model='Android Device';
+    else if(/Windows/.test(ua)) model='Windows PC';
+    else if(/Mac/.test(ua)) model='Mac';
+  }
+  // Append browser for clarity
+  const browser=/Chrome\//.test(ua)?'Chrome':/Firefox\//.test(ua)?'Firefox':/Safari\//.test(ua)?'Safari':'Browser';
+  return model+' ('+browser+')';
+}
+
+async function getDeviceBattery(){
+  try{
+    if(!('getBattery' in navigator)) return null;
+    const bat=await navigator.getBattery();
+    return {level:Math.round(bat.level*100), charging:bat.charging};
+  }catch(e){ return null; }
 }
 
 function getZoneTemplates(ctx){
@@ -3613,6 +3867,72 @@ async function useCurrentLocationForZone(ctx, btn){
   }finally{
     if(btn){ btn.disabled=false; btn.textContent=origText; }
   }
+}
+
+async function populateDeviceBindingSection(u, companyBindingEnabled){
+  const sec=document.getElementById('esDeviceBindingSection');
+  const infoEl=document.getElementById('esDeviceInfo');
+  const resetBtn=document.getElementById('esDeviceResetBtn');
+  if(!sec||!infoEl||!resetBtn) return;
+
+  if(!companyBindingEnabled){
+    sec.style.display='none';
+    return;
+  }
+  sec.style.display='block';
+
+  const db_info=u.deviceBinding;
+  // Get battery info if available
+  const bat=await getDeviceBattery();
+
+  if(!db_info||!db_info.deviceId){
+    infoEl.innerHTML='<div style="font-size:12px;color:var(--txt-3);font-style:italic;">No device registered yet — employee has not logged in.</div>';
+    resetBtn.style.display='none';
+    return;
+  }
+
+  const batHtml=bat!=null?`
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;color:var(--txt-3);">🔋 Admin Device Battery</span>
+      <span style="font-size:12px;font-weight:700;color:${bat.level<20?'var(--err)':bat.level<50?'var(--gold)':'var(--ok)'};">${bat.level}% ${bat.charging?'⚡':''}</span>
+    </div>`:'';
+
+  infoEl.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;color:var(--txt-3);">📱 Device</span>
+      <span style="font-size:12px;font-weight:700;color:var(--txt);">${db_info.deviceName||'—'}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;color:var(--txt-3);">🔑 Device ID</span>
+      <span style="font-size:10px;font-weight:600;color:var(--txt-2);word-break:break-all;max-width:180px;text-align:right;">${db_info.deviceId||'—'}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;color:var(--txt-3);">📅 Registered On</span>
+      <span style="font-size:12px;font-weight:700;color:var(--txt);">${db_info.registeredOn||'—'}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;color:var(--txt-3);">🟢 Status</span>
+      <span style="font-size:12px;font-weight:700;color:var(--ok);">${db_info.status||'active'}</span>
+    </div>
+    ${batHtml}`;
+  resetBtn.style.display='block';
+}
+
+async function resetDeviceBinding(){
+  const uid=window._esCurrentEditUid;
+  if(!uid){ toast('No employee selected','err'); return; }
+  if(!confirm('Reset device binding for this employee? They will be able to log in from any device on next login, and their new device will be registered automatically.')) return;
+  loading('Resetting device binding...');
+  try{
+    await db.ref(`users/${uid}/deviceBinding`).remove();
+    doneLoading();
+    toast('Device binding reset ✅ Employee can now log in from a new device.');
+    // Refresh section
+    const infoEl=document.getElementById('esDeviceInfo');
+    const resetBtn=document.getElementById('esDeviceResetBtn');
+    if(infoEl) infoEl.innerHTML='<div style="font-size:12px;color:var(--txt-3);font-style:italic;">No device registered yet — employee has not logged in.</div>';
+    if(resetBtn) resetBtn.style.display='none';
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
 function populateZoneDropdowns(inId,outId,currentIn='',currentOut='',templates=null){
@@ -3770,6 +4090,14 @@ async function loadAdminSettings(){
     // Zone templates
     APP.zoneTemplates=co.zone_templates||[];
     renderZoneTemplates('ad');
+    // Device binding
+    const dbEnabled=co.device_binding===true;
+    APP.companyDeviceBinding=dbEnabled;
+    const dbChk=document.getElementById('adDeviceBinding');
+    const dbTrack=document.getElementById('adDeviceBindingTrack');
+    const dbThumb=document.getElementById('adDeviceBindingThumb');
+    const dbLabel=document.getElementById('adDeviceBindingLabel');
+    if(dbChk){ dbChk.checked=dbEnabled; dbTrack.style.background=dbEnabled?'var(--ok)':'var(--border)'; dbThumb.style.left=dbEnabled?'22px':'2px'; dbLabel.textContent=dbEnabled?'Required':'Not Required'; }
     // Custom holidays
     APP.companyCustomHolidays=co.custom_holidays||[];
     renderAdminCustomHolidays();
@@ -3818,10 +4146,11 @@ async function saveAdminSettings(){
     const custom_holidays=APP.companyCustomHolidays||[];
     const shift_templates=APP.shiftTemplates||[];
     const zone_templates=APP.zoneTemplates||[];
+    const device_binding=document.getElementById('adDeviceBinding')?.checked||false;
     // Derive legacy fields from default template for backward compat
     const defT=shift_templates.find(t=>t.is_default)||shift_templates[0]||{shift_in:'09:00',shift_out:'18:00',grace:15};
     await db.ref(`companies/${APP.companyId}`).update({
-      holidays, custom_holidays, shift_templates, zone_templates,
+      holidays, custom_holidays, shift_templates, zone_templates, device_binding,
       shift_in:defT.shift_in, shift_out:defT.shift_out, greeting_period:defT.grace
     });
     APP.companyHolidays=holidays;
@@ -3925,9 +4254,10 @@ async function exportEmpListExcel(){
       'Emp ID','Name','Type','Email','Status',
       'Shift In','Shift Out','Grace (min)','Shift Template','Created',
       '🟢 Check-in Zone','CI Latitude','CI Longitude',
-      '🔴 Check-out Zone','CO Latitude','CO Longitude'
+      '🔴 Check-out Zone','CO Latitude','CO Longitude',
+      '📱 Device Name','Device ID','Registered On'
     ];
-    const colWidths=[12,24,14,32,12,12,12,13,20,20,20,14,14,20,14,14];
+    const colWidths=[12,24,14,32,12,12,12,13,20,20,20,14,14,20,14,14,26,28,14];
     const nc=headers.length;
 
     // Title block
@@ -3950,13 +4280,15 @@ async function exportEmpListExcel(){
     headers.forEach((h,ci)=>{
       const cell=ws.getCell(5,ci+1);
       cell.value=h;
-      cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};
-      // Zone header columns get a distinct background
-      const isZoneCol=ci>=10;
-      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:isZoneCol?'FF1A4731':'FFEFA800'}};
-      cell.font={name:'Calibri',size:10,bold:true,color:{argb:isZoneCol?'FF6EE7B7':'FF000000'}};
+      const isZoneCol=ci>=10&&ci<=15;
+      const isDeviceCol=ci>=16;
+      const hdrBg=isDeviceCol?'FF1E3A5F':isZoneCol?'FF1A4731':'FFEFA800';
+      const hdrFg=isDeviceCol?'FF93C5FD':isZoneCol?'FF6EE7B7':'FF000000';
+      const hdrBc=isDeviceCol?'FF1E3A5F':isZoneCol?'FF065F46':'FFC88A00';
+      cell.font={name:'Calibri',size:10,bold:true,color:{argb:hdrFg}};
+      cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:hdrBg}};
       cell.alignment={horizontal:'center',vertical:'middle'};
-      cell.border={top:{style:'medium',color:{argb:isZoneCol?'FF065F46':'FFC88A00'}},bottom:{style:'medium',color:{argb:isZoneCol?'FF065F46':'FFC88A00'}},left:{style:'thin',color:{argb:isZoneCol?'FF065F46':'FFC88A00'}},right:{style:'thin',color:{argb:isZoneCol?'FF065F46':'FFC88A00'}}};
+      cell.border={top:{style:'medium',color:{argb:hdrBc}},bottom:{style:'medium',color:{argb:hdrBc}},left:{style:'thin',color:{argb:hdrBc}},right:{style:'thin',color:{argb:hdrBc}}};
     });
 
     // Sort: active first by EMP ID, then inactive, then deleted
@@ -3992,6 +4324,8 @@ async function exportEmpListExcel(){
       const coZoneName=u.checkout_zone||'';
       const ciZone=ciZoneName?zoneByName(ciZoneName):null;
       const coZone=coZoneName?zoneByName(coZoneName):null;
+      // Device binding data
+      const db_info=u.deviceBinding||null;
 
       const created=u.created_at?new Date(u.created_at).toLocaleDateString('en-IN'):'—';
       const vals=[
@@ -4005,32 +4339,34 @@ async function exportEmpListExcel(){
         shift.greeting,
         shiftTemplateName,
         created,
-        // Zone columns
         ciZoneName||'—',
         ciZone?parseFloat(ciZone.lat).toFixed(6):'—',
         ciZone?parseFloat(ciZone.lng).toFixed(6):'—',
         coZoneName||'—',
         coZone?parseFloat(coZone.lat).toFixed(6):'—',
         coZone?parseFloat(coZone.lng).toFixed(6):'—',
+        db_info?.deviceName||'—',
+        db_info?.deviceId||'—',
+        db_info?.registeredOn||'—',
       ];
 
       vals.forEach((v,ci)=>{
         const cell=ws.getCell(rowNum,ci+1);
         cell.value=v;
-        const isZoneCol=ci>=10;
-        const leftAlign=ci===1||ci===3||ci===8||ci===10||ci===13;
-        xlsStyle(cell,{bg:isZoneCol?zoneAltBg:altBg,fg:'FF1A2850',sz:10,align:leftAlign?'left':'center'});
-        // Status color
+        const isZoneCol=ci>=10&&ci<=15;
+        const isDeviceCol=ci>=16;
+        const devAltBg=i%2===0?'FFF0F4FF':'FFE8EDFF';
+        const bg=isDeviceCol?devAltBg:isZoneCol?zoneAltBg:altBg;
+        const leftAlign=ci===1||ci===3||ci===8||ci===10||ci===13||ci===16||ci===17;
+        xlsStyle(cell,{bg,fg:'FF1A2850',sz:10,align:leftAlign?'left':'center'});
         if(ci===4) cell.font={name:'Calibri',size:10,bold:true,color:{argb:statusFg}};
-        // Type color
         if(ci===2){ const tc=u.emp_type==='backoffice'?'FF065F46':'FF1A5FA8'; cell.font={name:'Calibri',size:10,bold:true,color:{argb:tc}}; }
-        // Emp ID color
         if(ci===0) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF1E40AF'}};
-        // Zone name colors
         if(ci===10&&ciZoneName) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF065F46'}};
         if(ci===13&&coZoneName) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF991B1B'}};
-        // Lat/lng italic
         if((ci===11||ci===12||ci===14||ci===15)&&v!=='—') cell.font={name:'Calibri',size:9,italic:true,color:{argb:'FF374151'}};
+        if(ci===16&&db_info) cell.font={name:'Calibri',size:10,bold:true,color:{argb:'FF1E40AF'}};
+        if(ci===17&&db_info) cell.font={name:'Calibri',size:9,italic:true,color:{argb:'FF374151'}};
       });
     });
 
@@ -4084,6 +4420,9 @@ async function editSalesmanAdmin(uid){
     document.getElementById('esGreeting').value=u.greeting_period!=null?u.greeting_period:'';
     // Zone dropdowns
     populateZoneDropdowns('esZoneIn','esZoneOut',u.checkin_zone||'',u.checkout_zone||'',APP.zoneTemplates||[]);
+    // Device binding section
+    window._esCurrentEditUid=uid;
+    await populateDeviceBindingSection(u, APP.companyDeviceBinding||false);
     // Ensure SA context flag is NOT set (this is Company Admin context)
     document.getElementById('esUid').removeAttribute('data-sa-context');
     doneLoading();
@@ -5468,7 +5807,7 @@ function startDurationTimer(startTs){
     const m=Math.floor((diff%3600000)/60000);
     const el=document.getElementById('dayDuration');
     if(el) el.textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-  },30000);
+  },10000);
   // Run once immediately
   const diff=Date.now()-startTs;
   const h=Math.floor(diff/3600000);
@@ -5615,53 +5954,59 @@ function checkGPS(){
 async function loadSalesmanStats(){
   const today=todayStr(); const now=new Date();
   const isBo=APP.userData.emp_type==='backoffice';
+  const uid=APP.user.uid; const coId=APP.companyId;
   const yr=now.getFullYear();
   const mo=String(now.getMonth()+1).padStart(2,'0');
 
+  // Build list of all days in current month up to today
+  const daysInMonth=new Date(yr, now.getMonth()+1, 0).getDate();
+  const todayDay=now.getDate();
+  const dates=[];
+  for(let d=1;d<=Math.min(daysInMonth,todayDay);d++){
+    dates.push(`${yr}-${mo}-${String(d).padStart(2,'0')}`);
+  }
+
   if(isBo){
-    // Load entire month attendance at once
-    const monthPrefix=`${yr}-${mo}`;
-    // Just count attendance nodes for this month
-    let presentDays=0;
-    const attSnap=await db.ref(`attendance/${APP.companyId}`).get();
-    if(attSnap.exists()){
-      Object.entries(attSnap.val()).forEach(([date,dayAtt])=>{
-        if(date.startsWith(monthPrefix) && dayAtt[APP.user.uid]) presentDays++;
-      });
-    }
+    // Targeted: one query per day for this employee only
+    const snaps=await Promise.all(
+      dates.map(date=>db.ref(`attendance/${coId}/${date}/${uid}`).get())
+    );
+    const presentDays=snaps.filter(s=>s.exists()).length;
     document.getElementById('smTodayCount').textContent='—';
     document.getElementById('smMonthCount').textContent='—';
     document.getElementById('smPresent').textContent=presentDays;
-    const labels=document.querySelectorAll('.sc-lbl');
-    if(labels[0]) labels[0].textContent='Visits (N/A)';
-    if(labels[1]) labels[1].textContent='Month (N/A)';
-    if(labels[2]) labels[2].textContent='Days Present';
+    // Use specific parent container to avoid renaming Report tab labels
+    const statToday=document.querySelector('#smStatToday .sc-lbl');
+    const statMonth=document.querySelector('#smStatMonth .sc-lbl');
+    if(statToday) statToday.textContent='Visits (N/A)';
+    if(statMonth) statMonth.textContent='Month (N/A)';
     return;
   }
 
-  // Load all three in parallel
-  const monthPrefix=`${yr}-${mo}`;
-  const [tSnap, attAllSnap, allVisitsSnap]=await Promise.all([
-    db.ref(`visits/${APP.companyId}/${today}`).orderByChild('salesman_uid').equalTo(APP.user.uid).get(),
-    db.ref(`attendance/${APP.companyId}`).get(),
-    db.ref(`visits/${APP.companyId}`).get()
+  // Sales employee — fetch today visits + per-day attendance + per-day visits in parallel
+  const [todayVisitSnap, ...restSnaps]=await Promise.all([
+    db.ref(`visits/${coId}/${today}`).orderByChild('salesman_uid').equalTo(uid).get(),
+    ...dates.map(date=>Promise.all([
+      db.ref(`attendance/${coId}/${date}/${uid}`).get(),
+      db.ref(`visits/${coId}/${date}`).orderByChild('salesman_uid').equalTo(uid).get()
+    ]))
   ]);
-  const todayCount=tSnap.exists()?Object.keys(tSnap.val()).length:0;
+
+  const todayCount=todayVisitSnap.exists()?Object.keys(todayVisitSnap.val()).length:0;
+  let presentDays=0, monthCount=0;
+  restSnaps.forEach(([attSnap,visSnap])=>{
+    if(attSnap.exists()) presentDays++;
+    if(visSnap.exists()) monthCount+=Object.keys(visSnap.val()).length;
+  });
+
   document.getElementById('smTodayCount').textContent=todayCount;
-  let monthCount=0, presentDays=0;
-  if(attAllSnap.exists()){
-    Object.entries(attAllSnap.val()).forEach(([date,dayAtt])=>{
-      if(date.startsWith(monthPrefix) && dayAtt[APP.user.uid]) presentDays++;
-    });
-  }
-  if(allVisitsSnap.exists()){
-    Object.entries(allVisitsSnap.val()).forEach(([date,dayVisits])=>{
-      if(!date.startsWith(monthPrefix)) return;
-      monthCount+=Object.values(dayVisits).filter(v=>v.salesman_uid===APP.user.uid).length;
-    });
-  }
   document.getElementById('smMonthCount').textContent=monthCount;
   document.getElementById('smPresent').textContent=presentDays;
+  // Restore correct labels for sales employees (may have been set to N/A if role switched)
+  const statToday=document.querySelector('#smStatToday .sc-lbl');
+  const statMonth=document.querySelector('#smStatMonth .sc-lbl');
+  if(statToday) statToday.textContent="Today's Visits";
+  if(statMonth) statMonth.textContent='This Month';
 }
 
 async function loadTodayVisits(){
@@ -5929,7 +6274,7 @@ async function exportSAHistExcel(){
           cell.value=v;
           const leftAlign=ci===2||ci===5||ci===9||ci===12;
           xlsStyle(cell,{bg:altBg,fg:'FF1A2850',sz:9,align:leftAlign?'left':'center'});
-          if(ci===10&&v!=null){ cell.numFmt='HH:MM'; cell.alignment={horizontal:'center',vertical:'middle'}; }
+          if(ci===10&&v!=null){ cell.numFmt='HH:mm'; cell.alignment={horizontal:'center',vertical:'middle'}; }
           if(ci===8){
             const sc=r.status==='In'?'FF065F46':r.status==='Out'?'FF991B1B':r.status==='Pending'?'FFCC6600':r.status==='Visit'?'FF1A5FA8':'FF3E4E78';
             cell.font={name:'Calibri',size:9,bold:true,color:{argb:sc}};
@@ -6147,7 +6492,7 @@ async function exportSASumExcel(){
             cell.value=v;
             const isT=ci>=7&&ci<=9; const leftA=ci===2||ci===4||ci===11;
             xlsStyle(cell,{bg:hol?'FFFFF3CD':altBg,fg:'FF1A2850',sz:9,align:leftA?'left':'center'});
-            if(isT&&v!=null){ cell.numFmt=ci===9?'[h]:MM':'HH:MM'; cell.alignment={horizontal:'center',vertical:'middle'}; }
+            if(isT&&v!=null){ cell.numFmt=ci===9?'[h]:mm':'HH:mm'; cell.alignment={horizontal:'center',vertical:'middle'}; }
             if(ci===11){ const fg=remark==='Present'?'FF065F46':remark==='Late'?'FFB45309':remark==='Holiday'?'FF7A4F00':'FF991B1B'; cell.font={name:'Calibri',size:9,bold:true,color:{argb:fg}}; }
           });
           s2Row++;
@@ -6260,8 +6605,8 @@ async function exportSALateExcel(){
             cell.value=v;
             const isActT=ci===9||ci===10; const isDur=ci===11||ci===12||ci===13; const leftA=ci===2||ci===5;
             xlsStyle(cell,{bg:altBg,fg:'FF1A2850',sz:9,align:leftA?'left':'center'});
-            if(isActT&&v!=null){ cell.numFmt='HH:MM'; cell.alignment={horizontal:'center',vertical:'middle'}; }
-            if(isDur&&v!=null){ cell.numFmt='[h]:MM'; cell.alignment={horizontal:'center',vertical:'middle'}; }
+            if(isActT&&v!=null){ cell.numFmt='HH:mm'; cell.alignment={horizontal:'center',vertical:'middle'}; }
+            if(isDur&&v!=null){ cell.numFmt='[h]:mm'; cell.alignment={horizontal:'center',vertical:'middle'}; }
             if(v===null){ cell.value='—'; cell.font={name:'Calibri',size:9,color:{argb:'FFCBD5E1'}}; }
             if(lateMin>0&&ci===9){ cell.font={name:'Calibri',size:9,bold:true,color:{argb:'FFFF4466'}}; }
             if(ci===11&&v!=null){ cell.font={name:'Calibri',size:9,bold:true,color:{argb:'FFFF4466'}}; cell.fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFE0E6'}}; }
@@ -6281,7 +6626,7 @@ async function exportSALateExcel(){
 }
 
 // Convert "09:50 AM" / "13:10" → Excel time serial (fraction of 1 day)
-// Excel stores times as decimals: 0.5 = 12:00 PM. numFmt 'HH:MM' shows 24hr.
+// Excel stores times as decimals: 0.5 = 12:00 PM. numFmt 'HH:mm' shows 24hr.
 function timeToExcelSerial(t){
   if(!t||t==='—') return null;
   const min=parseTimeToMin(t); // handles both AM/PM and 24hr
@@ -6372,7 +6717,7 @@ async function exportRptHistExcel(){
         xlsStyle(cell,{bg:altBg,fg:'FF1A2850',sz:10,align:colAlign});
 
         if(isTime && v!=null){
-          cell.numFmt='HH:MM'; // display as 24hr, enables +- arithmetic
+          cell.numFmt='HH:mm'; // display as 24hr, enables +- arithmetic
           cell.alignment={horizontal:'center',vertical:'middle'};
         }
         // Status colour coding
@@ -6612,8 +6957,7 @@ async function exportRptSumExcel(){
           remark=lateMin>0?'Late':'Present';
         }
 
-        // Time serials
-        const inSer=att&&att.start_time?att.start_time/1440:null; // will be calculated properly below
+        // Time serials — parse string times correctly
         const inMin2=att&&att.start_time?parseTimeToMin(att.start_time):null;
         const outMin2=att&&att.end_time?parseTimeToMin(att.end_time):null;
         const inSerial=inMin2!=null?inMin2/1440:null;
@@ -6640,7 +6984,7 @@ async function exportRptSumExcel(){
           const leftAlign=ci===2||ci===9; // Name, Remarks
           xlsStyle(cell,{bg:hol?'FFFFF3CD':altBg,fg:'FF1A2850',sz:9,align:leftAlign?'left':'center'});
           if(isTimeCol&&v!=null){
-            cell.numFmt=ci===7?'[h]:MM':'HH:MM'; // Duration uses [h]:MM, In/Out use HH:MM
+            cell.numFmt=ci===7?'[h]:mm':'HH:mm'; // Duration uses [h]:MM, In/Out use HH:MM
             cell.alignment={horizontal:'center',vertical:'middle'};
           }
           // Remarks colour
@@ -6876,11 +7220,11 @@ async function exportRptLateExcel(){
         xlsStyle(cell,{bg,fg:'FF1A2850',sz:10,align:leftAlign?'left':'center'});
 
         if(isActualTime && v!=null){
-          cell.numFmt='HH:MM';  // 24hr clock time, enables arithmetic
+          cell.numFmt='HH:mm';  // 24hr clock time, enables arithmetic
           cell.alignment={horizontal:'center',vertical:'middle'};
         }
         if(isDuration && v!=null){
-          cell.numFmt='[h]:MM'; // duration format — allows >24h, shows 01:30 etc
+          cell.numFmt='[h]:mm'; // duration format — allows >24h, shows 01:30 etc
           cell.alignment={horizontal:'center',vertical:'middle'};
         }
         if(v===null){
