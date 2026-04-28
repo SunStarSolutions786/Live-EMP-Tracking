@@ -3740,36 +3740,43 @@ function getDeviceId(){
 function getDeviceName(){
   const ua=navigator.userAgent;
   let model='Unknown Device';
+  let osVer='';
 
-  // iPhone — model from iOS version mapping isn't reliable; just say iPhone
-  if(/iPhone/.test(ua)) model='iPhone';
-  else if(/iPad/.test(ua)) model='iPad';
-  else if(/Android/.test(ua)){
-    // Try multiple UA patterns for Android model
-    // Pattern 1: (Linux; Android X; Model Build/...) — most common
+  if(/iPhone/.test(ua)){
+    const v=ua.match(/OS (\d+_\d+)/);
+    model='iPhone'+(v?' (iOS '+v[1].replace('_','.')+')':'');
+  } else if(/iPad/.test(ua)){
+    const v=ua.match(/OS (\d+_\d+)/);
+    model='iPad'+(v?' (iPadOS '+v[1].replace('_','.')+')':'');
+  } else if(/Android/.test(ua)){
+    // Android version
+    const av=ua.match(/Android ([0-9.]+)/);
+    osVer=av?' Android '+av[1]:'';
+    // Try Build/ pattern first (most reliable)
     let m=ua.match(/;\s*([^;)]+?)\s+Build\//);
     if(m) model=m[1].trim();
     else{
-      // Pattern 2: (Linux; Android X.X; Model)
+      // Fallback pattern
       m=ua.match(/Android [0-9.]+;\s*([^)]+)\)/);
       if(m) model=m[1].trim().split(';')[0].trim();
-      else model='Android Device';
     }
-    // Clean up common suffixes
-    model=model.replace(/\s*(SM-|RMX|CPH|M[0-9]{4}|INE-|VOG-|ELS-|LYA-|ANA-|CLT-|PCT-)/,'$1')
-               .replace(/\s+\d{4}$/, '').trim();
-  }
-  else if(/Windows Phone/.test(ua)) model='Windows Phone';
-  else if(/Windows/.test(ua)){
-    // Try to get Windows version
+    // If model is too short (≤2 chars) or looks like a generic ID, fall back to Android + version
+    if(!model||model.length<=2||/^[A-Z0-9]{1,3}$/.test(model)){
+      model='Android'+osVer+' Phone';
+    }
+  } else if(/Windows Phone/.test(ua)){
+    model='Windows Phone';
+  } else if(/Windows/.test(ua)){
     const wv=ua.match(/Windows NT ([0-9.]+)/);
     const ver=wv?({10:'10',6.3:'8.1',6.2:'8',6.1:'7'}[wv[1]]||wv[1]):'';
     model='Windows'+(ver?' '+ver:'');
+  } else if(/Macintosh/.test(ua)){
+    model='Mac';
+  } else if(/Linux/.test(ua)){
+    model='Linux PC';
   }
-  else if(/Macintosh/.test(ua)) model='Mac';
-  else if(/Linux/.test(ua)) model='Linux PC';
 
-  // Browser detection — order matters (Chrome must be before Safari)
+  // Browser detection
   let browser='Browser';
   if(/Edg\//.test(ua)) browser='Edge';
   else if(/OPR\/|Opera/.test(ua)) browser='Opera';
