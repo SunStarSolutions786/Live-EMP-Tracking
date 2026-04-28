@@ -3764,6 +3764,7 @@ function getDeviceName(){
     if(!model||model.length<=2||/^[A-Z0-9]{1,3}$/.test(model)){
       model='Android'+(osVer?' '+osVer.trim().replace(/^Android\s*/,''):'')+' Phone';
     }
+  } else if(/Windows Phone/.test(ua)){
     model='Windows Phone';
   } else if(/Windows/.test(ua)){
     const wv=ua.match(/Windows NT ([0-9.]+)/);
