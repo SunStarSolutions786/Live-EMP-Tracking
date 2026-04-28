@@ -431,14 +431,6 @@ button{font-family:'DM Sans',sans-serif;}
 }
 
 /* MODAL
-
-
-
-
-
-
-
-/* MODAL
 ════════════════════════════════════════════════ */
 .modal-ov{
   position:fixed;inset:0;background:rgba(6,9,26,0.88);
@@ -2331,12 +2323,10 @@ function parseAndSaveConfig(){
       .replace(/,\s*\}/g,'}');
     // simpler approach: eval-style extraction
     const cfg={};
-    const pairs=raw.match(/(apiKey|authDomain|databaseURL|projectId|storageBucket|messagingSenderId|appId)\s*:\s*["']([^"']+)["']/g);
-    if(!pairs||pairs.length<4) throw new Error('Config fields missing');
-    pairs.forEach(p=>{
-      const [k,v]=p.split(/\s*:\s*/);
-      cfg[k.trim()]=v.replace(/["']/g,'').trim();
-    });
+    const re=/(apiKey|authDomain|databaseURL|projectId|storageBucket|messagingSenderId|appId)\s*:\s*["']([^"']+)["']/g;
+    let m;
+    while((m=re.exec(raw))!==null){ cfg[m[1]]=m[2].trim(); }
+    if(Object.keys(cfg).length<4) throw new Error('Config fields missing');
     if(!cfg.apiKey||!cfg.databaseURL) throw new Error('apiKey or databaseURL not found');
     localStorage.setItem('ss_config',JSON.stringify(cfg));
     toast('Config saved ✅');
@@ -2447,14 +2437,35 @@ async function initApp(){
               if(errEl){ errEl.textContent='This account is already registered on another device. Please contact your company admin.'; errEl.style.display='block'; }
               return;
             }
+            // Same device — update lastSeen and battery with full set() to keep Firebase clean
+            const batInfo=await getDeviceBattery();
+            const refreshed={
+              deviceId: existingBinding.deviceId,
+              deviceName: existingBinding.deviceName,
+              registeredOn: existingBinding.registeredOn,
+              status: 'active',
+              lastBattery: batInfo?batInfo.level:null,
+              lastBatteryCharging: batInfo?batInfo.charging:null,
+              lastSeen: new Date().toISOString()
+            };
+            await db.ref(`users/${user.uid}/deviceBinding`).set(refreshed);
+            APP.userData.deviceBinding=refreshed;
           } else {
             // First login — register this device
             const deviceName=getDeviceName();
             const registeredOn=new Date().toISOString().slice(0,10);
-            await db.ref(`users/${user.uid}/deviceBinding`).set({
-              deviceId:currentDeviceId, deviceName, registeredOn, status:'active'
-            });
-            APP.userData.deviceBinding={deviceId:currentDeviceId, deviceName, registeredOn, status:'active'};
+            const batInfo=await getDeviceBattery();
+            const deviceData={
+              deviceId:currentDeviceId,
+              deviceName,
+              registeredOn,
+              status:'active',
+              lastBattery: batInfo?batInfo.level:null,
+              lastBatteryCharging: batInfo?batInfo.charging:null,
+              lastSeen: new Date().toISOString()
+            };
+            await db.ref(`users/${user.uid}/deviceBinding`).set(deviceData);
+            APP.userData.deviceBinding=deviceData;
           }
         }
       }
@@ -3000,8 +3011,6 @@ async function deleteCompany(id){
         await db.ref(`users/${uid}`).remove();
       }
     }
-    // Also delete admin user of this company
-    const adminSnap=await db.ref('users').orderByChild('company_id').equalTo(id).get();
     await db.ref(`companies/${id}`).remove();
     await db.ref(`visits/${id}`).remove();
     await db.ref(`attendance/${id}`).remove();
@@ -3244,15 +3253,7 @@ async function loginAsCompany(){
     const adminData=snap.val();
     if(!adminData.password){ doneLoading(); toast('Admin password not stored — cannot auto-login','err'); return; }
     closeModal('coSettingsModal');
-    // Sign in as company admin using stored credentials
-    const cfg=JSON.parse(localStorage.getItem('ss_config'));
-    const res=await fetchWithTimeout(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${cfg.apiKey}`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email:adminData.email,password:adminData.password,returnSecureToken:true})
-    });
-    const data=await res.json();
-    if(data.error){ doneLoading(); toast('Login failed: '+data.error.message,'err'); return; }
-    // Sign in via Firebase Auth
+    // Sign in via Firebase Auth SDK only — no redundant REST call needed
     await auth.signInWithEmailAndPassword(adminData.email,adminData.password);
     doneLoading(); toast(`Logged in as ${adminData.name} ✅`);
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
@@ -3738,21 +3739,47 @@ function getDeviceId(){
 
 function getDeviceName(){
   const ua=navigator.userAgent;
-  // Extract device model from userAgent
   let model='Unknown Device';
+
+  // iPhone — model from iOS version mapping isn't reliable; just say iPhone
   if(/iPhone/.test(ua)) model='iPhone';
   else if(/iPad/.test(ua)) model='iPad';
-  else{
-    // Android device model: look for pattern like (Linux; Android X.X; MODEL)
-    const m=ua.match(/\(Linux; Android [^;]+; ([^)]+)\)/);
-    if(m) model=m[1].trim().split(' Build')[0];
-    else if(/Android/.test(ua)) model='Android Device';
-    else if(/Windows/.test(ua)) model='Windows PC';
-    else if(/Mac/.test(ua)) model='Mac';
+  else if(/Android/.test(ua)){
+    // Try multiple UA patterns for Android model
+    // Pattern 1: (Linux; Android X; Model Build/...) — most common
+    let m=ua.match(/;\s*([^;)]+?)\s+Build\//);
+    if(m) model=m[1].trim();
+    else{
+      // Pattern 2: (Linux; Android X.X; Model)
+      m=ua.match(/Android [0-9.]+;\s*([^)]+)\)/);
+      if(m) model=m[1].trim().split(';')[0].trim();
+      else model='Android Device';
+    }
+    // Clean up common suffixes
+    model=model.replace(/\s*(SM-|RMX|CPH|M[0-9]{4}|INE-|VOG-|ELS-|LYA-|ANA-|CLT-|PCT-)/,'$1')
+               .replace(/\s+\d{4}$/, '').trim();
   }
-  // Append browser for clarity
-  const browser=/Chrome\//.test(ua)?'Chrome':/Firefox\//.test(ua)?'Firefox':/Safari\//.test(ua)?'Safari':'Browser';
-  return model+' ('+browser+')';
+  else if(/Windows Phone/.test(ua)) model='Windows Phone';
+  else if(/Windows/.test(ua)){
+    // Try to get Windows version
+    const wv=ua.match(/Windows NT ([0-9.]+)/);
+    const ver=wv?({10:'10',6.3:'8.1',6.2:'8',6.1:'7'}[wv[1]]||wv[1]):'';
+    model='Windows'+(ver?' '+ver:'');
+  }
+  else if(/Macintosh/.test(ua)) model='Mac';
+  else if(/Linux/.test(ua)) model='Linux PC';
+
+  // Browser detection — order matters (Chrome must be before Safari)
+  let browser='Browser';
+  if(/Edg\//.test(ua)) browser='Edge';
+  else if(/OPR\/|Opera/.test(ua)) browser='Opera';
+  else if(/SamsungBrowser/.test(ua)) browser='Samsung';
+  else if(/Chrome\//.test(ua)&&!/Chromium/.test(ua)) browser='Chrome';
+  else if(/Firefox\//.test(ua)) browser='Firefox';
+  else if(/Safari\//.test(ua)) browser='Safari';
+  else if(/MIUI/.test(ua)) browser='MIUI';
+
+  return model+' · '+browser;
 }
 
 async function getDeviceBattery(){
@@ -3761,6 +3788,25 @@ async function getDeviceBattery(){
     const bat=await navigator.getBattery();
     return {level:Math.round(bat.level*100), charging:bat.charging};
   }catch(e){ return null; }
+}
+
+async function updateDeviceBattery(){
+  try{
+    if(!APP.user?.uid||!APP.userData?.deviceBinding?.deviceId) return;
+    const bat=await getDeviceBattery();
+    // Rebuild full object with set() — completely replaces old data, no stale fields
+    const fresh={
+      deviceId: APP.userData.deviceBinding.deviceId,
+      deviceName: APP.userData.deviceBinding.deviceName,
+      registeredOn: APP.userData.deviceBinding.registeredOn,
+      status: 'active',
+      lastBattery: bat?bat.level:null,
+      lastBatteryCharging: bat?bat.charging:null,
+      lastSeen: new Date().toISOString()
+    };
+    await db.ref(`users/${APP.user.uid}/deviceBinding`).set(fresh);
+    APP.userData.deviceBinding=fresh;
+  }catch(e){}
 }
 
 function getZoneTemplates(ctx){
@@ -3875,26 +3921,25 @@ async function populateDeviceBindingSection(u, companyBindingEnabled){
   const resetBtn=document.getElementById('esDeviceResetBtn');
   if(!sec||!infoEl||!resetBtn) return;
 
-  if(!companyBindingEnabled){
-    sec.style.display='none';
-    return;
-  }
+  if(!companyBindingEnabled){ sec.style.display='none'; return; }
   sec.style.display='block';
 
   const db_info=u.deviceBinding;
-  // Get battery info if available
-  const bat=await getDeviceBattery();
-
   if(!db_info||!db_info.deviceId){
     infoEl.innerHTML='<div style="font-size:12px;color:var(--txt-3);font-style:italic;">No device registered yet — employee has not logged in.</div>';
     resetBtn.style.display='none';
     return;
   }
 
-  const batHtml=bat!=null?`
+  // Battery info — from employee's stored data (recorded at their login), NOT admin's browser
+  const empBat=db_info.lastBattery!=null?db_info.lastBattery:null;
+  const empCharging=db_info.lastBatteryCharging||false;
+  const lastSeen=db_info.lastSeen?new Date(db_info.lastSeen).toLocaleString('en-IN',{dateStyle:'short',timeStyle:'short'}):'—';
+
+  const batHtml=empBat!=null?`
     <div style="display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:12px;color:var(--txt-3);">🔋 Admin Device Battery</span>
-      <span style="font-size:12px;font-weight:700;color:${bat.level<20?'var(--err)':bat.level<50?'var(--gold)':'var(--ok)'};">${bat.level}% ${bat.charging?'⚡':''}</span>
+      <span style="font-size:12px;color:var(--txt-3);">🔋 Last Battery</span>
+      <span style="font-size:12px;font-weight:700;color:${empBat<20?'var(--err)':empBat<50?'var(--gold)':'var(--ok)'};">${empBat}%${empCharging?' ⚡':''}</span>
     </div>`:'';
 
   infoEl.innerHTML=`
@@ -3909,6 +3954,10 @@ async function populateDeviceBindingSection(u, companyBindingEnabled){
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <span style="font-size:12px;color:var(--txt-3);">📅 Registered On</span>
       <span style="font-size:12px;font-weight:700;color:var(--txt);">${db_info.registeredOn||'—'}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:12px;color:var(--txt-3);">👁️ Last Seen</span>
+      <span style="font-size:12px;color:var(--txt-2);">${lastSeen}</span>
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <span style="font-size:12px;color:var(--txt-3);">🟢 Status</span>
@@ -4806,8 +4855,8 @@ async function loadHistory(){
         Object.entries(attSnap.val()).forEach(([uid,att])=>{
           if(!empUidSet.has(uid)) return;
           const u=APP.salesmen[uid]||{name:'Unknown',emp_type:'sales'};
-          const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}${att.start_accuracy?` (±${att.start_accuracy}m)`:''}`:' —');
-          const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}${att.end_accuracy?` (±${att.end_accuracy}m)`:''}`:' —');
+          const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}${att.start_accuracy?` (±${att.start_accuracy}m)`:''}`:'—');
+          const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}${att.end_accuracy?` (±${att.end_accuracy}m)`:''}`:'—');
           if(att.start_time){
             lastHistoryData.push({
               uid, date, status:'In', name:u.name, emp_id:u.emp_id||'—',
@@ -5670,7 +5719,7 @@ async function loadSmSelfReport(){
         }
         const lateMin=att.start_time?Math.max(0,parseTimeToMin(att.start_time)-(parseTimeToMin(shift.shiftIn)+shift.greeting)):0;
         if(lateMin>0){ lateStr=minToHHMM(lateMin); lateCount++; status='Late'; }
-        else { status=att.end_time?'Present':'Present'; }
+        else { status=att.end_time?'Present':'In'; }
         if(!att.end_time) note='⚠️ No checkout';
       }
       rows.push({date,status,inT,outT,dur,lateStr,vCount,note,hol:!!hol});
@@ -5833,6 +5882,7 @@ async function startDay(){
       }
     }
     loading('Starting your day...');
+    updateDeviceBattery(); // fire-and-forget
     const now=new Date();
     const today=todayStr();
     const time=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
@@ -5876,6 +5926,7 @@ async function endDay(auto=false){
   // End without GPS if geolocation not available
   const doEndWithoutGPS=async()=>{
     loading(auto?'Auto ending day...':'Ending your day...');
+    updateDeviceBattery(); // fire-and-forget
     const time=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
     const updates={end_time:auto?'11:59 PM (Auto)':time, end_timestamp:endTs};
     try{
@@ -6038,6 +6089,7 @@ async function submitVisit(){
   try{
     const pos=await getAccurateLocation(btn,'✅ Submit Visit');
     loading('Saving visit...');
+    updateDeviceBattery(); // fire-and-forget
     const now=new Date();
     const today=todayStr();
     const acc=Math.round(pos.coords.accuracy);
@@ -6767,8 +6819,8 @@ async function buildHistoryRows(startDate, endDate, typeFilter){
         if(!empUidSet.has(uid)) return;
         const u=APP.salesmen[uid]||{name:'Unknown',emp_type:'sales'};
         const type=u.emp_type==='backoffice'?'Back Office':'Sales';
-        const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}${att.start_accuracy?` (±${att.start_accuracy}m)`:''}`:' —');
-        const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}${att.end_accuracy?` (±${att.end_accuracy}m)`:''}`:' —');
+        const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}${att.start_accuracy?` (±${att.start_accuracy}m)`:''}`:'—');
+        const outLoc=att.end_address||(att.end_lat?`${att.end_lat.toFixed(4)}, ${att.end_lng.toFixed(4)}${att.end_accuracy?` (±${att.end_accuracy}m)`:''}`:'—');
         if(att.start_time) rows.push({uid,date,status:'In',name:u.name,emp_id:u.emp_id||'—',location:inLoc,time:att.start_time,outlet:'—',remarks:'Day Started',type,sort_ts:att.start_timestamp||0});
         if(att.end_time) rows.push({uid,date,status:'Out',name:u.name,emp_id:u.emp_id||'—',location:outLoc,time:att.end_time,outlet:'—',remarks:'Day Ended',type,sort_ts:att.end_timestamp||0});
         else if(att.start_time) rows.push({uid,date,status:'Pending',name:u.name,emp_id:u.emp_id||'—',location:'—',time:'—',outlet:'—',remarks:'⚠️ Not Checked Out',type,sort_ts:(att.start_timestamp||0)+1});
@@ -7295,6 +7347,9 @@ window.addEventListener('load',initApp);
 // ── Service Worker (inline via Blob) — caches app shell for offline launch ──
 (function(){
   if(!('serviceWorker' in navigator)) return;
+  // iOS Safari does not support blob: URL service workers — skip silently
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)&&!window.MSStream;
+  if(isIOS) return;
   const swCode=`
 const CACHE='sunstar-v1';
 const SHELL=[self.location.href.split('?')[0]];
