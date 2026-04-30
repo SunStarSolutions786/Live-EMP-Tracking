@@ -1078,6 +1078,14 @@ body{ overscroll-behavior:none; }
         </div>
         <!-- Recent History -->
         <div class="tc">
+          <!-- Holiday banner — shown dynamically by loadOverview when today is a holiday -->
+          <div id="ovHolidayBanner" style="display:none;align-items:center;gap:12px;padding:13px 20px;background:rgba(239,168,0,0.10);border-bottom:1px solid rgba(239,168,0,0.28);">
+            <span style="font-size:20px;">🎉</span>
+            <div>
+              <div style="font-size:13px;font-weight:800;color:var(--gold);" id="ovHolidayName">Today is a Holiday</div>
+              <div style="font-size:11px;color:var(--txt-2);margin-top:2px;">Employees who checked in are shown below. Absent employees are marked as Holiday.</div>
+            </div>
+          </div>
           <div class="tc-hd">
             <div class="tc-title">⚡ Today's Activity</div>
             <div style="position:relative;width:220px;">
@@ -2232,31 +2240,25 @@ function isAnyHoliday(dateStr, weeklyHolidays, customHolidays){
 
 /* ── Auto ID generators ── */
 async function generateCompanyId(){
-  const snap=await db.ref('companies').get();
-  let maxNum=0;
-  if(snap.exists()){
-    Object.values(snap.val()).forEach(co=>{
-      if(co.co_id){
-        const m=co.co_id.match(/^CO-(\d+)$/);
-        if(m) maxNum=Math.max(maxNum,parseInt(m[1], 10));
-      }
-    });
-  }
-  return 'CO-'+String(maxNum+1).padStart(4,'0');
+  // Use Firebase transaction on a global counter — prevents race conditions on concurrent creation
+  const counterRef=db.ref('company_counter/seq');
+  let newSeq=1;
+  await counterRef.transaction(current=>{
+    newSeq=(current||0)+1;
+    return newSeq;
+  });
+  return 'CO-'+String(newSeq).padStart(4,'0');
 }
 
 async function generateEmpId(coId){
-  const snap=await db.ref('users').orderByChild('company_id').equalTo(coId).get();
-  let maxNum=0;
-  if(snap.exists()){
-    Object.values(snap.val()).forEach(u=>{
-      if(u.emp_id){
-        const m=u.emp_id.match(/^EMP-(\d+)$/);
-        if(m) maxNum=Math.max(maxNum,parseInt(m[1], 10));
-      }
-    });
-  }
-  return 'EMP-'+String(maxNum+1).padStart(4,'0');
+  // Use Firebase transaction on a per-company counter to prevent race conditions
+  const counterRef=db.ref(`company_counters/${coId}/emp_seq`);
+  let newSeq=1;
+  await counterRef.transaction(current=>{
+    newSeq=(current||0)+1;
+    return newSeq;
+  });
+  return 'EMP-'+String(newSeq).padStart(4,'0');
 }
 
 /* FIREBASE INIT
@@ -2640,6 +2642,7 @@ async function loadSAOverview(){
       return {id,co_id:co.co_id||'—',name:co.name||id,admin_name:co.admin_name||'—',
               modules:co.modules||{sales:true},status:co.status||'active',
               admin_uid:co.admin_uid,holidays:co.holidays||[0],
+              zone_templates:co.zone_templates||[],
               smCount:emps.length,presentToday,visitsToday};
     }));
     SA_coDetails=details;
@@ -2838,7 +2841,7 @@ async function exportCompanyListExcel(){
 
     // Fetch all employees for all companies in parallel
     const empSnaps=await Promise.all(
-      SA_coDetails.map(co=>db.ref('users').orderByChild('company_id').equalTo(co.co_id||co.id).get())
+      SA_coDetails.map(co=>db.ref('users').orderByChild('company_id').equalTo(co.id).get())
     );
 
     let empRowNum=5;
@@ -2933,15 +2936,15 @@ async function toggleCompanyStatus(coId, coName, adminUid, newStatus){
     if(smSnap.exists()){
       for(const [uid,u] of Object.entries(smSnap.val())){
         if(u.role==='salesman'){
-          // When deactivating: set all to inactive
-          // When activating: only restore those that were active before (not individually deactivated or deleted)
           if(newStatus==='inactive'){
-            await db.ref(`users/${uid}`).update({status:'inactive'});
+            // Mark as company-deactivated so reactivation can distinguish
+            await db.ref(`users/${uid}`).update({status:'inactive', deactivated_by_company:true});
             try{ await authAction(uid,'disable'); }catch(e){}
           } else {
-            // Only activate employees that were inactive due to company deactivation (not deleted_by_admin or individually managed)
-            if(u.status==='inactive'){
-              await db.ref(`users/${uid}`).update({status:'active'});
+            // Only restore employees flagged by company deactivation
+            // Employees individually deactivated by admin (no flag) stay inactive
+            if(u.status==='inactive' && u.deactivated_by_company===true){
+              await db.ref(`users/${uid}`).update({status:'active', deactivated_by_company:null});
               try{ await authAction(uid,'enable'); }catch(e){}
             }
           }
@@ -3330,10 +3333,10 @@ async function loadCoMgmtSalesmen(){
           <div style="min-width:0;flex:1;">
             <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:3px;">
               ${empIdBadge}
-              <span style="font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;">${u.name}</span>
+              <span style="font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;">${htmlEsc(u.name)}</span>
               ${typeBadge}${inactiveBadge}${zoneInBadge}${zoneOutBadge}
             </div>
-            <div style="font-size:11px;color:var(--txt-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.email}${u.password?' · 🔑 '+u.password:''}</div>
+            <div style="font-size:11px;color:var(--txt-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${htmlEsc(u.email)}${u.password?' · 🔑 '+u.password:''}</div>
           </div>
         </div>
         <div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px;">
@@ -4072,9 +4075,12 @@ function removeShiftTemplate(ctx, idx){
   if(wasDefault && templates.length) templates[0].is_default=true;
   setShiftTemplates(ctx, templates);
   renderShiftTemplates(ctx);
-  // Refresh shift dropdowns if in modals
-  populateShiftDropdown('asShiftSelect','');
-  populateShiftDropdown('esShiftSelect','');
+  // Only refresh company-admin add/edit dropdowns when in company-admin context
+  // In 'cs' (SA settings) context APP.shiftTemplates belongs to a different company — skip
+  if(ctx!=='cs'){
+    populateShiftDropdown('asShiftSelect','');
+    populateShiftDropdown('esShiftSelect','');
+  }
 }
 
 function setDefaultShift(ctx, idx){
@@ -4260,14 +4266,14 @@ function renderSalesmanList(){
     const zoneOutBadge=u.checkout_zone?`<span class="zone-badge-out" style="font-size:9px;padding:1px 6px;">🔴 ${u.checkout_zone}</span>`:'';
     return `<div class="sm-list-item" data-dept="${isBo?'backoffice':'sales'}" data-search="${((u.emp_id||'')+' '+(u.name||'')+' '+(u.email||'')).toLowerCase()}" style="opacity:${isInactive?0.65:1};padding:10px 14px;">
       <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
-        <div class="sm-av" style="width:36px;height:36px;min-width:36px;font-size:14px;background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${u.name[0].toUpperCase()}</div>
+        <div class="sm-av" style="width:36px;height:36px;min-width:36px;font-size:14px;background:${isInactive?'var(--border)':'var(--gold-dim)'};color:${isInactive?'var(--txt-3)':'var(--gold)'};">${htmlEsc(u.name[0].toUpperCase())}</div>
         <div style="min-width:0;flex:1;">
           <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:3px;">
             ${empIdBadge}
-            <span style="font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;">${u.name}</span>
+            <span style="font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;">${htmlEsc(u.name)}</span>
             ${typeBadge}${inactiveBadge}${zoneInBadge}${zoneOutBadge}
           </div>
-          <div style="font-size:11px;color:var(--txt-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.email}</div>
+          <div style="font-size:11px;color:var(--txt-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${htmlEsc(u.email)}</div>
         </div>
       </div>
       <div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px;">
@@ -4625,6 +4631,29 @@ async function loadOverview(){
   document.getElementById('ov-salesmen').title=`Sales: ${salesCount} | Back Office: ${boCount}`;
   const today=todayStr();
 
+  // ── Holiday banner ──
+  const isHolidayToday=isAnyHoliday(today, APP.companyHolidays||[0], APP.companyCustomHolidays||[]);
+  const banner=document.getElementById('ovHolidayBanner');
+  const bannerName=document.getElementById('ovHolidayName');
+  if(banner){
+    if(isHolidayToday){
+      // Resolve holiday name for display
+      const dow=new Date(today+'T00:00:00').getDay();
+      const weeklyNames=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      let holLabel='Today is a Holiday';
+      if((APP.companyHolidays||[]).includes(dow)){
+        holLabel=`Today is a Weekly Off (${weeklyNames[dow]})`;
+      } else {
+        const custom=(APP.companyCustomHolidays||[]).find(h=>h.date===today);
+        if(custom && custom.name) holLabel=`Today: ${custom.name}`;
+      }
+      if(bannerName) bannerName.textContent=holLabel;
+      banner.style.display='flex';
+    } else {
+      banner.style.display='none';
+    }
+  }
+
   // Load today visits + attendance + month visits all in parallel
   const now=new Date();
   const monthPrefix=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
@@ -4676,8 +4705,12 @@ async function loadOverview(){
     const shiftLabel=`${shift.shiftIn}–${shift.shiftOut}`;
 
     // Determine status + remarks
-    let status='Absent', statusColor='var(--err)', inTime='—', outTime='—', duration='—', remarks='Absent';
-    let sortKey=3;
+    // Holiday check — only applies if employee did NOT check in
+    // If employee checked in on a holiday, show their actual attendance status
+    let status=isHolidayToday&&!att?'Holiday':'Absent';
+    let statusColor=isHolidayToday&&!att?'var(--gold)':'var(--err)';
+    let inTime='—', outTime='—', duration='—', remarks=isHolidayToday&&!att?'Holiday':'—';
+    let sortKey=isHolidayToday&&!att?4:3;
 
     if(att){
       inTime=att.start_time||'—';
@@ -4735,9 +4768,12 @@ async function loadOverview(){
     const typeColor=isBo?'var(--ok)':'var(--info)';
     const typeBg=isBo?'rgba(31,209,122,0.1)':'rgba(75,159,255,0.1)';
     const searchStr=((r.u.emp_id||'')+' '+(r.u.name||'')).toLowerCase();
-    return `<tr data-search="${searchStr}">
+    const isHolRow=r.status==='Holiday';
+    const rowBg=isHolRow?'background:rgba(239,168,0,0.07);':'';
+    const holIcon=isHolRow?'🎉 ':'';
+    return `<tr data-search="${searchStr}" style="${rowBg}">
       <td style="font-size:11px;font-weight:800;color:var(--info);">${r.u.emp_id||'—'}</td>
-      <td style="font-weight:600;font-size:13px;">${r.u.name}</td>
+      <td style="font-weight:600;font-size:13px;">${holIcon}${r.u.name}</td>
       <td><span style="font-size:11px;font-weight:700;color:${typeColor};background:${typeBg};padding:2px 7px;border-radius:8px;">${typeLabel}</span></td>
       <td style="font-size:11px;color:var(--txt-2);white-space:nowrap;">${r.shift}</td>
       <td style="font-size:12px;font-weight:700;color:${r.statusColor};">${r.status}</td>
@@ -4745,7 +4781,7 @@ async function loadOverview(){
       <td style="font-size:12px;font-weight:600;color:${r.outTime!=='—'?'var(--err)':'var(--txt-3)'};">${r.outTime}</td>
       <td style="font-size:12px;color:var(--gold);font-weight:600;">${r.duration}</td>
       <td style="text-align:center;font-size:12px;font-weight:700;color:${r.vCount>0?'var(--info)':'var(--txt-3)'};">${r.vCount||'—'}</td>
-      <td style="font-size:11px;color:var(--txt-2);">${r.remarks}</td>
+      <td style="font-size:11px;color:var(--txt-2);">${isHolRow?`<span style="color:var(--gold);font-weight:700;">🎉 Holiday</span>`:r.remarks}</td>
     </tr>`;
   }).join('');
   // Clear search box on refresh
@@ -4911,7 +4947,7 @@ async function loadHistory(){
         });
       }
     }); // end dates.forEach
-    lastHistoryData.sort((a,b)=>b.sort_ts-a.sort_ts);
+    lastHistoryData.sort((a,b)=>a.sort_ts-b.sort_ts);
     const tbody=document.getElementById('visitTbody');
     if(lastHistoryData.length===0){
       tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--txt-3);">No records found for this period</td></tr>';
@@ -5715,8 +5751,8 @@ async function loadSmSelfReport(){
       visitCount+=vCount;
 
       let status='Absent', inT='—', outT='—', dur='—', lateStr='—', note='';
-      if(hol){ status='Holiday'; note=hol.name; }
-      else if(att){
+      if(att){
+        // Attendance exists — show real status even on holidays
         presentCount++;
         inT=att.start_time||'—';
         outT=att.end_time||'—';
@@ -5728,7 +5764,8 @@ async function loadSmSelfReport(){
         if(lateMin>0){ lateStr=minToHHMM(lateMin); lateCount++; status='Late'; }
         else { status=att.end_time?'Present':'In'; }
         if(!att.end_time) note='⚠️ No checkout';
-      }
+        if(hol) note=(note?note+' · ':'')+hol.name; // show holiday name as note
+      } else if(hol){ status='Holiday'; note=hol.name; }
       rows.push({date,status,inT,outT,dur,lateStr,vCount,note,hol:!!hol});
     });
 
@@ -5813,20 +5850,22 @@ let dayDurationInterval=null;
 
 async function loadDayStatus(){
   const today=todayStr();
-  const snap=await db.ref(`attendance/${APP.companyId}/${today}/${APP.user.uid}`).get();
-  if(!snap.exists()){
-    // No record — show Start Day
-    showDayState('not_started');
-  } else {
-    const att=snap.val();
-    if(att.end_time){
-      // Day ended
-      showDayState('ended', att);
+  try{
+    const snap=await db.ref(`attendance/${APP.companyId}/${today}/${APP.user.uid}`).get();
+    if(!snap.exists()){
+      showDayState('not_started');
     } else {
-      // Day in progress
-      showDayState('in_progress', att);
-      startDurationTimer(att.start_timestamp);
+      const att=snap.val();
+      if(att.end_time){
+        showDayState('ended', att);
+      } else {
+        showDayState('in_progress', att);
+        startDurationTimer(att.start_timestamp);
+      }
     }
+  }catch(e){
+    toast('Failed to load attendance status','err');
+    showDayState('not_started');
   }
 }
 
@@ -5863,7 +5902,7 @@ function startDurationTimer(startTs){
     const m=Math.floor((diff%3600000)/60000);
     const el=document.getElementById('dayDuration');
     if(el) el.textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-  },10000);
+  },60000);
   // Run once immediately
   const diff=Date.now()-startTs;
   const h=Math.floor(diff/3600000);
@@ -5928,7 +5967,7 @@ async function endDay(auto=false){
   if(att.end_time) return; // Already ended
 
   const now=auto ? new Date(new Date().setHours(23,59,59,0)) : new Date();
-  const endTs=auto ? new Date(todayStr()+'T23:59:59').getTime() : Date.now();
+  const endTs=auto ? (()=>{ const d=new Date(); d.setHours(23,59,59,0); return d.getTime(); })() : Date.now();
 
   // End without GPS if geolocation not available
   const doEndWithoutGPS=async()=>{
@@ -5945,7 +5984,14 @@ async function endDay(auto=false){
     }catch(e){ doneLoading(); }
   };
 
-  if(!navigator.geolocation){ await doEndWithoutGPS(); return; }
+  if(!navigator.geolocation){
+    // If employee has a checkout zone, GPS is required — cannot bypass
+    if(!auto && APP.userData.checkout_zone){
+      toast('⛔ GPS required for check-out — your account has a zone restriction.','err');
+      return;
+    }
+    await doEndWithoutGPS(); return;
+  }
 
   navigator.geolocation.getCurrentPosition(async pos=>{
     // Zone enforcement for check-out (skip for auto end-of-day)
@@ -6195,10 +6241,15 @@ async function initSAReport(){
 async function getSACompanies(){
   const coFilter=document.getElementById('saReportCompany').value;
   if(coFilter && SA_companies_cache[coFilter]) return {[coFilter]:SA_companies_cache[coFilter]};
-  if(Object.keys(SA_companies_cache).length) return {...SA_companies_cache};
-  const snap=await db.ref('companies').get();
+  // Build from cache or fetch fresh — always exclude inactive companies
+  const source=Object.keys(SA_companies_cache).length ? SA_companies_cache : await (async()=>{
+    const snap=await db.ref('companies').get();
+    const r={};
+    if(snap.exists()) Object.entries(snap.val()).forEach(([id,co])=>{ r[id]=co; });
+    return r;
+  })();
   const result={};
-  if(snap.exists()) Object.entries(snap.val()).forEach(([id,co])=>{ if(co.status!=='inactive') result[id]=co; });
+  Object.entries(source).forEach(([id,co])=>{ if(co.status!=='inactive') result[id]=co; });
   return result;
 }
 
@@ -6491,12 +6542,12 @@ async function exportSASumExcel(){
           const hol=isAnyHoliday(ds,coHolidays,coCustomHols);
           const att=attByDate[ds]?attByDate[ds][uid]:null;
           let v='Absent';
-          if(hol) v='Holiday';
-          else if(att&&att.start_time){
+          if(att&&att.start_time){
+            // Attendance takes priority — present on holiday still counts as Present
             const inMin=parseTimeToMin(att.start_time);
             const lateMin=inMin-(parseTimeToMin(sh.shiftIn)+sh.greeting);
             v=lateMin>0?'Late':'Present';
-          }
+          } else if(hol){ v='Holiday'; }
           if(v==='Present'||v==='Late') totP++;
           if(v==='Late') totL++;
           if(v==='Holiday') totH++;
@@ -6534,11 +6585,10 @@ async function exportSASumExcel(){
           const visits=(visByDate[ds]&&visByDate[ds][uid])||0;
           const hol=isAnyHoliday(ds,coHolidays,coCustomHols);
           let remark='Absent';
-          if(hol) remark='Holiday';
-          else if(att&&att.start_time){
+          if(att&&att.start_time){
             const lateMin=parseTimeToMin(att.start_time)-(parseTimeToMin(sh.shiftIn)+sh.greeting);
             remark=lateMin>0?'Late':'Present';
-          }
+          } else if(hol){ remark='Holiday'; }
           const inMin=att&&att.start_time?parseTimeToMin(att.start_time):null;
           const outMin=att&&att.end_time?parseTimeToMin(att.end_time):null;
           const inSer=inMin!=null?inMin/1440:null;
@@ -7006,15 +7056,14 @@ async function exportRptSumExcel(){
         const type=u.emp_type==='backoffice'?'Back Office':'Sales';
         const visitCount=(visByDate[ds]&&visByDate[ds][uid])||0;
 
-        // Determine remark/status
+        // Determine remark/status — attendance takes priority over holiday
         let remark='Absent';
         const hol=isAnyHoliday(ds,APP.companyHolidays||[0],APP.companyCustomHolidays||[]);
-        if(hol) remark='Holiday';
-        else if(att&&att.start_time){
+        if(att&&att.start_time){
           const inMin=parseTimeToMin(att.start_time);
           const lateMin=inMin-(parseTimeToMin(sh.shiftIn)+sh.greeting);
           remark=lateMin>0?'Late':'Present';
-        }
+        } else if(hol){ remark='Holiday'; }
 
         // Time serials — parse string times correctly
         const inMin2=att&&att.start_time?parseTimeToMin(att.start_time):null;
@@ -7098,9 +7147,8 @@ async function buildAttSummaryMatrix(month,year,typeFilter){
     allDates.forEach(ds=>{
       const hol=isAnyHoliday(ds,holidays,customHolidays);
       const att=attByDate[ds]?attByDate[ds][uid]:null;
-      if(hol) matrix[uid][ds]='Holiday';
-      else if(att&&att.start_time){
-        // Check if late
+      if(att&&att.start_time){
+        // Attendance takes priority — present on holiday = Present
         const shift=getEmpShift(uid);
         const inMin=parseTimeToMin(att.start_time);
         const shiftInMin=parseTimeToMin(shift.shiftIn);
@@ -7108,7 +7156,7 @@ async function buildAttSummaryMatrix(month,year,typeFilter){
         const lateMin=inMin-(shiftInMin+grace);
         matrix[uid][ds]=lateMin>0?'Late':'Present';
       }
-      else matrix[uid][ds]='Absent';
+      else matrix[uid][ds]=hol?'Holiday':'Absent';
     });
   });
   return {matrix,co,dateLabel,empList,allDates,holidays,customHolidays,attByDate};
