@@ -5125,9 +5125,9 @@ function addArrowLine(map, latlngs, color){
   for(let i=0;i<latlngs.length-1;i++){
     const a=latlngs[i], b=latlngs[i+1];
     const mid=[(a[0]+b[0])/2,(a[1]+b[1])/2];
-    const angle=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI;
+    const angle=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI; // atan2(Δlng,Δlat) = bearing from north
     const arrowIcon=L.divIcon({
-      html:`<div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:14px solid ${color};transform:rotate(${90-angle}deg);opacity:.9;"></div>`,
+      html:`<div style="width:0;height:0;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:14px solid ${color};transform:rotate(${angle}deg);opacity:.9;"></div>`,
       iconSize:[14,14],iconAnchor:[7,7],className:''
     });
     L.marker(mid,{icon:arrowIcon,interactive:false}).addTo(map);
