@@ -753,6 +753,28 @@ body{ overscroll-behavior:none; }
         ".read": "auth != null && (root.child('users').child(auth.uid).child('company_id').val() === $cid || root.child('users').child(auth.uid).child('role').val() === 'super_admin' || root.child('users').child(auth.uid).child('role').val() === 'company_admin')",
         ".write": "auth != null && root.child('users').child(auth.uid).child('company_id').val() === $cid"
       }
+    },
+    "attendance": {
+      "$cid": {
+        ".read": "auth != null && (root.child('users').child(auth.uid).child('company_id').val() === $cid || root.child('users').child(auth.uid).child('role').val() === 'super_admin' || root.child('users').child(auth.uid).child('role').val() === 'company_admin')",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('company_id').val() === $cid"
+      }
+    },
+    "login_logs": {
+      "$cid": {
+        ".read": "auth != null && (root.child('users').child(auth.uid).child('company_id').val() === $cid || root.child('users').child(auth.uid).child('role').val() === 'super_admin' || root.child('users').child(auth.uid).child('role').val() === 'company_admin')",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('company_id').val() === $cid"
+      }
+    },
+    "company_counters": {
+      "$cid": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "company_counter": {
+      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'super_admin'",
+      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'super_admin'"
     }
   }
 }</div>
@@ -2100,8 +2122,16 @@ body{ overscroll-behavior:none; }
   <div class="modal-box">
     <div class="modal-title">⚠️ Confirm Delete?</div>
     <div class="modal-sub" id="deleteModalMsg">This action cannot be undone.</div>
+    <!-- Company-name typed confirmation — shown only for SA company delete -->
+    <div id="deleteConfirmTypingWrap" style="display:none;margin-top:14px;">
+      <div style="font-size:12px;color:var(--txt-2);margin-bottom:6px;">Type the company name to confirm permanent deletion:</div>
+      <input id="deleteConfirmTypingInput" class="fi-sm" type="text" placeholder="Company name…"
+        style="width:100%;box-sizing:border-box;border:1.5px solid var(--err);border-radius:10px;padding:9px 12px;font-size:13px;background:var(--bg-card);color:var(--txt);"
+        oninput="checkDeleteTyping()">
+      <div id="deleteTypingErr" style="display:none;font-size:11px;color:var(--err);margin-top:5px;">Name does not match. Please type exactly as shown above.</div>
+    </div>
     <div class="modal-acts">
-      <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+      <button class="btn-cancel" onclick="closeModal('deleteModal');resetDeleteModal()">Cancel</button>
       <button class="btn-confirm" style="background:linear-gradient(145deg,var(--err),#cc0033);" id="deleteConfirmBtn">Delete</button>
     </div>
   </div>
@@ -2628,15 +2658,32 @@ async function loadSAOverview(){
       doneLoading(); return;
     }
 
-    // Load all companies in parallel
-    const details=await Promise.all(ids.map(async id=>{
+    // ── One users read + N×2 att/vis reads — all in parallel ──
+    // Reading users once (grouped by company_id in JS) vs N separate index queries
+    const attVisPromises=ids.flatMap(id=>[
+      db.ref(`attendance/${id}/${today}`).get(),
+      db.ref(`visits/${id}/${today}`).get()
+    ]);
+    const [allUsersSnap,...attVisSnaps]=await Promise.all([
+      db.ref('users').get(),
+      ...attVisPromises
+    ]);
+
+    // Group users by company_id in JS (one pass)
+    const usersByCompany={};
+    if(allUsersSnap.exists()){
+      Object.entries(allUsersSnap.val()).forEach(([uid,u])=>{
+        if(!u.company_id||u.role!=='salesman'||u.status==='deleted_by_admin') return;
+        if(!usersByCompany[u.company_id]) usersByCompany[u.company_id]=[];
+        usersByCompany[u.company_id].push(u);
+      });
+    }
+
+    const details=ids.map((id,i)=>{
       const co=companies[id];
-      const [smSnap,attSnap,visSnap]=await Promise.all([
-        db.ref('users').orderByChild('company_id').equalTo(id).get(),
-        db.ref(`attendance/${id}/${today}`).get(),
-        db.ref(`visits/${id}/${today}`).get()
-      ]);
-      const emps=smSnap.exists()?Object.values(smSnap.val()).filter(u=>u.role==='salesman'&&u.status!=='deleted_by_admin'):[];
+      const attSnap=attVisSnaps[i*2];
+      const visSnap=attVisSnaps[i*2+1];
+      const emps=usersByCompany[id]||[];
       const presentToday=attSnap.exists()?Object.keys(attSnap.val()).length:0;
       const visitsToday=visSnap.exists()?Object.keys(visSnap.val()).length:0;
       return {id,co_id:co.co_id||'—',name:co.name||id,admin_name:co.admin_name||'—',
@@ -2644,7 +2691,7 @@ async function loadSAOverview(){
               admin_uid:co.admin_uid,holidays:co.holidays||[0],
               zone_templates:co.zone_templates||[],
               smCount:emps.length,presentToday,visitsToday};
-    }));
+    });
     SA_coDetails=details;
 
     // Update summary cards
@@ -2726,7 +2773,7 @@ function renderCoList(){
         <button class="btn-ghost" style="font-size:12px;padding:7px 10px;${isInactive?'color:var(--ok);border-color:rgba(31,209,122,0.3);':''}"
           onclick="toggleCompanyStatus('${co.id}','${co.name.replace(/'/g,"\\'")}','${co.admin_uid}','${co.status==='inactive'?'active':'inactive'}')">
           ${isInactive?'✅':'🚫'}</button>
-        <button class="btn-danger" style="padding:7px 10px;font-size:12px;" onclick="deleteCompanyConfirm('${co.id}','${co.name.replace(/'/g,"\\'")}')">🗑</button>
+        <button class="btn-danger" style="padding:7px 10px;font-size:12px;" onclick="deleteCompanyConfirm('${co.id}','${co.name.replace(/'/g,"\\'")}','${co.admin_uid||''}')">🗑</button>
       </div>
     </div>`;
   }).join('');
@@ -2995,30 +3042,71 @@ async function addCompany(){
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
-function deleteCompanyConfirm(id,name){
-  document.getElementById('deleteModalMsg').textContent=`"${name}" company will be permanently deleted. All data will be lost!`;
-  document.getElementById('deleteConfirmBtn').onclick=()=>deleteCompany(id);
+function deleteCompanyConfirm(id, name, adminUid){
+  // Show typed-confirmation UI (SA company delete only)
+  document.getElementById('deleteModalMsg').innerHTML=
+    `Permanently delete <strong style="color:var(--err);">"${name}"</strong>?<br>
+     <span style="font-size:12px;color:var(--txt-2);">All employees, attendance, visits and login logs will be erased from Firebase forever.</span>`;
+  const wrap=document.getElementById('deleteConfirmTypingWrap');
+  const inp=document.getElementById('deleteConfirmTypingInput');
+  const btn=document.getElementById('deleteConfirmBtn');
+  wrap.style.display='block';
+  inp.value='';
+  inp.dataset.expected=name;
+  btn.disabled=true;
+  btn.style.opacity='0.4';
+  document.getElementById('deleteTypingErr').style.display='none';
+  btn.onclick=()=>deleteCompany(id, adminUid);
   openModal('deleteModal');
+  setTimeout(()=>inp.focus(),200);
 }
 
-async function deleteCompany(id){
+function checkDeleteTyping(){
+  const inp=document.getElementById('deleteConfirmTypingInput');
+  const btn=document.getElementById('deleteConfirmBtn');
+  const err=document.getElementById('deleteTypingErr');
+  const match=inp.value.trim()===inp.dataset.expected;
+  btn.disabled=!match;
+  btn.style.opacity=match?'1':'0.4';
+  err.style.display=(!match && inp.value.length>0)?'block':'none';
+}
+
+function resetDeleteModal(){
+  const wrap=document.getElementById('deleteConfirmTypingWrap');
+  if(wrap) wrap.style.display='none';
+  const inp=document.getElementById('deleteConfirmTypingInput');
+  if(inp){ inp.value=''; inp.dataset.expected=''; }
+  const btn=document.getElementById('deleteConfirmBtn');
+  if(btn){ btn.disabled=false; btn.style.opacity='1'; }
+  document.getElementById('deleteTypingErr').style.display='none';
+}
+
+async function deleteCompany(id, adminUid){
   closeModal('deleteModal');
-  loading('Deleting...');
+  resetDeleteModal();
+  loading('Deleting company data…');
   try{
-    // Delete all employees — Auth first (needs DB credentials), then DB
+    // 1. Delete all employees (salesmen) — Auth first, then DB
     const usersSnap=await db.ref('users').orderByChild('company_id').equalTo(id).get();
     if(usersSnap.exists()){
       for(const [uid] of Object.entries(usersSnap.val())){
-        // Auth delete BEFORE DB remove (authAction reads email/pass from DB)
-        try{ await authAction(uid,'delete'); }catch(e){}
+        try{ await authAction(uid,'delete'); }catch(e){ console.warn('Emp auth delete:',e.message); }
         await db.ref(`users/${uid}`).remove();
       }
     }
+    // 2. Delete company admin account (Auth + DB) — separate from salesmen
+    if(adminUid){
+      try{ await authAction(adminUid,'delete'); }catch(e){ console.warn('Admin auth delete:',e.message); }
+      await db.ref(`users/${adminUid}`).remove();
+    }
+    // 3. Delete all company Firebase nodes
     await db.ref(`companies/${id}`).remove();
     await db.ref(`visits/${id}`).remove();
     await db.ref(`attendance/${id}`).remove();
     await db.ref(`login_logs/${id}`).remove();
-    doneLoading(); toast('Company permanently deleted');
+    await db.ref(`company_counters/${id}`).remove(); // Employee ID sequence counter
+    doneLoading();
+    toast('✅ Company permanently deleted from Firebase');
     await loadSuperDashboard();
   }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
@@ -3633,6 +3721,7 @@ async function editSalesmanSA(uid){
 }
 
 async function deleteSalesmanSA(uid,name){
+  resetDeleteModal(); // ensure typing wrap is hidden (used only for company delete)
   document.getElementById('deleteModalMsg').textContent=`Permanently delete "${name}"? All data will be lost!`;
   document.getElementById('deleteConfirmBtn').onclick=async()=>{
     closeModal('deleteModal'); loading('Deleting...');
@@ -4493,6 +4582,7 @@ async function editSalesmanAdmin(uid){
 }
 
 async function softDeleteSalesman(uid, name){
+  resetDeleteModal(); // ensure typing wrap is hidden
   document.getElementById('deleteModalMsg').textContent=`Remove "${name}"? They will be deactivated and sent to Super Admin for permanent deletion.`;
   document.getElementById('deleteConfirmBtn').onclick=async()=>{
     closeModal('deleteModal'); loading('Removing...');
@@ -4738,6 +4828,10 @@ async function loadOverview(){
         const lateMin=Math.max(0,parseTimeToMin(inTime)-(parseTimeToMin(shift.shiftIn)+shift.greeting));
         if(nowMin>shiftOutMin){
           status='Pending'; statusColor='#FF9900'; sortKey=1;
+          // Show how long they were active (capped at shift end time)
+          const inMin2=parseTimeToMin(inTime);
+          const cappedMin=Math.min(nowMin,shiftOutMin)-inMin2;
+          duration=cappedMin>0?minToHHMM(cappedMin)+'?':'—'; // '?' = estimated, no checkout
           remarks=`⚠️ Checkout pending${lateMin>0?` | Late ${minToHHMM(lateMin)}`:''}`;
         } else {
           status='In'; statusColor='var(--ok)'; sortKey=0;
@@ -5759,6 +5853,12 @@ async function loadSmSelfReport(){
         if(att.start_time&&att.end_time){
           const d2=parseTimeToMin(att.end_time)-parseTimeToMin(att.start_time);
           dur=d2>0?minToHHMM(d2):'—';
+        } else if(att.start_time&&!att.end_time){
+          // No checkout — estimate duration up to shift end
+          const inMin2=parseTimeToMin(att.start_time);
+          const shiftOutMin2=parseTimeToMin(shift.shiftOut);
+          const estMin=shiftOutMin2-inMin2;
+          dur=estMin>0?minToHHMM(estMin)+'?':'—'; // '?' = estimated, no actual checkout
         }
         const lateMin=att.start_time?Math.max(0,parseTimeToMin(att.start_time)-(parseTimeToMin(shift.shiftIn)+shift.greeting)):0;
         if(lateMin>0){ lateStr=minToHHMM(lateMin); lateCount++; status='Late'; }
@@ -5915,6 +6015,22 @@ async function startDay(){
   const btn=document.getElementById('startDayBtn');
   btn.disabled=true;
   try{
+    // Firebase-level guard — prevents console bypass overwriting existing record
+    const todayKey=todayStr();
+    const existSnap=await db.ref(`attendance/${APP.companyId}/${todayKey}/${APP.user.uid}`).get();
+    if(existSnap.exists()){
+      const existing=existSnap.val();
+      if(existing.end_time){
+        toast('Your day has already been ended. Cannot start again.','err');
+        btn.disabled=false; return;
+      }
+      toast('Your day is already started!','err');
+      btn.disabled=false;
+      // Sync UI to actual Firebase state
+      showDayState('in_progress', existing);
+      startDurationTimer(existing.start_timestamp);
+      return;
+    }
     const pos=await getAccurateLocation(btn,'🌅 Start Your Day');
     // Zone enforcement for check-in
     const ciZone=APP.userData.checkin_zone||'';
@@ -5960,11 +6076,14 @@ async function startDay(){
 }
 
 async function endDay(auto=false){
+  // Disable button immediately to prevent double-click race condition
+  const endBtn=document.getElementById('endDayBtn');
+  if(!auto && endBtn) endBtn.disabled=true;
   const today=todayStr();
   const snap=await db.ref(`attendance/${APP.companyId}/${today}/${APP.user.uid}`).get();
-  if(!snap.exists()) return;
+  if(!snap.exists()){ if(!auto && endBtn) endBtn.disabled=false; return; }
   const att=snap.val();
-  if(att.end_time) return; // Already ended
+  if(att.end_time){ if(!auto && endBtn) endBtn.disabled=false; return; } // Already ended
 
   const now=auto ? new Date(new Date().setHours(23,59,59,0)) : new Date();
   const endTs=auto ? (()=>{ const d=new Date(); d.setHours(23,59,59,0); return d.getTime(); })() : Date.now();
@@ -5988,6 +6107,7 @@ async function endDay(auto=false){
     // If employee has a checkout zone, GPS is required — cannot bypass
     if(!auto && APP.userData.checkout_zone){
       toast('⛔ GPS required for check-out — your account has a zone restriction.','err');
+      if(!auto && endBtn) endBtn.disabled=false;
       return;
     }
     await doEndWithoutGPS(); return;
@@ -6002,6 +6122,7 @@ async function endDay(auto=false){
         const check=checkZoneAllowed(coZone,pos,coZones);
         if(!check.ok){
           toast('⛔ Check-out blocked: '+check.message,'err');
+          if(endBtn) endBtn.disabled=false;
           return;
         }
       }
@@ -6025,7 +6146,17 @@ async function endDay(auto=false){
       const updated={...att,...updates};
       showDayState('ended', updated);
     }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
-  }, doEndWithoutGPS, {enableHighAccuracy:true,timeout:8000});
+  }, async(gpsErr)=>{
+    // GPS failed (timeout / permission denied)
+    // If employee has a checkout zone, GPS is required — cannot bypass
+    if(!auto && APP.userData.checkout_zone){
+      toast('⛔ GPS required for check-out — your account has a zone restriction. Allow location and try again.','err');
+      const btn=document.getElementById('endDayBtn');
+      if(btn) btn.disabled=false;
+      return;
+    }
+    await doEndWithoutGPS();
+  }, {enableHighAccuracy:true,timeout:8000});
 }
 
 function scheduleAutoEndDay(){
@@ -6137,6 +6268,13 @@ async function submitVisit(){
   const outlet=document.getElementById('outletName').value.trim();
   const remarks=document.getElementById('visitRemarks').value.trim();
   if(!outlet){ toast('Please enter a client or location name','err'); return; }
+
+  // Firebase-level day status check — prevents console-level bypass
+  const todayKey=todayStr();
+  const daySnap=await db.ref(`attendance/${APP.companyId}/${todayKey}/${APP.user.uid}`).get();
+  if(!daySnap.exists()){ toast('Please start your day first before submitting a visit.','err'); return; }
+  if(daySnap.val().end_time){ toast('Your day has already ended. Cannot submit a visit.','err'); return; }
+
   const btn=document.getElementById('submitBtn');
   btn.disabled=true;
   try{
@@ -6223,7 +6361,10 @@ async function initSAReport(){
     if(snap.exists()){
       Object.entries(snap.val()).forEach(([id,co])=>{
         SA_companies_cache[id]=co;
-        sel.innerHTML+=`<option value="${htmlEsc(id)}">${htmlEsc(co.name)}</option>`;
+        // Only show active companies in report dropdown
+        if(co.status!=='inactive'){
+          sel.innerHTML+=`<option value="${htmlEsc(id)}">${htmlEsc(co.name)}</option>`;
+        }
       });
     }
     const today2=todayStr();
@@ -6240,7 +6381,7 @@ async function initSAReport(){
 // ── Helper: get companies to export (all or selected) ──
 async function getSACompanies(){
   const coFilter=document.getElementById('saReportCompany').value;
-  if(coFilter && SA_companies_cache[coFilter]) return {[coFilter]:SA_companies_cache[coFilter]};
+  if(coFilter && SA_companies_cache[coFilter] && SA_companies_cache[coFilter].status!=='inactive') return {[coFilter]:SA_companies_cache[coFilter]};
   // Build from cache or fetch fresh — always exclude inactive companies
   const source=Object.keys(SA_companies_cache).length ? SA_companies_cache : await (async()=>{
     const snap=await db.ref('companies').get();
@@ -6254,10 +6395,22 @@ async function getSACompanies(){
 }
 
 // ── Helper: get salesmen for a company ──
+// ── Users cache for SA exports — cleared before each export run ──
+let _SA_usersCache=null;
+async function _getOrFetchAllUsers(){
+  if(_SA_usersCache) return _SA_usersCache;
+  const snap=await db.ref('users').get();
+  _SA_usersCache={};
+  if(snap.exists()) Object.entries(snap.val()).forEach(([uid,u])=>{ _SA_usersCache[uid]=u; });
+  return _SA_usersCache;
+}
+function _clearSAUsersCache(){ _SA_usersCache=null; }
+
 async function getSASalesmen(coId, typeFilter){
-  const snap=await db.ref('users').orderByChild('company_id').equalTo(coId).get();
+  const allUsers=await _getOrFetchAllUsers();
   const salesmen={};
-  if(snap.exists()) Object.entries(snap.val()).forEach(([uid,u])=>{
+  Object.entries(allUsers).forEach(([uid,u])=>{
+    if(u.company_id!==coId) return;
     if(u.role!=='salesman'||u.status==='deleted_by_admin') return;
     if(typeFilter==='sales'&&u.emp_type==='backoffice') return;
     if(typeFilter==='backoffice'&&u.emp_type!=='backoffice') return;
@@ -6292,6 +6445,7 @@ function getSAEmpShift(u, coData){
 // SA REPORT A — History (same as company A + Co ID + Co Name)
 // ══════════════════════════════════════════════
 async function exportSAHistExcel(){
+  _clearSAUsersCache(); // fresh users read for this export run
   const startDate=document.getElementById('saRptHistStart').value;
   const endDate=document.getElementById('saRptHistEnd').value;
   const typeFilter=document.getElementById('saRptHistType').value;
@@ -6334,20 +6488,40 @@ async function exportSAHistExcel(){
     let saHCur=new Date(startDate+'T00:00:00'), saHEnd=new Date(endDate+'T00:00:00');
     while(saHCur<=saHEnd){ const y=saHCur.getFullYear(),m=String(saHCur.getMonth()+1).padStart(2,'0'),d=String(saHCur.getDate()).padStart(2,'0'); saHistDates.push(`${y}-${m}-${d}`); saHCur.setDate(saHCur.getDate()+1); }
 
-    // Fetch all companies in parallel, then all dates per company in parallel
+    // ── Fetch ALL att + visits across all companies × all dates in one batch ──
     const saHistCoEntries=Object.entries(companies);
+    const saHistKeys=[];
+    saHistCoEntries.forEach(([coId])=>{
+      saHistDates.forEach(ds=>{
+        saHistKeys.push({coId,ds,type:'att'});
+        saHistKeys.push({coId,ds,type:'vis'});
+      });
+    });
+    const saHistSnaps=await Promise.all(
+      saHistKeys.map(k=>db.ref(`${k.type==='att'?'attendance':'visits'}/${k.coId}/${k.ds}`).get())
+    );
+    // Group by coId → date
+    const saHistAtt={}, saHistVis={};
+    saHistKeys.forEach((k,i)=>{
+      if(!saHistSnaps[i].exists()) return;
+      if(k.type==='att'){
+        if(!saHistAtt[k.coId]) saHistAtt[k.coId]={};
+        saHistAtt[k.coId][k.ds]=saHistSnaps[i].val();
+      } else {
+        if(!saHistVis[k.coId]) saHistVis[k.coId]={};
+        saHistVis[k.coId][k.ds]=saHistSnaps[i].val();
+      }
+    });
+
     const saHistCoData=await Promise.all(saHistCoEntries.map(async([coId,co])=>{
-      const salesmen=await getSASalesmen(coId,typeFilter);
+      const salesmen=await getSASalesmen(coId,typeFilter); // from cache
       const empUidSet=new Set(Object.keys(salesmen));
       if(!empUidSet.size) return null;
-      const fetches=await Promise.all(saHistDates.map(date=>Promise.all([
-        db.ref(`attendance/${coId}/${date}`).get(),
-        db.ref(`visits/${coId}/${date}`).get()
-      ])));
       const coRows=[];
-      saHistDates.forEach((date,di)=>{
-        const [attSnap,vSnap]=fetches[di];
-        if(attSnap.exists()) Object.entries(attSnap.val()).forEach(([uid,att])=>{
+      saHistDates.forEach(date=>{
+        const attDay=saHistAtt[coId]?.[date]||null;
+        const visDay=saHistVis[coId]?.[date]||null;
+        if(attDay) Object.entries(attDay).forEach(([uid,att])=>{
           if(!empUidSet.has(uid)) return;
           const u=salesmen[uid]; const sh=getSAEmpShift(u,co);
           const inLoc=att.start_address||(att.start_lat?`${att.start_lat.toFixed(4)}, ${att.start_lng.toFixed(4)}`:'—');
@@ -6358,7 +6532,7 @@ async function exportSAHistExcel(){
           if(att.end_time) coRows.push({co:co.name,co_id:co.co_id||'—',uid,date,status:'Out',name:u.name,emp_id:u.emp_id||'—',type,shift:shLabel,location:outLoc,time:att.end_time,outlet:'—',remarks:'Day Ended',sort_ts:att.end_timestamp||0});
           else if(att.start_time) coRows.push({co:co.name,co_id:co.co_id||'—',uid,date,status:'Pending',name:u.name,emp_id:u.emp_id||'—',type,shift:shLabel,location:'—',time:'—',outlet:'—',remarks:'⚠️ Not Checked Out',sort_ts:(att.start_timestamp||0)+1});
         });
-        if(vSnap.exists()) Object.values(vSnap.val()).forEach(v=>{
+        if(visDay) Object.values(visDay).forEach(v=>{
           if(!empUidSet.has(v.salesman_uid)) return;
           const u=salesmen[v.salesman_uid]; const sh=getSAEmpShift(u,co);
           const type=u.emp_type==='backoffice'?'Back Office':'Sales';
@@ -6418,6 +6592,7 @@ function statusBg(v,alt){ return v==='Present'?'FFD1FAE5':v==='Late'?'FFFEF3C7':
 // Sheet 1: matrix + totals | Sheet 2: daily detail
 // ══════════════════════════════════════════════
 async function exportSASumExcel(){
+  _clearSAUsersCache(); // fresh users read for this export run
   const month=parseInt(document.getElementById('saRptSumMonth').value, 10);
   const year=parseInt(document.getElementById('saRptSumYear').value, 10);
   const typeFilter=document.getElementById('saRptSumType').value;
@@ -6491,23 +6666,41 @@ async function exportSASumExcel(){
       cell.border={top:{style:'medium',color:{argb:'FFC88A00'}},bottom:{style:'medium',color:{argb:'FFC88A00'}},left:{style:'thin',color:{argb:'FFC88A00'}},right:{style:'thin',color:{argb:'FFC88A00'}}};
     });
 
-    // Fetch all companies' salesmen + data in parallel
+    // ── Fetch ALL attendance + visits in one giant parallel batch ──
+    // N companies × D days × 2 paths — all fired at once instead of nested loops
     const coEntries=Object.entries(companies);
+    const allReadKeys=[]; // {coId, date, type:'att'|'vis'}
+    coEntries.forEach(([coId])=>{
+      allDates.forEach(ds=>{
+        allReadKeys.push({coId,ds,type:'att'});
+        allReadKeys.push({coId,ds,type:'vis'});
+      });
+    });
+    const allSnaps=await Promise.all(
+      allReadKeys.map(k=>db.ref(`${k.type==='att'?'attendance':'visits'}/${k.coId}/${k.ds}`).get())
+    );
+    // Group snaps back by coId
+    const attByDateByco={}, visByDateByco={};
+    allReadKeys.forEach((k,i)=>{
+      if(k.type==='att'){
+        if(!attByDateByco[k.coId]) attByDateByco[k.coId]={};
+        if(allSnaps[i].exists()) attByDateByco[k.coId][k.ds]=allSnaps[i].val();
+      } else {
+        if(!visByDateByco[k.coId]) visByDateByco[k.coId]={};
+        if(allSnaps[i].exists()) visByDateByco[k.coId][k.ds]=allSnaps[i].val();
+      }
+    });
+
     const coDataArr=await Promise.all(coEntries.map(async([coId,co])=>{
-      const salesmen=await getSASalesmen(coId, typeFilter);
+      const salesmen=await getSASalesmen(coId, typeFilter); // from cache — no extra read
       const empList=Object.entries(salesmen);
       if(!empList.length) return null;
-      const [attSnapsArr, visSnapsArr]=await Promise.all([
-        Promise.all(allDates.map(ds=>db.ref(`attendance/${coId}/${ds}`).get())),
-        Promise.all(allDates.map(ds=>db.ref(`visits/${coId}/${ds}`).get()))
-      ]);
-      const attByDate={};
-      allDates.forEach((ds,i)=>{ if(attSnapsArr[i].exists()) attByDate[ds]=attSnapsArr[i].val(); });
+      const attByDate=attByDateByco[coId]||{};
       const visByDate={};
-      allDates.forEach((ds,i)=>{
-        if(!visSnapsArr[i].exists()) return;
-        Object.values(visSnapsArr[i].val()).forEach(v=>{
-          if(!visByDate[ds]) visByDate[ds]={};
+      // Count visits per day per salesman from pre-fetched data
+      Object.entries(visByDateByco[coId]||{}).forEach(([ds,dayVis])=>{
+        visByDate[ds]={};
+        Object.values(dayVis).forEach(v=>{
           visByDate[ds][v.salesman_uid]=(visByDate[ds][v.salesman_uid]||0)+1;
         });
       });
@@ -6626,6 +6819,7 @@ async function exportSASumExcel(){
 // SA REPORT C — Late & Overtime (multi-company)
 // ══════════════════════════════════════════════
 async function exportSALateExcel(){
+  _clearSAUsersCache(); // fresh users read for this export run
   const startDate=document.getElementById('saRptLateStart').value;
   const endDate=document.getElementById('saRptLateEnd').value;
   const typeFilter=document.getElementById('saRptLateType').value;
