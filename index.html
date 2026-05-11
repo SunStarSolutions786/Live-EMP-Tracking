@@ -4961,6 +4961,7 @@ async function loadHistory(){
   const startDate=document.getElementById('vStartDate').value;
   const endDate=document.getElementById('vEndDate').value;
   if(!startDate||!endDate){ toast('Please enter start and end date','err'); return; }
+  if(endDate<startDate){ toast('End date cannot be before start date — please fix the date range.','err'); return; }
   loading('Loading history...');
   lastHistoryData=[];
   try{
@@ -6450,6 +6451,7 @@ async function exportSAHistExcel(){
   const endDate=document.getElementById('saRptHistEnd').value;
   const typeFilter=document.getElementById('saRptHistType').value;
   if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
+  if(endDate<startDate){ toast('End date cannot be before start date — please fix the date range.','err'); return; }
   loading('Building SA History report...');
   await ensureReportLibs();
   try{
@@ -6824,6 +6826,7 @@ async function exportSALateExcel(){
   const endDate=document.getElementById('saRptLateEnd').value;
   const typeFilter=document.getElementById('saRptLateType').value;
   if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
+  if(endDate<startDate){ toast('End date cannot be before start date — please fix the date range.','err'); return; }
   loading('Building SA Late & Overtime report...');
   await ensureReportLibs();
   try{
@@ -6868,19 +6871,19 @@ async function exportSALateExcel(){
       const empList=Object.entries(salesmen);
       if(!empList.length) return null;
       const coHolidays=co.holidays||[0]; const coCustomHols=co.custom_holidays||[];
-      const nonHolDates=cDates.filter(d=>!isAnyHoliday(d,coHolidays,coCustomHols));
-      const lateAttSnaps=await Promise.all(nonHolDates.map(d=>db.ref(`attendance/${coId}/${d}`).get()));
+      // use ALL dates — holiday rows naturally skipped (no att.start_time check inside loop)
+      const lateAttSnaps=await Promise.all(cDates.map(d=>db.ref(`attendance/${coId}/${d}`).get()));
       const lateAttByDate={};
-      nonHolDates.forEach((d,i)=>{ if(lateAttSnaps[i].exists()) lateAttByDate[d]=lateAttSnaps[i].val(); });
-      return {co,coId,empList,nonHolDates,lateAttByDate};
+      cDates.forEach((d,i)=>{ if(lateAttSnaps[i].exists()) lateAttByDate[d]=lateAttSnaps[i].val(); });
+      return {co,coId,empList,allDates:cDates,lateAttByDate};
     }));
 
     let rowIdx=6, srNum=0;
     for(const coData of lateCoDataArr){
       if(!coData) continue;
-      const {co,empList,nonHolDates,lateAttByDate}=coData;
+      const {co,empList,allDates,lateAttByDate}=coData;
 
-      for(const date of nonHolDates){
+      for(const date of allDates){
         const dayAtt=lateAttByDate[date];
         if(!dayAtt) continue;
         empList.forEach(([uid,u],ei)=>{
@@ -6941,6 +6944,7 @@ async function exportRptHistExcel(){
   const endDate=document.getElementById('rptHistEnd').value;
   const typeFilter=document.getElementById('rptHistType').value;
   if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
+  if(endDate<startDate){ toast('End date cannot be before start date — please fix the date range.','err'); return; }
   loading('Building History report...');
   await ensureReportLibs();
   try{
@@ -7378,7 +7382,7 @@ async function buildLateRows(startDate, endDate, typeFilter){
   });
 
   // Fetch all non-holiday dates in parallel — consistent with other report functions
-  const nonHolDates=dates.filter(date=>!isAnyHoliday(date,weeklyHols,customHols));
+  const nonHolDates=dates; // use ALL dates — holiday rows naturally skipped (no att.start_time)
   const attSnapsArr=await Promise.all(nonHolDates.map(date=>db.ref(`attendance/${APP.companyId}/${date}`).get()));
 
   for(let di=0;di<nonHolDates.length;di++){
@@ -7437,6 +7441,7 @@ async function exportRptLateExcel(){
   const endDate=document.getElementById('rptLateEnd').value;
   const typeFilter=document.getElementById('rptLateType').value;
   if(!startDate||!endDate){ toast('Please select start and end date','err'); return; }
+  if(endDate<startDate){ toast('End date cannot be before start date — please fix the date range.','err'); return; }
   loading('Building Late & Overtime report...');
   await ensureReportLibs();
   try{
