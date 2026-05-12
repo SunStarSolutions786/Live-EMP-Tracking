@@ -5977,6 +5977,15 @@ function showDayState(state, att=null){
   if(!APP.isBackOffice){
     document.getElementById('visitFormCard').style.display=state==='in_progress'?'block':'none';
   }
+  // Always reset button states when switching state — prevents disabled button getting stuck
+  const startBtn=document.getElementById('startDayBtn');
+  const endBtn=document.getElementById('endDayBtn');
+  if(state==='in_progress'){
+    if(endBtn){ endBtn.disabled=false; endBtn.textContent='🌙 End Your Day'; }
+  }
+  if(state==='not_started'){
+    if(startBtn){ startBtn.disabled=false; startBtn.textContent='🌅 Start Your Day'; }
+  }
 
   if(state==='in_progress' && att){
     document.getElementById('dayStartTime').textContent=att.start_time||'—';
