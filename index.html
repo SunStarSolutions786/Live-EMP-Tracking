@@ -9,7 +9,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="SunStar">
+<!-- Preconnect to Firebase CDN so TCP+TLS is ready before scripts parse -->
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<!-- Firebase SDKs — loaded statically so browser discovers & fetches them in parallel -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
@@ -2293,39 +2299,18 @@ async function generateEmpId(coId){
 
 /* FIREBASE INIT
 ════════════════════════════════════════════════ */
-let db, auth, firebase_loaded=false;
+let db, auth;
 
 function loadFirebase(config){
+  // SDKs already loaded statically from <head> — just init the app
   return new Promise((res,rej)=>{
-    if(firebase_loaded){ res(); return; }
-    const s1=document.createElement('script');
-    s1.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js';
-    s1.onload=()=>{
-      // Load auth + database in parallel (faster)
-      const s2=document.createElement('script');
-      s2.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js';
-      const s3=document.createElement('script');
-      s3.src='https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js';
-      let loaded=0;
-      const onBothLoaded=()=>{
-        loaded++;
-        if(loaded<2) return;
-        try{
-          if(!firebase.apps.length) firebase.initializeApp(config);
-          db=firebase.database();
-          auth=firebase.auth();
-          APP.apiKey=config.apiKey;
-          firebase_loaded=true;
-          res();
-        }catch(e){ rej(e); }
-      };
-      s2.onload=onBothLoaded; s2.onerror=()=>rej(new Error('Firebase auth failed to load'));
-      s3.onload=onBothLoaded; s3.onerror=()=>rej(new Error('Firebase database failed to load'));
-      document.head.appendChild(s2);
-      document.head.appendChild(s3);
-    };
-    s1.onerror=()=>rej(new Error('Firebase app failed to load'));
-    document.head.appendChild(s1);
+    try{
+      if(!firebase.apps.length) firebase.initializeApp(config);
+      db=firebase.database();
+      auth=firebase.auth();
+      APP.apiKey=config.apiKey;
+      res();
+    }catch(e){ rej(e); }
   });
 }
 
@@ -2432,7 +2417,7 @@ async function initApp(){
 
   loading('Please wait...');
   // Timeout fallback — show login if Firebase takes too long
-  const authTimeout = setTimeout(()=>{ doneLoading(); hideAll(); show('loginScreen'); }, 8000);
+  const authTimeout = setTimeout(()=>{ doneLoading(); hideAll(); show('loginScreen'); }, 3000);
   
   auth.onAuthStateChanged(async user=>{
     clearTimeout(authTimeout);
