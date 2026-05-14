@@ -12,10 +12,10 @@
 <!-- Preconnect to Firebase CDN so TCP+TLS is ready before scripts parse -->
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<!-- Firebase SDKs — loaded statically so browser discovers & fetches them in parallel -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<!-- Firebase SDKs — defer: browser downloads parallel with HTML, executes after parse, before DOMContentLoaded -->
+<script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <style>
@@ -51,59 +51,6 @@ button{font-family:'DM Sans',sans-serif;}
 .flex-screen{display:none!important;}
 .flex-screen.on{display:flex!important;}
 
-/* SETUP WIZARD (first time)
-════════════════════════════════════════════════ */
-#setupScreen{
-  min-height:100vh;align-items:center;justify-content:center;
-  background:radial-gradient(ellipse at 30% 60%,rgba(239,168,0,0.07) 0%,transparent 55%),
-             radial-gradient(ellipse at 80% 20%,rgba(75,159,255,0.05) 0%,transparent 50%),
-             var(--bg);
-  padding:20px;position:relative;overflow:hidden;
-}
-#setupScreen::before{
-  content:'';position:fixed;inset:0;
-  background-image:linear-gradient(rgba(239,168,0,0.035) 1px,transparent 1px),
-                   linear-gradient(90deg,rgba(239,168,0,0.035) 1px,transparent 1px);
-  background-size:56px 56px;pointer-events:none;
-}
-.setup-card{
-  position:relative;width:100%;max-width:520px;
-  background:var(--bg-card);border:1px solid var(--border);
-  border-radius:22px;padding:44px 40px;box-shadow:var(--shadow),var(--gold-glow);
-  animation:up .55s ease;
-}
-.setup-step{display:none;} .setup-step.on{display:block;}
-.setup-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--gold-dim);border:1px solid rgba(239,168,0,0.3);
-  border-radius:20px;padding:5px 14px;font-size:12px;
-  color:var(--gold-lt);letter-spacing:1.5px;text-transform:uppercase;
-  font-weight:600;margin-bottom:20px;
-}
-.setup-dots{display:flex;gap:8px;margin-bottom:32px;}
-.setup-dot{
-  width:28px;height:4px;border-radius:2px;
-  background:var(--border);transition:background .3s;
-}
-.setup-dot.active{background:var(--gold);}
-.setup-h{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;color:var(--txt);margin-bottom:6px;}
-.setup-sub{font-size:14px;color:var(--txt-2);margin-bottom:28px;line-height:1.6;}
-.setup-note{
-  background:rgba(75,159,255,0.08);border:1px solid rgba(75,159,255,0.2);
-  border-radius:var(--r-sm);padding:14px 16px;font-size:13px;
-  color:var(--info);margin-bottom:20px;line-height:1.6;
-}
-.setup-code{
-  background:rgba(0,0,0,0.4);border:1px solid var(--border);
-  border-radius:var(--r-sm);padding:14px 16px;font-family:monospace;
-  font-size:12px;color:var(--gold-lt);white-space:pre-wrap;
-  line-height:1.7;margin-bottom:20px;word-break:break-all;
-}
-.setup-warning{
-  background:rgba(255,68,102,0.08);border:1px solid rgba(255,68,102,0.2);
-  border-radius:var(--r-sm);padding:14px 16px;font-size:13px;
-  color:var(--err);margin-bottom:20px;line-height:1.6;
-}
 
 /* LOGIN
 ════════════════════════════════════════════════ */
@@ -680,7 +627,7 @@ body{ overscroll-behavior:none; }
   .settings-section{padding:16px 14px;}
 
   /* ── LOGIN/SETUP CARDS ── */
-  .login-card,.setup-card{padding:28px 18px;}
+  .login-card{padding:28px 18px;}
 
   /* ── STATS in overview ── */
   .stats-row{grid-template-columns:repeat(2,1fr);}
@@ -692,149 +639,6 @@ body{ overscroll-behavior:none; }
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════
-     SETUP WIZARD (Firebase Config)
-══════════════════════════════════════════════ -->
-<div id="setupScreen" class="flex-screen">
-  <div class="setup-card">
-    <div style="width:68px;height:68px;margin:0 auto 10px;"><img src="data:image/png;base64,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" style="width:100%;height:100%;object-fit:contain;" alt="SunStar Solutions"></div>
-    <div class="logo-title" style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:700;margin-bottom:4px;">SunStar Solutions</div>
-    <div class="logo-sub" style="font-size:11px;color:var(--txt-2);letter-spacing:2px;text-transform:uppercase;margin-bottom:30px;">Field Force Management</div>
-
-    <div class="setup-dots">
-      <div class="setup-dot active" id="dot1"></div>
-      <div class="setup-dot" id="dot2"></div>
-      <div class="setup-dot" id="dot3"></div>
-      <div class="setup-dot" id="dot4"></div>
-    </div>
-
-    <!-- Step 1 -->
-    <div class="setup-step on" id="step1">
-      <div class="setup-badge">🔥 Step 1 of 4</div>
-      <div class="setup-h">Create Firebase Account</div>
-      <div class="setup-sub">Firebase is Google's free database. All your data will be securely stored here.</div>
-      <div class="setup-note">
-        📌 <strong>Steps:</strong><br>
-        1. <strong>console.firebase.google.com</strong> — Go to this link<br>
-        2. Sign in with Gmail<br>
-        3. Click <strong>"Add project"</strong><br>
-        4. Enter project name: <strong>sunstar-solutions</strong><br>
-        5. Disable Google Analytics<br>
-        6. Click <strong>"Create project"</strong>
-      </div>
-      <button class="btn" onclick="goStep(2)">Done! Next Step →</button>
-    </div>
-
-    <!-- Step 2 -->
-    <div class="setup-step" id="step2">
-      <div class="setup-badge">🗄️ Step 2 of 4</div>
-      <div class="setup-h">Enable Database & Auth</div>
-      <div class="setup-sub">Two Firebase services need to be enabled.</div>
-      <div class="setup-note">
-        <strong>Enable Authentication:</strong><br>
-        1. Left menu <strong>Authentication</strong> → Get started<br>
-        2. <strong>Email/Password</strong> → Enable → Save<br><br>
-        <strong>Enable Realtime Database:</strong><br>
-        3. Left menu <strong>Realtime Database</strong> → Create database<br>
-        4. Location: <strong>us-central1</strong> (default)<br>
-        5. <strong>Test mode</strong> — keep this for now → Enable
-      </div>
-      <div class="setup-warning">
-        ⚠️ Database Rules — Go to Rules tab and paste the code below:
-      </div>
-      <div class="setup-code">{
-  "rules": {
-    "users": {
-      "$uid": {
-        ".read": "auth != null && ($uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'super_admin')",
-        ".write": "auth != null && ($uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'super_admin')"
-      }
-    },
-    "companies": {
-      ".read": "auth != null",
-      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'super_admin'"
-    },
-    "visits": {
-      "$cid": {
-        ".read": "auth != null && (root.child('users').child(auth.uid).child('company_id').val() === $cid || root.child('users').child(auth.uid).child('role').val() === 'super_admin' || root.child('users').child(auth.uid).child('role').val() === 'company_admin')",
-        ".write": "auth != null && root.child('users').child(auth.uid).child('company_id').val() === $cid"
-      }
-    },
-    "attendance": {
-      "$cid": {
-        ".read": "auth != null && (root.child('users').child(auth.uid).child('company_id').val() === $cid || root.child('users').child(auth.uid).child('role').val() === 'super_admin' || root.child('users').child(auth.uid).child('role').val() === 'company_admin')",
-        ".write": "auth != null && root.child('users').child(auth.uid).child('company_id').val() === $cid"
-      }
-    },
-    "login_logs": {
-      "$cid": {
-        ".read": "auth != null && (root.child('users').child(auth.uid).child('company_id').val() === $cid || root.child('users').child(auth.uid).child('role').val() === 'super_admin' || root.child('users').child(auth.uid).child('role').val() === 'company_admin')",
-        ".write": "auth != null && root.child('users').child(auth.uid).child('company_id').val() === $cid"
-      }
-    },
-    "company_counters": {
-      "$cid": {
-        ".read": "auth != null",
-        ".write": "auth != null"
-      }
-    },
-    "company_counter": {
-      ".read": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'super_admin'",
-      ".write": "auth != null && root.child('users').child(auth.uid).child('role').val() === 'super_admin'"
-    }
-  }
-}</div>
-      <button class="btn" onclick="goStep(3)">Done! Next Step →</button>
-    </div>
-
-    <!-- Step 3 -->
-    <div class="setup-step" id="step3">
-      <div class="setup-badge">🔑 Step 3 of 4</div>
-      <div class="setup-h">Get Firebase Config</div>
-      <div class="setup-sub">This config connects your app to Firebase.</div>
-      <div class="setup-note">
-        1. Go to Firebase project<br>
-        2. Project Overview → Click <strong>Web icon (&lt;/&gt;)</strong><br>
-        3. Enter app nickname: <strong>sunstar-web</strong><br>
-        4. Click <strong>Register app</strong><br>
-        5. Copy the <strong>firebaseConfig</strong> object below<br>
-        6. Paste it in the box below
-      </div>
-      <div class="fg">
-        <label class="fl">Firebase Config (paste here)</label>
-        <textarea class="fta" id="configInput" rows="7" placeholder='const firebaseConfig = {
-  apiKey: "AIza...",
-  authDomain: "sunstar-...",
-  databaseURL: "https://sunstar-...",
-  projectId: "sunstar-...",
-  ...
-};'></textarea>
-      </div>
-      <button class="btn" onclick="parseAndSaveConfig()">Save Config →</button>
-    </div>
-
-    <!-- Step 4 -->
-    <div class="setup-step" id="step4">
-      <div class="setup-badge">👑 Step 4 of 4</div>
-      <div class="setup-h">Create Super Admin Account</div>
-      <div class="setup-sub">This is your master account — you can view all companies.</div>
-      <div class="fg">
-        <label class="fl">Your Name</label>
-        <input class="fi" id="saName" placeholder="Your full name">
-      </div>
-      <div class="fg">
-        <label class="fl">Email</label>
-        <input class="fi" id="saEmail" type="email" placeholder="admin@sunstar.com">
-      </div>
-      <div class="fg">
-        <label class="fl">Password (minimum 6 characters)</label>
-        <input class="fi" id="saPass" type="password" placeholder="Enter a strong password">
-      </div>
-      <div id="step4Err" class="err-box"></div>
-      <button class="btn" onclick="createSuperAdmin()">🚀 Launch App!</button>
-    </div>
-  </div>
-</div>
 
 <!-- ══════════════════════════════════════════════
      LOGIN SCREEN
@@ -889,8 +693,13 @@ body{ overscroll-behavior:none; }
     <!-- DAY STATUS CARD -->
     <div class="card" id="dayStatusCard" style="margin-top:18px;">
       <div class="card-hd"><div class="card-icon">🕐</div>Day Status</div>
+      <!-- Skeleton shown while Firebase fetches day status -->
+      <div id="dayStatusSkeleton" style="padding:18px 0;text-align:center;">
+        <div style="width:60%;height:13px;background:var(--bg-hover);border-radius:6px;margin:0 auto 14px;"></div>
+        <div style="width:200px;height:42px;background:var(--bg-hover);border-radius:12px;margin:0 auto;"></div>
+      </div>
       <!-- Not started -->
-      <div id="dayNotStarted">
+      <div id="dayNotStarted" style="display:none;">
         <div style="text-align:center;padding:10px 0 18px;">
           <div style="font-size:13px;color:var(--txt-2);margin-bottom:16px;">You haven't started your day yet. Click below to begin.</div>
           <button class="btn" id="startDayBtn" onclick="startDay()" style="max-width:280px;margin:0 auto;display:block;">
@@ -2144,7 +1953,7 @@ body{ overscroll-behavior:none; }
 </div>
 
 <!-- Loading -->
-<div class="load-ov" id="loader">
+<div class="load-ov on" id="loader">
   <div class="spinner"></div>
   <div class="load-txt" id="loaderTxt">Loading...</div>
 </div>
@@ -2183,7 +1992,7 @@ let APP = { user:null, userData:null, companyId:null, salesmen:{}, visitCache:{}
 function show(id){ document.getElementById(id).classList.add('on'); }
 
 function hideAll(){ 
-  ['setupScreen','loginScreen','salesmanScreen','adminScreen','superScreen'].forEach(id=>{
+  ['loginScreen','salesmanScreen','adminScreen','superScreen'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){ el.classList.remove('on'); }
   });
@@ -2302,86 +2111,35 @@ async function generateEmpId(coId){
 let db, auth;
 
 function loadFirebase(config){
-  // SDKs already loaded statically from <head> — just init the app
+  // SDKs loaded with defer from <head> — guaranteed ready at DOMContentLoaded
+  // Extra guard in case of unexpected timing
   return new Promise((res,rej)=>{
-    try{
-      if(!firebase.apps.length) firebase.initializeApp(config);
-      db=firebase.database();
-      auth=firebase.auth();
-      APP.apiKey=config.apiKey;
-      res();
-    }catch(e){ rej(e); }
+    const tryInit=()=>{
+      try{
+        if(typeof firebase==='undefined') return setTimeout(tryInit,50); // wait for defer
+        if(!firebase.apps.length) firebase.initializeApp(config);
+        db=firebase.database();
+        auth=firebase.auth();
+        APP.apiKey=config.apiKey;
+        res();
+      }catch(e){ rej(e); }
+    };
+    tryInit();
   });
 }
 
 /* SETUP WIZARD
 ════════════════════════════════════════════════ */
-let currentStep=1;
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-
-function goStep(n){
-  document.getElementById(`step${currentStep}`).classList.remove('on');
-  document.getElementById(`dot${currentStep}`).classList.remove('active');
-  currentStep=n;
-  document.getElementById(`step${n}`).classList.add('on');
-  document.getElementById(`dot${n}`).classList.add('active');
-}
-
-function parseAndSaveConfig(){
-  const raw=document.getElementById('configInput').value.trim();
-  if(!raw){ toast('Please paste Firebase config','err'); return; }
-  try{
-    // extract JSON from the config string
-    const match=raw.match(/\{[\s\S]*\}/);
-    if(!match) throw new Error('Invalid format');
-    const jsonStr=match[0]
-      .replace(/(\w+)\s*:/g,'"$1":')
-      .replace(/:\s*"([^"]*)"/g,':"$1"')
-      .replace(/,\s*\}/g,'}');
-    // simpler approach: eval-style extraction
-    const cfg={};
-    const re=/(apiKey|authDomain|databaseURL|projectId|storageBucket|messagingSenderId|appId)\s*:\s*["']([^"']+)["']/g;
-    let m;
-    while((m=re.exec(raw))!==null){ cfg[m[1]]=m[2].trim(); }
-    if(Object.keys(cfg).length<4) throw new Error('Config fields missing');
-    if(!cfg.apiKey||!cfg.databaseURL) throw new Error('apiKey or databaseURL not found');
-    localStorage.setItem('ss_config',JSON.stringify(cfg));
-    toast('Config saved ✅');
-    goStep(4);
-  }catch(e){
-    toast('Please paste config correctly. Error: '+e.message,'err');
-  }
-}
-
-async function createSuperAdmin(){
-  const name=document.getElementById('saName').value.trim();
-  const email=document.getElementById('saEmail').value.trim();
-  const pass=document.getElementById('saPass').value;
-  const errEl=document.getElementById('step4Err');
-  errEl.style.display='none';
-  if(!name||!email||!pass){ errEl.textContent='Please fill all fields'; errEl.style.display='block'; return; }
-  if(pass.length<6){ errEl.textContent='Password must be at least 6 characters'; errEl.style.display='block'; return; }
-  
-  loading('Creating Super Admin account...');
-  try{
-    const cfg=JSON.parse(localStorage.getItem('ss_config'));
-    await loadFirebase(cfg);
-    const cred=await auth.createUserWithEmailAndPassword(email,pass);
-    await db.ref(`users/${cred.user.uid}`).set({ name, email, role:'super_admin', created_at:Date.now() });
-    doneLoading();
-    toast('Super Admin created! Launching app...');
-    setTimeout(()=>window.location.reload(),1500);
-  }catch(e){
-    doneLoading();
-    errEl.textContent='Error: '+e.message;
-    errEl.style.display='block';
-  }
-}
 
 /* APP INIT
 ════════════════════════════════════════════════ */
 async function initApp(){
-  const cfg=JSON.stringify({
+  // Spinner already visible from HTML default — update text
+  loading('Connecting...');
+
+  // Firebase config — hardcoded for this deployment
+  const cfg={
     apiKey:"AIzaSyCLXiPHWhgzRAtEBXSl8hZArV-PLxMlvKw",
     authDomain:"sunstar-solutions.firebaseapp.com",
     databaseURL:"https://sunstar-solutions-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -2389,13 +2147,16 @@ async function initApp(){
     storageBucket:"sunstar-solutions.firebasestorage.app",
     messagingSenderId:"223023626528",
     appId:"1:223023626528:web:655c631d5e53c53fbdff45"
-  });
-  localStorage.setItem('ss_config',cfg);
-  
+  };
+
   try{
-    await loadFirebase(JSON.parse(cfg));
+    await loadFirebase(cfg);
   }catch(e){
-    show('setupScreen'); return;
+    // Firebase failed to init — show login with error
+    doneLoading(); hideAll(); show('loginScreen');
+    const errEl=document.getElementById('loginErr');
+    if(errEl){ errEl.textContent='Connection failed. Please refresh the page.'; errEl.style.display='block'; }
+    return;
   }
 
   // Set default dates
@@ -2415,14 +2176,19 @@ async function initApp(){
   const perfMonthEl=document.getElementById('perfMonth');
   if(perfMonthEl) perfMonthEl.value=String(now.getMonth());
 
-  loading('Please wait...');
-  // Timeout fallback — show login if Firebase takes too long
+  // Timeout fallback — show login if Firebase auth takes too long
   const authTimeout = setTimeout(()=>{ doneLoading(); hideAll(); show('loginScreen'); }, 3000);
   
   auth.onAuthStateChanged(async user=>{
     clearTimeout(authTimeout);
     if(APP._suppressAuth) return; // suppress during password change re-auth swap
-    if(!user){ doneLoading(); hideAll(); show('loginScreen'); return; }
+    if(!user){
+      APP._initialized=false; // reset on logout so next login re-inits properly
+      doneLoading(); hideAll(); show('loginScreen'); return;
+    }
+    // Guard against Firebase firing onAuthStateChanged twice for same user
+    // (once from cache, once after server token verification)
+    if(APP._initialized && APP.user && APP.user.uid===user.uid){ doneLoading(); return; }
     loading('Loading your account...');
     try{
       const snap=await db.ref(`users/${user.uid}`).get();
@@ -2490,6 +2256,7 @@ async function initApp(){
       if(APP.userData.role==='super_admin') await initSuperAdmin();
       else if(APP.userData.role==='company_admin') await initAdmin();
       else await initSalesman();
+      APP._initialized=true; // guard against double onAuthStateChanged fire
       doneLoading();
     }catch(e){
       doneLoading();
@@ -5956,20 +5723,20 @@ async function loadDayStatus(){
 }
 
 function showDayState(state, att=null){
+  // Hide skeleton once actual state is known
+  const skeleton=document.getElementById('dayStatusSkeleton');
+  if(skeleton) skeleton.style.display='none';
   document.getElementById('dayNotStarted').style.display=state==='not_started'?'block':'none';
   document.getElementById('dayInProgress').style.display=state==='in_progress'?'block':'none';
   document.getElementById('dayEnded').style.display=state==='ended'?'block':'none';
   if(!APP.isBackOffice){
     document.getElementById('visitFormCard').style.display=state==='in_progress'?'block':'none';
   }
-  // Always reset button states when switching state — prevents disabled button getting stuck
-  const startBtn=document.getElementById('startDayBtn');
+  // Reset button states safely — only endDayBtn needs explicit enable (disabled bug fix)
+  // startDayBtn text/disabled NOT reset here — would override GPS counter text
   const endBtn=document.getElementById('endDayBtn');
   if(state==='in_progress'){
     if(endBtn){ endBtn.disabled=false; endBtn.textContent='🌙 End Your Day'; }
-  }
-  if(state==='not_started'){
-    if(startBtn){ startBtn.disabled=false; startBtn.textContent='🌅 Start Your Day'; }
   }
 
   if(state==='in_progress' && att){
@@ -7590,7 +7357,7 @@ window.addEventListener('appinstalled',()=>{
 
 /* START
 ════════════════════════════════════════════════ */
-window.addEventListener('load',initApp);
+document.addEventListener('DOMContentLoaded', initApp);
 
 // ── Service Worker (inline via Blob) — caches app shell for offline launch ──
 (function(){
