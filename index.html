@@ -1049,10 +1049,19 @@ body{ overscroll-behavior:none; }
         <!-- Icon guide -->
         <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-sm);">
           <span style="font-size:12px;color:var(--txt-2);">Map Icons:</span>
-          <span style="font-size:12px;color:var(--txt-2);">🟢 <b style="color:var(--txt);">Circle (IN)</b> — green border = Check-In</span>
-          <span style="font-size:12px;color:var(--txt-2);">🔴 <b style="color:var(--txt);">Circle (OUT)</b> — red border = Check-Out</span>
-          <span style="font-size:12px;color:var(--txt-2);">📍 <b style="color:var(--txt);">Teardrop #N</b> — Visit stop</span>
-          <span style="font-size:12px;color:var(--txt-2);">⚠️ <b style="color:var(--txt);">Legend badge</b> — Not yet checked out</span>
+          <span style="font-size:12px;color:var(--txt-2);">
+            <svg viewBox="0 0 24 32" width="14" height="18" style="vertical-align:middle;margin-right:3px;"><path d="M12 0C5.373 0 0 5.373 0 12c0 8.5 12 20 12 20S24 20.5 24 12C24 5.373 18.627 0 12 0z" fill="#EFA800" stroke="#1FD17A" stroke-width="2"/><text x="12" y="16" text-anchor="middle" font-size="7" font-weight="900" fill="white">IN</text></svg>
+            <b style="color:var(--txt);">IN Pin</b> — Check-In location (green border)
+          </span>
+          <span style="font-size:12px;color:var(--txt-2);">
+            <svg viewBox="0 0 24 32" width="14" height="18" style="vertical-align:middle;margin-right:3px;"><path d="M12 0C5.373 0 0 5.373 0 12c0 8.5 12 20 12 20S24 20.5 24 12C24 5.373 18.627 0 12 0z" fill="#EFA800" stroke="#FF4466" stroke-width="2"/><text x="12" y="16" text-anchor="middle" font-size="6" font-weight="900" fill="white">OUT</text></svg>
+            <b style="color:var(--txt);">OUT Pin</b> — Check-Out location (red border)
+          </span>
+          <span style="font-size:12px;color:var(--txt-2);">
+            <svg viewBox="0 0 24 32" width="14" height="18" style="vertical-align:middle;margin-right:3px;"><path d="M12 0C5.373 0 0 5.373 0 12c0 8.5 12 20 12 20S24 20.5 24 12C24 5.373 18.627 0 12 0z" fill="#EFA800" stroke="rgba(0,0,0,0.3)" stroke-width="1.5"/><text x="12" y="16" text-anchor="middle" font-size="8" font-weight="900" fill="white">1</text></svg>
+            <b style="color:var(--txt);">Visit Pin #N</b> — Visit stop (numbered in order)
+          </span>
+          <span style="font-size:12px;color:var(--txt-2);">⚠️ <b style="color:var(--txt);">No Checkout</b> — Shift ended, employee not yet checked out</span>
         </div>
       </div>
 
@@ -5866,7 +5875,6 @@ async function endDay(auto=false){
   };
 
   if(!navigator.geolocation){
-    // If employee has a checkout zone, GPS is required — cannot bypass
     if(!auto && APP.userData.checkout_zone){
       toast('⛔ GPS required for check-out — your account has a zone restriction.','err');
       if(!auto && endBtn) endBtn.disabled=false;
@@ -5875,50 +5883,68 @@ async function endDay(auto=false){
     await doEndWithoutGPS(); return;
   }
 
-  navigator.geolocation.getCurrentPosition(async pos=>{
-    // Zone enforcement for check-out (skip for auto end-of-day)
-    if(!auto){
-      const coZone=APP.userData.checkout_zone||'';
-      if(coZone){
-        const coZones=APP.companyZoneTemplates||[];
-        const check=checkZoneAllowed(coZone,pos,coZones);
-        if(!check.ok){
-          toast('⛔ Check-out blocked: '+check.message,'err');
-          if(endBtn) endBtn.disabled=false;
-          return;
-        }
-      }
-    }
-    loading(auto?'Auto ending day...':'Ending your day...');
-    const time=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
-    const acc=Math.round(pos.coords.accuracy);
-    const updates={
-      end_time: auto?'11:59 PM (Auto)':time,
-      end_timestamp: endTs,
-      end_lat: pos.coords.latitude,
-      end_lng: pos.coords.longitude,
-      end_accuracy: acc,
-      end_address:`📍 ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)} (±${acc}m)`,
-    };
-    try{
-      await db.ref(`attendance/${APP.companyId}/${today}/${APP.user.uid}`).update(updates);
-      if(dayDurationInterval){ clearInterval(dayDurationInterval); dayDurationInterval=null; }
-      doneLoading();
-      if(!auto) toast('Day ended! Great work today 🌙');
-      const updated={...att,...updates};
-      showDayState('ended', updated);
-    }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
-  }, async(gpsErr)=>{
-    // GPS failed (timeout / permission denied)
-    // If employee has a checkout zone, GPS is required — cannot bypass
-    if(!auto && APP.userData.checkout_zone){
+  // Auto end-of-day: single GPS attempt, no button to update
+  if(auto){
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      loading('Auto ending day...');
+      const time='11:59 PM (Auto)';
+      const acc=Math.round(pos.coords.accuracy);
+      const updates={
+        end_time:time, end_timestamp:endTs,
+        end_lat:pos.coords.latitude, end_lng:pos.coords.longitude,
+        end_accuracy:acc,
+        end_address:`📍 ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)} (±${acc}m)`,
+      };
+      try{
+        await db.ref(`attendance/${APP.companyId}/${today}/${APP.user.uid}`).update(updates);
+        if(dayDurationInterval){ clearInterval(dayDurationInterval); dayDurationInterval=null; }
+        doneLoading(); showDayState('ended',{...att,...updates});
+      }catch(e){ doneLoading(); }
+    }, ()=>doEndWithoutGPS(), {enableHighAccuracy:true,timeout:8000});
+    return;
+  }
+
+  // Manual check-out: use getAccurateLocation for 1/4→4/4 counter display
+  let pos;
+  try{
+    pos=await getAccurateLocation(endBtn,'🌙 End Your Day');
+  }catch(gpsErr){
+    if(APP.userData.checkout_zone){
       toast('⛔ GPS required for check-out — your account has a zone restriction. Allow location and try again.','err');
-      const btn=document.getElementById('endDayBtn');
-      if(btn) btn.disabled=false;
+      if(endBtn) endBtn.disabled=false;
       return;
     }
-    await doEndWithoutGPS();
-  }, {enableHighAccuracy:true,timeout:8000});
+    await doEndWithoutGPS(); return;
+  }
+
+  // Zone enforcement for manual check-out
+  const coZone=APP.userData.checkout_zone||'';
+  if(coZone){
+    const coZones=APP.companyZoneTemplates||[];
+    const check=checkZoneAllowed(coZone,pos,coZones);
+    if(!check.ok){
+      toast('⛔ Check-out blocked: '+check.message,'err');
+      if(endBtn) endBtn.disabled=false;
+      return;
+    }
+  }
+
+  loading('Ending your day...');
+  const time=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
+  const acc=Math.round(pos.coords.accuracy);
+  const updates={
+    end_time:time, end_timestamp:endTs,
+    end_lat:pos.coords.latitude, end_lng:pos.coords.longitude,
+    end_accuracy:acc,
+    end_address:`📍 ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)} (±${acc}m)`,
+  };
+  try{
+    await db.ref(`attendance/${APP.companyId}/${today}/${APP.user.uid}`).update(updates);
+    if(dayDurationInterval){ clearInterval(dayDurationInterval); dayDurationInterval=null; }
+    doneLoading();
+    toast('Day ended! Great work today 🌙');
+    showDayState('ended',{...att,...updates});
+  }catch(e){ doneLoading(); toast('Error: '+e.message,'err'); }
 }
 
 function scheduleAutoEndDay(){
